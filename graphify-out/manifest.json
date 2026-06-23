@@ -1,0 +1,1017 @@
+{
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/.vscode/settings.json": {
+    "mtime": 1781261537.8022664,
+    "ast_hash": "e21598ab261bad9c03d700c295c63245",
+    "semantic_hash": "e21598ab261bad9c03d700c295c63245"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/components.json": {
+    "mtime": 1781246843.431541,
+    "ast_hash": "fc5c9e9a7b93eeb2f7b4e1ce0959e4a6",
+    "semantic_hash": "fc5c9e9a7b93eeb2f7b4e1ce0959e4a6"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/create-admin.mjs": {
+    "mtime": 1781250839.2418764,
+    "ast_hash": "b42e72f85c33fe2ddbac9443697bd2d2",
+    "semantic_hash": "b42e72f85c33fe2ddbac9443697bd2d2"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/eslint.config.mjs": {
+    "mtime": 1781457460.3614442,
+    "ast_hash": "9e97a515733457b5c56a5bd276e15b8b",
+    "semantic_hash": "9e97a515733457b5c56a5bd276e15b8b"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/next.config.ts": {
+    "mtime": 1781430127.7044601,
+    "ast_hash": "42c8161d28f710ea6bdc6f01e526cf7a",
+    "semantic_hash": "42c8161d28f710ea6bdc6f01e526cf7a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/package.json": {
+    "mtime": 1781767655.8668208,
+    "ast_hash": "0dc6899be61a08bc3690ddd4e6c3e19a",
+    "semantic_hash": "0dc6899be61a08bc3690ddd4e6c3e19a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/postcss.config.mjs": {
+    "mtime": 1781246695.7394032,
+    "ast_hash": "239f3ebf717465dc636818a1a619398d",
+    "semantic_hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/replace_colors.py": {
+    "mtime": 1781254737.040829,
+    "ast_hash": "b587b513fb8b09d79a08b02fc106731a",
+    "semantic_hash": "b587b513fb8b09d79a08b02fc106731a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/actions/auth.ts": {
+    "mtime": 1781247359.1096816,
+    "ast_hash": "64645627454f1b2c2de03eb77f763826",
+    "semantic_hash": "64645627454f1b2c2de03eb77f763826"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/actions/storage.ts": {
+    "mtime": 1781497283.3840299,
+    "ast_hash": "08438bec7a03158e3773fb6f66499e83",
+    "semantic_hash": "08438bec7a03158e3773fb6f66499e83"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/actions/subtask-comments.ts": {
+    "mtime": 1781360533.6703157,
+    "ast_hash": "e88bde6e0066909d6587f65786ad4374",
+    "semantic_hash": "e88bde6e0066909d6587f65786ad4374"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/attendance/[yearMonth]/page.tsx": {
+    "mtime": 1781355024.6509206,
+    "ast_hash": "e851ad8fd8fcbc33dea257085f42f5ba",
+    "semantic_hash": "e851ad8fd8fcbc33dea257085f42f5ba"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/attendance/page.tsx": {
+    "mtime": 1781354979.869269,
+    "ast_hash": "8940199494073c31a6fd02bbf22b5dd0",
+    "semantic_hash": "8940199494073c31a6fd02bbf22b5dd0"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/calendar/actions.ts": {
+    "mtime": 1781778282.24076,
+    "ast_hash": "1f3acfe76a083b5dd8d8c280ff4df380",
+    "semantic_hash": "1f3acfe76a083b5dd8d8c280ff4df380"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/calendar/page.tsx": {
+    "mtime": 1781778338.7598586,
+    "ast_hash": "d4afce27db2ac332eb13607fcb4002cb",
+    "semantic_hash": "d4afce27db2ac332eb13607fcb4002cb"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/calendar/production-calendar.tsx": {
+    "mtime": 1781778366.4922378,
+    "ast_hash": "7b66127ee3dd98ebff57a35d6d44303a",
+    "semantic_hash": "7b66127ee3dd98ebff57a35d6d44303a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/[id]/add-project-dialog.tsx": {
+    "mtime": 1781769530.2107768,
+    "ast_hash": "0833c32f8147a4edb87bdfb1a0cf9e8e",
+    "semantic_hash": "0833c32f8147a4edb87bdfb1a0cf9e8e"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/[id]/page.tsx": {
+    "mtime": 1781769342.8963249,
+    "ast_hash": "425a85c89ca76247bbb92d1638480de6",
+    "semantic_hash": "425a85c89ca76247bbb92d1638480de6"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/actions.ts": {
+    "mtime": 1781768385.2344935,
+    "ast_hash": "e1fba37bfd8e0a181da39c693dcf056f",
+    "semantic_hash": "e1fba37bfd8e0a181da39c693dcf056f"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/client-actions.tsx": {
+    "mtime": 1781361213.0221732,
+    "ast_hash": "69202079fb479a02e729059e0f2183db",
+    "semantic_hash": "69202079fb479a02e729059e0f2183db"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/client-form.tsx": {
+    "mtime": 1781434318.8791676,
+    "ast_hash": "77d4cf8f36e7b75626a042f5e35ae01a",
+    "semantic_hash": "77d4cf8f36e7b75626a042f5e35ae01a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/edit-client-dialog.tsx": {
+    "mtime": 1781434327.9233856,
+    "ast_hash": "c4c465d647391527d1a1e5933407e597",
+    "semantic_hash": "c4c465d647391527d1a1e5933407e597"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/page.tsx": {
+    "mtime": 1781434196.780966,
+    "ast_hash": "10b53c5f07838a52f1adda6f183c24f8",
+    "semantic_hash": "10b53c5f07838a52f1adda6f183c24f8"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/employees/[id]/page.tsx": {
+    "mtime": 1781435307.9283304,
+    "ast_hash": "818d9a4dd1403e623244981253bf6627",
+    "semantic_hash": "818d9a4dd1403e623244981253bf6627"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/employees/actions.ts": {
+    "mtime": 1781773007.472173,
+    "ast_hash": "ec44151e1be08404c2c239e0c086c73b",
+    "semantic_hash": "ec44151e1be08404c2c239e0c086c73b"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/employees/edit-employee-dialog.tsx": {
+    "mtime": 1781452380.9948418,
+    "ast_hash": "13c4b5171daac460b8fa3c0131305f1f",
+    "semantic_hash": "13c4b5171daac460b8fa3c0131305f1f"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/employees/employee-actions.tsx": {
+    "mtime": 1781361274.1827672,
+    "ast_hash": "71211de0cc75aebaff8ee954a3f0efb1",
+    "semantic_hash": "71211de0cc75aebaff8ee954a3f0efb1"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/employees/employee-form.tsx": {
+    "mtime": 1781452211.1333401,
+    "ast_hash": "9a2416b9321c2fefd45244db902fc821",
+    "semantic_hash": "9a2416b9321c2fefd45244db902fc821"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/employees/page.tsx": {
+    "mtime": 1781435223.7643752,
+    "ast_hash": "9e3d9a1214a4eecc790f64a009319c2d",
+    "semantic_hash": "9e3d9a1214a4eecc790f64a009319c2d"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/[id]/edit/page.tsx": {
+    "mtime": 1781459653.8622475,
+    "ast_hash": "1dec77555e495da97cbdeeffbf96291d",
+    "semantic_hash": "1dec77555e495da97cbdeeffbf96291d"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/[id]/equipment-photo.tsx": {
+    "mtime": 1781497327.5272264,
+    "ast_hash": "9e03e473ad6211abf9d9f22d604c5ca4",
+    "semantic_hash": "9e03e473ad6211abf9d9f22d604c5ca4"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/[id]/page.tsx": {
+    "mtime": 1781497320.054458,
+    "ast_hash": "19689356b87fe5bf12ff11b4af7abd9d",
+    "semantic_hash": "19689356b87fe5bf12ff11b4af7abd9d"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/actions.ts": {
+    "mtime": 1781768278.803327,
+    "ast_hash": "b9c9422f8f03d65145f5d519a53c74e1",
+    "semantic_hash": "b9c9422f8f03d65145f5d519a53c74e1"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/checkin/checkin-form.tsx": {
+    "mtime": 1781495160.6853788,
+    "ast_hash": "3adb84efc46b9853a4a86ade703a30d0",
+    "semantic_hash": "3adb84efc46b9853a4a86ade703a30d0"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/checkin/page.tsx": {
+    "mtime": 1781459692.7083125,
+    "ast_hash": "6f856ec07d89497fdb3531397056bbe2",
+    "semantic_hash": "6f856ec07d89497fdb3531397056bbe2"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/checkout/checkout-form.tsx": {
+    "mtime": 1781771327.3350809,
+    "ast_hash": "55535e2f818120067377efd13555b0ab",
+    "semantic_hash": "55535e2f818120067377efd13555b0ab"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/checkout/page.tsx": {
+    "mtime": 1781459665.890429,
+    "ast_hash": "ab3adc9ccec5e042dcec37cd5138163f",
+    "semantic_hash": "ab3adc9ccec5e042dcec37cd5138163f"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/equipment-form.tsx": {
+    "mtime": 1781769371.7420638,
+    "ast_hash": "8abc366c775ddd1cad49628d307ee480",
+    "semantic_hash": "8abc366c775ddd1cad49628d307ee480"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/equipment-list.tsx": {
+    "mtime": 1781505636.068406,
+    "ast_hash": "c9e4b4579f41b4ce94a50572de2be178",
+    "semantic_hash": "c9e4b4579f41b4ce94a50572de2be178"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/maintenance/maintenance-list.tsx": {
+    "mtime": 1781504782.365802,
+    "ast_hash": "7f0606476c6fa9b51b5a8ef46b5da0b4",
+    "semantic_hash": "7f0606476c6fa9b51b5a8ef46b5da0b4"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/maintenance/new/maintenance-form.tsx": {
+    "mtime": 1781771335.7089064,
+    "ast_hash": "6cf2ba1048c2bdad763274573b9d1117",
+    "semantic_hash": "6cf2ba1048c2bdad763274573b9d1117"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/maintenance/new/page.tsx": {
+    "mtime": 1781459718.2869375,
+    "ast_hash": "0d919520ed8436f64da5779f19cf2c90",
+    "semantic_hash": "0d919520ed8436f64da5779f19cf2c90"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/maintenance/page.tsx": {
+    "mtime": 1781504841.0413668,
+    "ast_hash": "4cd1c8ac7e478581bb5e71854a69e80a",
+    "semantic_hash": "4cd1c8ac7e478581bb5e71854a69e80a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/new/page.tsx": {
+    "mtime": 1781459594.3891006,
+    "ast_hash": "f0afb3fe4b9e2e04634813e01ed7c860",
+    "semantic_hash": "f0afb3fe4b9e2e04634813e01ed7c860"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/page.tsx": {
+    "mtime": 1781504932.5480518,
+    "ast_hash": "15cb6be86e003803bcbe0e9854ecdb92",
+    "semantic_hash": "15cb6be86e003803bcbe0e9854ecdb92"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/expenses/[id]/expense-actions.tsx": {
+    "mtime": 1781453816.1516492,
+    "ast_hash": "759b7644468287e5d53ad30af9818832",
+    "semantic_hash": "759b7644468287e5d53ad30af9818832"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/expenses/[id]/page.tsx": {
+    "mtime": 1781457310.3578382,
+    "ast_hash": "5ce4aca0a868a32349efb099094ba63c",
+    "semantic_hash": "5ce4aca0a868a32349efb099094ba63c"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/expenses/actions.ts": {
+    "mtime": 1781768344.31426,
+    "ast_hash": "f04d14982f6e0064e2f5d01ae7699c64",
+    "semantic_hash": "f04d14982f6e0064e2f5d01ae7699c64"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/expenses/expense-form.tsx": {
+    "mtime": 1781771316.2850065,
+    "ast_hash": "4230dfa325988d8e254ca2a36e8b0652",
+    "semantic_hash": "4230dfa325988d8e254ca2a36e8b0652"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/expenses/expense-table.tsx": {
+    "mtime": 1781771299.733223,
+    "ast_hash": "ea626ac55d6c3e478599d215b76b01bd",
+    "semantic_hash": "ea626ac55d6c3e478599d215b76b01bd"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/expenses/new/page.tsx": {
+    "mtime": 1781453773.7241068,
+    "ast_hash": "c23a25da64ddab11369222897fa71971",
+    "semantic_hash": "c23a25da64ddab11369222897fa71971"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/expenses/page.tsx": {
+    "mtime": 1781455556.7713444,
+    "ast_hash": "24b53710048f8a90e783aa37aba57e26",
+    "semantic_hash": "24b53710048f8a90e783aa37aba57e26"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/[id]/edit/page.tsx": {
+    "mtime": 1781457308.342665,
+    "ast_hash": "2022feb12fca9b81d7df913a1280c6ca",
+    "semantic_hash": "2022feb12fca9b81d7df913a1280c6ca"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/[id]/page.tsx": {
+    "mtime": 1781768134.7330186,
+    "ast_hash": "292b4df61968063b7474c6b75089478a",
+    "semantic_hash": "292b4df61968063b7474c6b75089478a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/[id]/print-button.tsx": {
+    "mtime": 1781453558.4207885,
+    "ast_hash": "fa362580ee54198b3b934079739b5ea3",
+    "semantic_hash": "fa362580ee54198b3b934079739b5ea3"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/[id]/record-payment-dialog.tsx": {
+    "mtime": 1781455621.3069806,
+    "ast_hash": "8201079b6b6254ab06a475ce34527b3d",
+    "semantic_hash": "8201079b6b6254ab06a475ce34527b3d"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/actions.ts": {
+    "mtime": 1781768219.0217347,
+    "ast_hash": "9ed6f2550fde566a8a48a673fc09399a",
+    "semantic_hash": "9ed6f2550fde566a8a48a673fc09399a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/invoice-form.tsx": {
+    "mtime": 1781771355.2131882,
+    "ast_hash": "53cc841cbee5807ce6eb2ede4033d02e",
+    "semantic_hash": "53cc841cbee5807ce6eb2ede4033d02e"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/invoice-table.tsx": {
+    "mtime": 1781771289.556462,
+    "ast_hash": "1bdf700318e5fad162dec41b79407fe2",
+    "semantic_hash": "1bdf700318e5fad162dec41b79407fe2"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/new/page.tsx": {
+    "mtime": 1781454084.388596,
+    "ast_hash": "7d24072efcb008a43bae6b7d9c6ab0a0",
+    "semantic_hash": "7d24072efcb008a43bae6b7d9c6ab0a0"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/invoices/page.tsx": {
+    "mtime": 1781455567.6557176,
+    "ast_hash": "759646b72e635548bcc97a222a4e1d4d",
+    "semantic_hash": "759646b72e635548bcc97a222a4e1d4d"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/layout.tsx": {
+    "mtime": 1781426351.5762646,
+    "ast_hash": "dcb57249e99bd82122559af2596958f8",
+    "semantic_hash": "dcb57249e99bd82122559af2596958f8"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/actions.ts": {
+    "mtime": 1781497534.4984038,
+    "ast_hash": "822b7cf3adc158ce13f761615c814239",
+    "semantic_hash": "822b7cf3adc158ce13f761615c814239"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/balances/edit-balance-cell.tsx": {
+    "mtime": 1781503512.179536,
+    "ast_hash": "bc7dce0cb39969a1108ca053fd13a3d5",
+    "semantic_hash": "bc7dce0cb39969a1108ca053fd13a3d5"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/balances/page.tsx": {
+    "mtime": 1781503529.8134212,
+    "ast_hash": "655abf872b4845b36e8ce04cb440d626",
+    "semantic_hash": "655abf872b4845b36e8ce04cb440d626"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/balances/seed-balances-button.tsx": {
+    "mtime": 1781455954.681296,
+    "ast_hash": "0fa149e99109b564914fd60279311776",
+    "semantic_hash": "0fa149e99109b564914fd60279311776"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/calendar/leave-calendar.tsx": {
+    "mtime": 1781503652.8762894,
+    "ast_hash": "7b43b2521606193af1da53fde9588fa7",
+    "semantic_hash": "7b43b2521606193af1da53fde9588fa7"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/calendar/page.tsx": {
+    "mtime": 1781503669.9724774,
+    "ast_hash": "4a4d14d1daba912d6d10301edec83ce1",
+    "semantic_hash": "4a4d14d1daba912d6d10301edec83ce1"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/dashboard-pending-requests.tsx": {
+    "mtime": 1781503591.0619001,
+    "ast_hash": "7cb528d8ee62d82fc3a84163d48d00a6",
+    "semantic_hash": "7cb528d8ee62d82fc3a84163d48d00a6"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/page.tsx": {
+    "mtime": 1781503627.1605792,
+    "ast_hash": "a9760731e48c07f8b2b75177f21d3701",
+    "semantic_hash": "a9760731e48c07f8b2b75177f21d3701"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/requests/admin-leave-actions.tsx": {
+    "mtime": 1781455936.7062442,
+    "ast_hash": "7c565e8a3e316fc650b20bd31e782e40",
+    "semantic_hash": "7c565e8a3e316fc650b20bd31e782e40"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/requests/leave-requests-table.tsx": {
+    "mtime": 1781771366.8728085,
+    "ast_hash": "26984ce7151540665224ba7b359cae77",
+    "semantic_hash": "26984ce7151540665224ba7b359cae77"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/requests/page.tsx": {
+    "mtime": 1781503561.981349,
+    "ast_hash": "74cd52e79d4247a2ae0d11716ce0c2be",
+    "semantic_hash": "74cd52e79d4247a2ae0d11716ce0c2be"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/types/leave-types-manager.tsx": {
+    "mtime": 1781503487.1653166,
+    "ast_hash": "e629ee75b7b97f50edce2b7790b12140",
+    "semantic_hash": "e629ee75b7b97f50edce2b7790b12140"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/leave/types/page.tsx": {
+    "mtime": 1781503500.33457,
+    "ast_hash": "acb2355bf12b29fe30a8c5a2cfcbe133",
+    "semantic_hash": "acb2355bf12b29fe30a8c5a2cfcbe133"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/page.tsx": {
+    "mtime": 1781520884.7756848,
+    "ast_hash": "1dfab535f7cdeb0d1a6a99a794fe5d01",
+    "semantic_hash": "1dfab535f7cdeb0d1a6a99a794fe5d01"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/[id]/budget/budget-chart.tsx": {
+    "mtime": 1781508213.7803872,
+    "ast_hash": "f7ac57903344aaad3a575ec12d464bf0",
+    "semantic_hash": "f7ac57903344aaad3a575ec12d464bf0"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/[id]/budget/budget-form.tsx": {
+    "mtime": 1781454170.0858157,
+    "ast_hash": "d3f39c92d61e8e141d29bf8cd4d89e47",
+    "semantic_hash": "d3f39c92d61e8e141d29bf8cd4d89e47"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/[id]/budget/page.tsx": {
+    "mtime": 1781767354.5499656,
+    "ast_hash": "73e656ed0af62ba87f0f2668b12c72e7",
+    "semantic_hash": "73e656ed0af62ba87f0f2668b12c72e7"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/[id]/page.tsx": {
+    "mtime": 1781521095.9764805,
+    "ast_hash": "3143758511719d152b127a68bebc227f",
+    "semantic_hash": "3143758511719d152b127a68bebc227f"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/actions.ts": {
+    "mtime": 1781776018.5910246,
+    "ast_hash": "084a2b6fd1b829111659d04b9d952b17",
+    "semantic_hash": "084a2b6fd1b829111659d04b9d952b17"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/page.tsx": {
+    "mtime": 1781512502.2550068,
+    "ast_hash": "a31662f21ce45a118268c9887c1072b8",
+    "semantic_hash": "a31662f21ce45a118268c9887c1072b8"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/project-actions-menu.tsx": {
+    "mtime": 1781776059.351476,
+    "ast_hash": "072d7735a699d09113b967b2997a811b",
+    "semantic_hash": "072d7735a699d09113b967b2997a811b"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/project-form.tsx": {
+    "mtime": 1781768062.971859,
+    "ast_hash": "9ce300e0e204d27c182a365b45f90183",
+    "semantic_hash": "9ce300e0e204d27c182a365b45f90183"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/projects/project-status-select.tsx": {
+    "mtime": 1781350332.9989166,
+    "ast_hash": "b7bcc1d355a3a0977e6088b5d68f55b2",
+    "semantic_hash": "b7bcc1d355a3a0977e6088b5d68f55b2"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/[id]/edit/page.tsx": {
+    "mtime": 1781496217.6906958,
+    "ast_hash": "cea7235449ddee4a4a01351e116ee2b7",
+    "semantic_hash": "cea7235449ddee4a4a01351e116ee2b7"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/[id]/page.tsx": {
+    "mtime": 1781496193.8486123,
+    "ast_hash": "584adf74d2ded1e298d9441a90afe58b",
+    "semantic_hash": "584adf74d2ded1e298d9441a90afe58b"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/[id]/talent-detail-actions.tsx": {
+    "mtime": 1781496204.321168,
+    "ast_hash": "bc93871af10f7d7a8e7e80b938dd98a7",
+    "semantic_hash": "bc93871af10f7d7a8e7e80b938dd98a7"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/actions.ts": {
+    "mtime": 1781768356.088568,
+    "ast_hash": "eb434ebf48d47245502234e50d7bf298",
+    "semantic_hash": "eb434ebf48d47245502234e50d7bf298"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/bookings/new/booking-form.tsx": {
+    "mtime": 1781771344.8963969,
+    "ast_hash": "6b9c96fd319c3cdce3c8904d0d5ad791",
+    "semantic_hash": "6b9c96fd319c3cdce3c8904d0d5ad791"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/bookings/new/page.tsx": {
+    "mtime": 1781496252.1850407,
+    "ast_hash": "0da790ae709cfef4bf4cddd320e5195d",
+    "semantic_hash": "0da790ae709cfef4bf4cddd320e5195d"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/bookings/page.tsx": {
+    "mtime": 1781496234.4371364,
+    "ast_hash": "751cfc9bdb64d89624929c4a3a3b681c",
+    "semantic_hash": "751cfc9bdb64d89624929c4a3a3b681c"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/new/page.tsx": {
+    "mtime": 1781496145.0883107,
+    "ast_hash": "e70265b64542db0de69454ab715da9b4",
+    "semantic_hash": "e70265b64542db0de69454ab715da9b4"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/page.tsx": {
+    "mtime": 1781495751.447631,
+    "ast_hash": "c4da89e2a8715007b3398695a25a9840",
+    "semantic_hash": "c4da89e2a8715007b3398695a25a9840"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/talent-form.tsx": {
+    "mtime": 1781768625.9931386,
+    "ast_hash": "5f7f08fe2cc9c145d2e67fe87c65efa6",
+    "semantic_hash": "5f7f08fe2cc9c145d2e67fe87c65efa6"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/talents-grid.tsx": {
+    "mtime": 1781496135.33251,
+    "ast_hash": "957a52563f8d5c6cb29e46b05ad5b3b6",
+    "semantic_hash": "957a52563f8d5c6cb29e46b05ad5b3b6"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/tasks/actions.ts": {
+    "mtime": 1781778308.93337,
+    "ast_hash": "b47cba6ca25811c9d026a8d58e7213ae",
+    "semantic_hash": "b47cba6ca25811c9d026a8d58e7213ae"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/tasks/client-projects-accordion.tsx": {
+    "mtime": 1781511462.8817966,
+    "ast_hash": "7ee738f14d5060b5c2d96b1cc2e250eb",
+    "semantic_hash": "7ee738f14d5060b5c2d96b1cc2e250eb"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/tasks/page.tsx": {
+    "mtime": 1781773027.5441148,
+    "ast_hash": "b76ed1363d7faacbadd04aa194c01086",
+    "semantic_hash": "b76ed1363d7faacbadd04aa194c01086"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/tasks/task-actions-menu.tsx": {
+    "mtime": 1781332943.273749,
+    "ast_hash": "09fabd969f49fcef651754168c332876",
+    "semantic_hash": "09fabd969f49fcef651754168c332876"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/tasks/task-form.tsx": {
+    "mtime": 1781776529.4057398,
+    "ast_hash": "64b3e66cf8a168a047ccc2ed05ce7ae9",
+    "semantic_hash": "64b3e66cf8a168a047ccc2ed05ce7ae9"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/template.tsx": {
+    "mtime": 1781248320.985229,
+    "ast_hash": "6fe4be5683c76571c1eb3665af057448",
+    "semantic_hash": "6fe4be5683c76571c1eb3665af057448"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/timesheets/[id]/page.tsx": {
+    "mtime": 1781456787.1329138,
+    "ast_hash": "ced24107649915e6ac048e38118ca642",
+    "semantic_hash": "ced24107649915e6ac048e38118ca642"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/timesheets/[id]/timesheet-actions.tsx": {
+    "mtime": 1781456846.3808503,
+    "ast_hash": "f0ca83758e6f725793465907bb7433bf",
+    "semantic_hash": "f0ca83758e6f725793465907bb7433bf"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/timesheets/actions.ts": {
+    "mtime": 1781456446.6609879,
+    "ast_hash": "8fb262c05b20111a56b92c1c6d589bd2",
+    "semantic_hash": "8fb262c05b20111a56b92c1c6d589bd2"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/timesheets/page.tsx": {
+    "mtime": 1781456785.0823038,
+    "ast_hash": "d3a4798c3a6318d594c56567f35dbc78",
+    "semantic_hash": "d3a4798c3a6318d594c56567f35dbc78"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/actions.ts": {
+    "mtime": 1781423237.8030424,
+    "ast_hash": "ce4cffef3b43daa87a93b95ff4e834c1",
+    "semantic_hash": "ce4cffef3b43daa87a93b95ff4e834c1"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/attendance/actions.ts": {
+    "mtime": 1781247783.090478,
+    "ast_hash": "2ae70550dc7a2e48c847dead3e7e9c39",
+    "semantic_hash": "2ae70550dc7a2e48c847dead3e7e9c39"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/attendance/attendance-form.tsx": {
+    "mtime": 1781254705.7613308,
+    "ast_hash": "efb392a63e439e262abb735f4e89a4c4",
+    "semantic_hash": "efb392a63e439e262abb735f4e89a4c4"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/attendance/page.tsx": {
+    "mtime": 1781254705.7632177,
+    "ast_hash": "2fcf5d0f64b6f48f85ae96460595da97",
+    "semantic_hash": "2fcf5d0f64b6f48f85ae96460595da97"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/equipment/equipment-photo.tsx": {
+    "mtime": 1781497345.3370435,
+    "ast_hash": "5a3c3804f046ab8289023d795c54b677",
+    "semantic_hash": "5a3c3804f046ab8289023d795c54b677"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/equipment/page.tsx": {
+    "mtime": 1781497336.0287292,
+    "ast_hash": "1ac1682ea49a3801e57101bacf67ece5",
+    "semantic_hash": "1ac1682ea49a3801e57101bacf67ece5"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/expenses/new/employee-expense-form.tsx": {
+    "mtime": 1781454217.3330154,
+    "ast_hash": "72f862b118a6a8a372d7dba5ac8e5dac",
+    "semantic_hash": "72f862b118a6a8a372d7dba5ac8e5dac"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/expenses/new/page.tsx": {
+    "mtime": 1781507057.1569219,
+    "ast_hash": "107c8205698109738b6ae0b09b655879",
+    "semantic_hash": "107c8205698109738b6ae0b09b655879"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/expenses/page.tsx": {
+    "mtime": 1781497503.518984,
+    "ast_hash": "54fd240d1ba0c1064717e61e5609faf8",
+    "semantic_hash": "54fd240d1ba0c1064717e61e5609faf8"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/layout.tsx": {
+    "mtime": 1781426349.5570195,
+    "ast_hash": "eb7118e93bc5b568353f4f072357accb",
+    "semantic_hash": "eb7118e93bc5b568353f4f072357accb"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/leave/actions.ts": {
+    "mtime": 1781455731.0065374,
+    "ast_hash": "895c8515228b9eb6f630f4e8b599b9bc",
+    "semantic_hash": "895c8515228b9eb6f630f4e8b599b9bc"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/leave/cancel-leave-button.tsx": {
+    "mtime": 1781455766.0089233,
+    "ast_hash": "a1ec730cf50d956fb9f96e8692966e22",
+    "semantic_hash": "a1ec730cf50d956fb9f96e8692966e22"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/leave/new/page.tsx": {
+    "mtime": 1781455844.1665568,
+    "ast_hash": "9bbbbed359c5d4af202bfd41f9b04445",
+    "semantic_hash": "9bbbbed359c5d4af202bfd41f9b04445"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/leave/new/request-leave-form.tsx": {
+    "mtime": 1781455845.5858161,
+    "ast_hash": "e305ba543c17b406286c8e209c6f5bb5",
+    "semantic_hash": "e305ba543c17b406286c8e209c6f5bb5"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/leave/page.tsx": {
+    "mtime": 1781455764.6859646,
+    "ast_hash": "82443bb6418892aa3b7e5604cce5440d",
+    "semantic_hash": "82443bb6418892aa3b7e5604cce5440d"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/page.tsx": {
+    "mtime": 1781423147.663963,
+    "ast_hash": "45242c93ab7283b641d39728e940a2b3",
+    "semantic_hash": "45242c93ab7283b641d39728e940a2b3"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/talents/page.tsx": {
+    "mtime": 1781496285.3153834,
+    "ast_hash": "f2868617034a204ab6e710e977489e00",
+    "semantic_hash": "f2868617034a204ab6e710e977489e00"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/task-card.tsx": {
+    "mtime": 1781433487.8376315,
+    "ast_hash": "ec44eaa41ef599ca67ee6ddba788c6d5",
+    "semantic_hash": "ec44eaa41ef599ca67ee6ddba788c6d5"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/template.tsx": {
+    "mtime": 1781248323.06722,
+    "ast_hash": "5bfc451ea05010f3a0413baaf433bc95",
+    "semantic_hash": "5bfc451ea05010f3a0413baaf433bc95"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/timesheets/actions.ts": {
+    "mtime": 1781456397.8787165,
+    "ast_hash": "dd3b8af54b4d48145f7089422750ab46",
+    "semantic_hash": "dd3b8af54b4d48145f7089422750ab46"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/timesheets/new/page.tsx": {
+    "mtime": 1781456474.998236,
+    "ast_hash": "26baf12f77c162818dbe7c776fab0733",
+    "semantic_hash": "26baf12f77c162818dbe7c776fab0733"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/timesheets/new/timesheet-form.tsx": {
+    "mtime": 1781456874.1081457,
+    "ast_hash": "6ecc654684cd7559d56594441809e77c",
+    "semantic_hash": "6ecc654684cd7559d56594441809e77c"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/employee/timesheets/page.tsx": {
+    "mtime": 1781456448.692029,
+    "ast_hash": "e97ea3466c8641f4e036d1bded9b985e",
+    "semantic_hash": "e97ea3466c8641f4e036d1bded9b985e"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/layout.tsx": {
+    "mtime": 1781254257.768691,
+    "ast_hash": "2984ad225eb890e7663e505a161fc2eb",
+    "semantic_hash": "2984ad225eb890e7663e505a161fc2eb"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/login/actions.ts": {
+    "mtime": 1781247316.0065844,
+    "ast_hash": "92dea1cfd3dc14ceefceecbd2fa246bc",
+    "semantic_hash": "92dea1cfd3dc14ceefceecbd2fa246bc"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/login/page.tsx": {
+    "mtime": 1781262360.6686277,
+    "ast_hash": "c47c1f3b5d2ff68218e579c25a1ab97c",
+    "semantic_hash": "c47c1f3b5d2ff68218e579c25a1ab97c"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/page.tsx": {
+    "mtime": 1781247399.1670725,
+    "ast_hash": "ce2b05d09cd3afff6642b35a1d22e53e",
+    "semantic_hash": "ce2b05d09cd3afff6642b35a1d22e53e"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/admin-sidebar.tsx": {
+    "mtime": 1781769909.5716538,
+    "ast_hash": "718b9df3f6ffe017aa79877b32725893",
+    "semantic_hash": "718b9df3f6ffe017aa79877b32725893"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/employee-sidebar.tsx": {
+    "mtime": 1781496343.4997194,
+    "ast_hash": "be1cc4bc2688b46da0664e346d24a040",
+    "semantic_hash": "be1cc4bc2688b46da0664e346d24a040"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/page-transition.tsx": {
+    "mtime": 1781248285.9775548,
+    "ast_hash": "4e60504c7e5b82724606c5a36ff3d364",
+    "semantic_hash": "4e60504c7e5b82724606c5a36ff3d364"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/receipt-link.tsx": {
+    "mtime": 1781523059.9352717,
+    "ast_hash": "226500001d0f18483eec387109346321",
+    "semantic_hash": "226500001d0f18483eec387109346321"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/storage-image.tsx": {
+    "mtime": 1781523074.9521253,
+    "ast_hash": "c3b02b85d40bf41dc47bfd2498109dee",
+    "semantic_hash": "c3b02b85d40bf41dc47bfd2498109dee"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/subtask-comment-section.tsx": {
+    "mtime": 1781360540.0000353,
+    "ast_hash": "eccf69949356c8ebaf74252e49e7c63f",
+    "semantic_hash": "eccf69949356c8ebaf74252e49e7c63f"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/theme-provider.tsx": {
+    "mtime": 1781254238.5848792,
+    "ast_hash": "1e38a6b2561ed78c853e9be3f76be1a5",
+    "semantic_hash": "1e38a6b2561ed78c853e9be3f76be1a5"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/theme-toggle.tsx": {
+    "mtime": 1781255262.6130118,
+    "ast_hash": "a447a3d707298c9095867652973b3f22",
+    "semantic_hash": "a447a3d707298c9095867652973b3f22"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/top-nav.tsx": {
+    "mtime": 1781426347.5329175,
+    "ast_hash": "5d99a7edd7008739e7b184ac97ddf0a5",
+    "semantic_hash": "5d99a7edd7008739e7b184ac97ddf0a5"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/alert-dialog.tsx": {
+    "mtime": 1781254994.9929159,
+    "ast_hash": "4f3e711a6b5df14e88f6fc243b57599b",
+    "semantic_hash": "4f3e711a6b5df14e88f6fc243b57599b"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/avatar.tsx": {
+    "mtime": 1781246914.9798307,
+    "ast_hash": "8b41492907a73176027427a3f0fd2302",
+    "semantic_hash": "8b41492907a73176027427a3f0fd2302"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/badge.tsx": {
+    "mtime": 1781246915.0132973,
+    "ast_hash": "e4ec840217040d5630ee6ed7213a1d72",
+    "semantic_hash": "e4ec840217040d5630ee6ed7213a1d72"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/button.tsx": {
+    "mtime": 1781509058.8006341,
+    "ast_hash": "4b73006637301f8fb37c7fc05ec3d240",
+    "semantic_hash": "4b73006637301f8fb37c7fc05ec3d240"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/card.tsx": {
+    "mtime": 1781248348.030753,
+    "ast_hash": "5daf111da3df486594239bf3782cad46",
+    "semantic_hash": "5daf111da3df486594239bf3782cad46"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/checkbox.tsx": {
+    "mtime": 1781253944.818796,
+    "ast_hash": "b2348d074d43a3597b5622982f1978b6",
+    "semantic_hash": "b2348d074d43a3597b5622982f1978b6"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/dialog.tsx": {
+    "mtime": 1781328913.3622484,
+    "ast_hash": "d9618a63d34473ec512321cc12d43692",
+    "semantic_hash": "d9618a63d34473ec512321cc12d43692"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/dropdown-menu.tsx": {
+    "mtime": 1781246915.0672283,
+    "ast_hash": "e6107cbb2088437e76a858f75b5a0280",
+    "semantic_hash": "e6107cbb2088437e76a858f75b5a0280"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/input.tsx": {
+    "mtime": 1781246914.8141818,
+    "ast_hash": "0607b02d99a2e92f9509223f36ccc6ec",
+    "semantic_hash": "0607b02d99a2e92f9509223f36ccc6ec"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/label.tsx": {
+    "mtime": 1781246914.908855,
+    "ast_hash": "a70440da86bfc6a07f15197cca48cb08",
+    "semantic_hash": "a70440da86bfc6a07f15197cca48cb08"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/scroll-area.tsx": {
+    "mtime": 1781246915.0955215,
+    "ast_hash": "ac8fc719d0fd13c77c933474827337da",
+    "semantic_hash": "ac8fc719d0fd13c77c933474827337da"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/select.tsx": {
+    "mtime": 1781246914.873409,
+    "ast_hash": "ab95f478cb74d1906b07425c15b124cc",
+    "semantic_hash": "ab95f478cb74d1906b07425c15b124cc"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/sheet.tsx": {
+    "mtime": 1781246915.1626348,
+    "ast_hash": "43ad8bec991f7a28d2aa22d4f374e6b7",
+    "semantic_hash": "43ad8bec991f7a28d2aa22d4f374e6b7"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/sonner.tsx": {
+    "mtime": 1781246914.9457421,
+    "ast_hash": "f46214bc2a6a5153a6e04fad523d5587",
+    "semantic_hash": "f46214bc2a6a5153a6e04fad523d5587"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/table.tsx": {
+    "mtime": 1781246914.7815642,
+    "ast_hash": "44f87727e60080863edb00fdd2fcd8da",
+    "semantic_hash": "44f87727e60080863edb00fdd2fcd8da"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/tabs.tsx": {
+    "mtime": 1781246915.127934,
+    "ast_hash": "429035bc858475cd3bcedbb08a5ba8da",
+    "semantic_hash": "429035bc858475cd3bcedbb08a5ba8da"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/components/ui/textarea.tsx": {
+    "mtime": 1781255314.3114874,
+    "ast_hash": "d448d2a90e48542e51b93a1189127bf2",
+    "semantic_hash": "d448d2a90e48542e51b93a1189127bf2"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/lib/supabase/admin.ts": {
+    "mtime": 1781247449.0518687,
+    "ast_hash": "404768814e71442c7e362e0bf3823049",
+    "semantic_hash": "404768814e71442c7e362e0bf3823049"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/lib/supabase/client.ts": {
+    "mtime": 1781247147.3017776,
+    "ast_hash": "4cb5739c1e33353d8f9d66c1737df2d1",
+    "semantic_hash": "4cb5739c1e33353d8f9d66c1737df2d1"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/lib/supabase/middleware.ts": {
+    "mtime": 1781262378.7057145,
+    "ast_hash": "33597c37c09da4eea3ccca8e07f58811",
+    "semantic_hash": "33597c37c09da4eea3ccca8e07f58811"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/lib/supabase/server.ts": {
+    "mtime": 1781247149.328413,
+    "ast_hash": "e3625cb960714581397d5306b2cf340b",
+    "semantic_hash": "e3625cb960714581397d5306b2cf340b"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/lib/supabase/storage.ts": {
+    "mtime": 1781523110.663387,
+    "ast_hash": "69349a3cb5a1dd91a2b283f73dfa2bb9",
+    "semantic_hash": "69349a3cb5a1dd91a2b283f73dfa2bb9"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/lib/utils.ts": {
+    "mtime": 1781246849.0057244,
+    "ast_hash": "5a6fd53fdcf2be529e9cc0b718fde352",
+    "semantic_hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/proxy.ts": {
+    "mtime": 1781364730.4336371,
+    "ast_hash": "d34d254eefb583e85ca9fb410b01028b",
+    "semantic_hash": "d34d254eefb583e85ca9fb410b01028b"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/types/equipment.ts": {
+    "mtime": 1781769380.9343677,
+    "ast_hash": "79717768b925a678da1bd8b09c6cf34e",
+    "semantic_hash": "79717768b925a678da1bd8b09c6cf34e"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/types/leave.ts": {
+    "mtime": 1781455703.1761875,
+    "ast_hash": "5b22a793ba0fbeb4e60d0a18685ff936",
+    "semantic_hash": "5b22a793ba0fbeb4e60d0a18685ff936"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/types/talent.ts": {
+    "mtime": 1781495721.1159503,
+    "ast_hash": "21789b6d4b00c267d737cef848c3e2f4",
+    "semantic_hash": "21789b6d4b00c267d737cef848c3e2f4"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_001.sql": {
+    "mtime": 1781252145.105096,
+    "ast_hash": "693588854c0735240f81a66049c71b80",
+    "semantic_hash": "693588854c0735240f81a66049c71b80"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_002.sql": {
+    "mtime": 1781253362.4063315,
+    "ast_hash": "6b0dbcc850779628f10158af992e30b6",
+    "semantic_hash": "6b0dbcc850779628f10158af992e30b6"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_003.sql": {
+    "mtime": 1781435208.6521976,
+    "ast_hash": "e3fcc95891d7fd574bbdb6db5f02a9aa",
+    "semantic_hash": "e3fcc95891d7fd574bbdb6db5f02a9aa"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_004.sql": {
+    "mtime": 1781355565.7720406,
+    "ast_hash": "20de14afea4cd06bd943c9250ab55d5c",
+    "semantic_hash": "20de14afea4cd06bd943c9250ab55d5c"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_005.sql": {
+    "mtime": 1781423127.049589,
+    "ast_hash": "b47b2db436c9cb4a15d34da7610fdc75",
+    "semantic_hash": "b47b2db436c9cb4a15d34da7610fdc75"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_006_invoicing.sql": {
+    "mtime": 1781454311.439708,
+    "ast_hash": "c6dc1522cdfbfe4d3fbd51f0bb3b56ec",
+    "semantic_hash": "c6dc1522cdfbfe4d3fbd51f0bb3b56ec"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_007_leave.sql": {
+    "mtime": 1781455690.0282426,
+    "ast_hash": "6b94923adee262e14cb981c158186526",
+    "semantic_hash": "6b94923adee262e14cb981c158186526"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_008_timesheets.sql": {
+    "mtime": 1781454853.0269778,
+    "ast_hash": "2772c9ee950e3bb0bf6f49aa4eb46d8a",
+    "semantic_hash": "2772c9ee950e3bb0bf6f49aa4eb46d8a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_009_equipment.sql": {
+    "mtime": 1781454867.512601,
+    "ast_hash": "0a75a9693bb40bf31da93475fadcda4a",
+    "semantic_hash": "0a75a9693bb40bf31da93475fadcda4a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_010_talents.sql": {
+    "mtime": 1781454879.8751433,
+    "ast_hash": "50f7e67529758cc9ffae8747164c1f83",
+    "semantic_hash": "50f7e67529758cc9ffae8747164c1f83"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_011_calendar.sql": {
+    "mtime": 1781495621.3457444,
+    "ast_hash": "5af93de7801a6401dc2c30bd80e749d2",
+    "semantic_hash": "5af93de7801a6401dc2c30bd80e749d2"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_schema.sql": {
+    "mtime": 1781247209.667305,
+    "ast_hash": "209dd482a1f5cd368055db7b05afe25f",
+    "semantic_hash": "209dd482a1f5cd368055db7b05afe25f"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/tsconfig.json": {
+    "mtime": 1781246695.7406526,
+    "ast_hash": "ee17fd1c97c735e9f3564e3f5251f125",
+    "semantic_hash": "ee17fd1c97c735e9f3564e3f5251f125"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/AGENTS.md": {
+    "mtime": 1781246731.099804,
+    "ast_hash": "9e09241799026ac05be315a2f0b50055",
+    "semantic_hash": "9e09241799026ac05be315a2f0b50055"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/CLAUDE.md": {
+    "mtime": 1781246731.099899,
+    "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
+    "semantic_hash": "5c27369b226fcf2be8a6cfe52224e767"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/README.md": {
+    "mtime": 1781246695.739112,
+    "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
+    "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/TASK_PROGRESS.md": {
+    "mtime": 1781496354.8048546,
+    "ast_hash": "f7000ebb412fe38495b22e2a7aa66f36",
+    "semantic_hash": "f7000ebb412fe38495b22e2a7aa66f36"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/public/file.svg": {
+    "mtime": 1781246695.7398424,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/public/globe.svg": {
+    "mtime": 1781246695.7401357,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/public/next.svg": {
+    "mtime": 1781246695.739968,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/public/vercel.svg": {
+    "mtime": 1781246695.740092,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/public/window.svg": {
+    "mtime": 1781246695.7400389,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/calendar/calendar-month-grid.tsx": {
+    "mtime": 1781775748.742621,
+    "ast_hash": "6bc8237745df2699e17a03c60d6da39a",
+    "semantic_hash": "6bc8237745df2699e17a03c60d6da39a"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/[id]/client-meeting-dialog.tsx": {
+    "mtime": 1781769290.3143215,
+    "ast_hash": "5b2be3f3626a7c252eecab37e4af58d7",
+    "semantic_hash": "5b2be3f3626a7c252eecab37e4af58d7"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/clients/meetings/page.tsx": {
+    "mtime": 1781769701.4856942,
+    "ast_hash": "26025fb8e31b804f32e09c5640b799e1",
+    "semantic_hash": "26025fb8e31b804f32e09c5640b799e1"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/equipment/api/categories/route.ts": {
+    "mtime": 1781768245.7608254,
+    "ast_hash": "4f7dd2bf98eb79c062debd0f803f9530",
+    "semantic_hash": "4f7dd2bf98eb79c062debd0f803f9530"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/expenses/api/categories/route.ts": {
+    "mtime": 1781768364.966208,
+    "ast_hash": "73d8c0e28d991216a05bfe64fa1f6742",
+    "semantic_hash": "73d8c0e28d991216a05bfe64fa1f6742"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/app/admin/talents/api/types/route.ts": {
+    "mtime": 1781768452.4864147,
+    "ast_hash": "9d39dfd2e5dd4e5923e280275d84d2fc",
+    "semantic_hash": "9d39dfd2e5dd4e5923e280275d84d2fc"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/src/lib/nepali-date.ts": {
+    "mtime": 1781767820.68874,
+    "ast_hash": "34c598abe798862672a3f8146ae12d53",
+    "semantic_hash": "34c598abe798862672a3f8146ae12d53"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_012_enhancements.sql": {
+    "mtime": 1781767679.2913773,
+    "ast_hash": "6a0cb7ac6024db1e1b1d90cdd54799b4",
+    "semantic_hash": "6a0cb7ac6024db1e1b1d90cdd54799b4"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/supabase_migration_013_employee_archive.sql": {
+    "mtime": 1781772976.7262456,
+    "ast_hash": "427f309640c2e5af915884fe568657ac",
+    "semantic_hash": "427f309640c2e5af915884fe568657ac"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/.agents/rules/graphify.md": {
+    "mtime": 1781622035.320144,
+    "ast_hash": "f1e53ecc9194573d3c28fc116c743a2e",
+    "semantic_hash": "f1e53ecc9194573d3c28fc116c743a2e"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/.agents/workflows/graphify.md": {
+    "mtime": 1781622035.3204677,
+    "ast_hash": "0bc020d491fca99550c1ea3de0a5f862",
+    "semantic_hash": "0bc020d491fca99550c1ea3de0a5f862"
+  },
+  "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles/implementation_plan.md": {
+    "mtime": 1781772749.0941334,
+    "ast_hash": "a2cb95e934273bd9e891392cabc7e0e4",
+    "semantic_hash": "a2cb95e934273bd9e891392cabc7e0e4"
+  }
+}
