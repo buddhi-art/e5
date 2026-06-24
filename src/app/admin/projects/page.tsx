@@ -7,6 +7,9 @@ import { ProjectStatusSelect } from "./project-status-select"
 import { ProjectActionsMenu } from "./project-actions-menu"
 import { Archive } from "lucide-react"
 
+// Layer 2: ISR - Cache for 5 minutes
+export const revalidate = 300
+
 export default async function ProjectsPage() {
   const supabase = await createClient()
 

@@ -9,6 +9,9 @@ import { ClientActions } from "./client-actions"
 import { Phone, Building2, ExternalLink, Archive } from "lucide-react"
 import Link from "next/link"
 
+// Layer 2: ISR - Cache for 5 minutes
+export const revalidate = 300
+
 export default async function ClientsPage() {
   const supabase = await createClient()
 

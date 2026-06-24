@@ -4,6 +4,9 @@ import { TaskForm } from './task-form'
 import { FolderKanban } from 'lucide-react'
 import { ClientProjectsAccordion } from './client-projects-accordion'
 
+// Layer 2: ISR - Cache for 5 minutes
+export const revalidate = 300
+
 export default async function TasksPage() {
   const supabase = await createClient()
 

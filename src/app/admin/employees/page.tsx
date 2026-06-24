@@ -9,6 +9,9 @@ import { Phone, MapPin, Archive } from "lucide-react"
 import { EmployeeActions } from "./employee-actions"
 import { EditEmployeeDialog } from "./edit-employee-dialog"
 
+// Layer 2: ISR - Cache for 5 minutes
+export const revalidate = 300
+
 export default async function EmployeesPage() {
   const supabase = await createClient()
 

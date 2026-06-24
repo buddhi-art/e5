@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, UserSquare2, FolderKanban, CheckSquare, ClipboardList } from 'lucide-react'
 import Link from 'next/link'
 
+// Layer 2: ISR - Cache this page for 5 minutes to avoid constant rebuilds on Termux
+export const revalidate = 300
+
 export default async function AdminDashboard() {
   const supabase = await createClient()
 
