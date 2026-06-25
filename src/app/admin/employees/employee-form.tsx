@@ -109,6 +109,20 @@ export function EmployeeForm({ designations = [] }: EmployeeFormProps) {
         />
       </div>
 
+      {/* Vehicle */}
+      <div className="space-y-2">
+        <Label className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">Owns Vehicle?</Label>
+        <Select name="vehicle" defaultValue="no">
+          <SelectTrigger className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white">
+            <SelectValue placeholder="Select Yes or No" />
+          </SelectTrigger>
+          <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+            <SelectItem value="yes">Yes</SelectItem>
+            <SelectItem value="no">No</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Joining Date */}
       <div className="space-y-2">
         <Label htmlFor="joiningDate" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">Joining Date</Label>

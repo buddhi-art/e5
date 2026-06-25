@@ -28,7 +28,7 @@ export function ClientForm({ companyNatures = [], referralSources = [] }: Client
   async function handleSubmit(formData: FormData) {
     setLoading(true)
     const result = await createClientRecord(formData)
-    
+
     if (result?.error) {
       toast.error(result.error)
     } else {
@@ -48,7 +48,7 @@ export function ClientForm({ companyNatures = [], referralSources = [] }: Client
           <Label htmlFor="companyName" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">Company Name *</Label>
           <Input id="companyName" name="companyName" required className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white" />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="natureOfCompany" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">Nature of Company</Label>
           <Select name="natureOfCompany" value={nature} onValueChange={(val) => setNature(val || '')}>
@@ -85,6 +85,16 @@ export function ClientForm({ companyNatures = [], referralSources = [] }: Client
         <div className="space-y-2">
           <Label htmlFor="location" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">Location</Label>
           <Input id="location" name="location" className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white" />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="panNumber" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">PAN Number</Label>
+          <Input id="panNumber" name="panNumber" placeholder="e.g. 123456789" className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white" />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="vatId" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">VAT ID</Label>
+          <Input id="vatId" name="vatId" placeholder="e.g. VAT-123456" className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white" />
         </div>
 
         <div className="space-y-2">
@@ -161,4 +171,3 @@ export function ClientForm({ companyNatures = [], referralSources = [] }: Client
     </form>
   )
 }
-

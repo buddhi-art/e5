@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { AttendanceForm } from './attendance-form'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Clock } from 'lucide-react'
 
 export default async function EmployeeAttendancePage() {
   const supabase = await createClient()
@@ -10,7 +11,17 @@ export default async function EmployeeAttendancePage() {
 
   if (!user) return null
 
-  // Fetch my attendance history
+  // Fetch today's record
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data: todayRecord } = await supabase
+    .from('attendance')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('date', today)
+    .single()
+
+  // Fetch my attendance history (last 30 days)
   const { data: myAttendance } = await supabase
     .from('attendance')
     .select('*')
@@ -18,44 +29,66 @@ export default async function EmployeeAttendancePage() {
     .order('date', { ascending: false })
     .limit(30)
 
-  const today = new Date().toISOString().split('T')[0]
-  const hasMarkedToday = myAttendance?.some(log => log.date === today)
+  const hasCheckedIn = !!todayRecord?.check_in_time
+  const hasCheckedOut = !!todayRecord?.check_out_time
+  const checkInTime = todayRecord?.check_in_time || null
+
+  function formatTime(isoString: string | null) {
+    if (!isoString) return '—'
+    return new Date(isoString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  }
+
+  function formatDuration(checkIn: string, checkOut: string) {
+    const start = new Date(checkIn).getTime()
+    const end = new Date(checkOut).getTime()
+    const diffMs = end - start
+    const hours = Math.floor(diffMs / (1000 * 60 * 60))
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    return `${hours}h ${minutes}m`
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Daily Attendance</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Mark your daily presence and view your history.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Attendance</h1>
+        <p className="text-zinc-600 dark:text-zinc-400">Check in when you arrive, check out when you leave.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-white">Mark Today's Status</CardTitle>
-            <CardDescription className="text-zinc-600 dark:text-zinc-400">Select your working status for {new Date().toLocaleDateString()}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {hasMarkedToday ? (
-              <div className="p-6 bg-green-400/10 border border-green-400/20 rounded-lg text-center">
-                <h3 className="text-green-400 font-medium mb-1">Attendance Marked</h3>
-                <p className="text-sm text-green-500/70">You have already submitted your attendance for today.</p>
-              </div>
-            ) : (
-              <AttendanceForm />
-            )}
-          </CardContent>
-        </Card>
+        <AttendanceForm
+          hasCheckedIn={hasCheckedIn}
+          hasCheckedOut={hasCheckedOut}
+          checkInTime={checkInTime}
+        />
 
         <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-white">Recent History</CardTitle>
-            <CardDescription className="text-zinc-600 dark:text-zinc-400">Your attendance logs for the last 30 days.</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-zinc-900 dark:text-white">Recent History</CardTitle>
+                <CardDescription className="text-zinc-600 dark:text-zinc-400">Your attendance logs for the last 30 days.</CardDescription>
+              </div>
+              {hasCheckedIn && hasCheckedOut && checkInTime && todayRecord?.check_out_time && (
+                <div className="text-right">
+                  <div className="text-xs text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">Today</div>
+                  <div className="text-sm font-semibold text-zinc-900 dark:text-white">
+                    {formatDuration(checkInTime, todayRecord.check_out_time)}
+                  </div>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:bg-zinc-800/50">
                   <TableHead className="text-zinc-600 dark:text-zinc-400">Date</TableHead>
+                  <TableHead className="text-zinc-600 dark:text-zinc-400">In</TableHead>
+                  <TableHead className="text-zinc-600 dark:text-zinc-400">Out</TableHead>
                   <TableHead className="text-zinc-600 dark:text-zinc-400 text-right">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -63,16 +96,23 @@ export default async function EmployeeAttendancePage() {
                 {myAttendance && myAttendance.length > 0 ? (
                   myAttendance.map((log) => (
                     <TableRow key={log.id} className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:bg-zinc-800/50">
-                      <TableCell className="font-medium text-zinc-900 dark:text-white">{log.date}</TableCell>
+                      <TableCell className="font-medium text-zinc-900 dark:text-white">
+                        {new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </TableCell>
+                      <TableCell className="text-zinc-500 dark:text-zinc-400 text-sm">
+                        {log.check_in_time ? formatTime(log.check_in_time) : '—'}
+                      </TableCell>
+                      <TableCell className="text-zinc-500 dark:text-zinc-400 text-sm">
+                        {log.check_out_time ? formatTime(log.check_out_time) : '—'}
+                      </TableCell>
                       <TableCell className="text-right">
-                        <Badge 
-                          variant="outline" 
-                          className={`border-zinc-300 dark:border-zinc-700 capitalize ${
-                            log.status === 'present' ? 'text-green-400 bg-green-400/10' : 
-                            log.status === 'absent' ? 'text-red-400 bg-red-400/10' : 
-                            log.status === 'late' ? 'text-orange-400 bg-orange-400/10' :
-                            'text-blue-400 bg-blue-400/10'
-                          }`}
+                        <Badge
+                          variant="outline"
+                          className={`border-zinc-300 dark:border-zinc-700 capitalize ${log.status === 'present' ? 'text-green-400 bg-green-400/10' :
+                            log.status === 'absent' ? 'text-red-400 bg-red-400/10' :
+                              log.status === 'late' ? 'text-orange-400 bg-orange-400/10' :
+                                'text-blue-400 bg-blue-400/10'
+                            }`}
                         >
                           {log.status}
                         </Badge>
@@ -81,7 +121,7 @@ export default async function EmployeeAttendancePage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={2} className="text-center py-6 text-zinc-500 dark:text-zinc-500">
+                    <TableCell colSpan={4} className="text-center py-6 text-zinc-500 dark:text-zinc-500">
                       No attendance history found.
                     </TableCell>
                   </TableRow>

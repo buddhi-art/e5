@@ -2,18 +2,18 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Film, LayoutDashboard, CalendarCheck, Wallet, CalendarOff, Clock, Camera, Users2 } from 'lucide-react'
+import { Film, LayoutDashboard, CalendarCheck, Wallet, CalendarOff, Camera, Users2, UserCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './theme-toggle'
 
 const employeeLinks = [
   { name: 'My Tasks', href: '/employee', icon: LayoutDashboard },
   { name: 'Attendance', href: '/employee/attendance', icon: CalendarCheck },
-  { name: 'Timesheets', href: '/employee/timesheets', icon: Clock },
   { name: 'Leave', href: '/employee/leave', icon: CalendarOff },
   { name: 'Expenses', href: '/employee/expenses', icon: Wallet },
   { name: 'Equipment', href: '/employee/equipment', icon: Camera },
   { name: 'Talent Directory', href: '/employee/talents', icon: Users2 },
+  { name: 'My Profile', href: '/employee/profile', icon: UserCircle },
 ]
 
 export function EmployeeSidebar() {

@@ -121,6 +121,18 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                   <div className="text-zinc-900 dark:text-zinc-200">{client.referral_source}</div>
                 </div>
               )}
+              {client.pan_number && (
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-500 font-medium mb-1">PAN Number</div>
+                  <div className="text-zinc-900 dark:text-zinc-200 font-mono">{client.pan_number}</div>
+                </div>
+              )}
+              {client.vat_id && (
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-500 font-medium mb-1">VAT ID</div>
+                  <div className="text-zinc-900 dark:text-zinc-200 font-mono">{client.vat_id}</div>
+                </div>
+              )}
 
               {/* Socials - show only if there are social links */}
               {hasSocialLinks && (

@@ -31,6 +31,8 @@ export async function createClientRecord(formData: FormData) {
     const logo_url = formData.get('logoUrl') as string
     const location = formData.get('location') as string
     const status = formData.get('status') as string
+    const pan_number = formData.get('panNumber') as string
+    const vat_id = formData.get('vatId') as string
 
     // Social Links
     const social_urls = {
@@ -57,6 +59,8 @@ export async function createClientRecord(formData: FormData) {
         status,
         referral_source,
         social_urls,
+        pan_number,
+        vat_id,
       })
 
     if (error) {
@@ -98,6 +102,8 @@ export async function updateClientRecord(clientId: string, formData: FormData) {
     const logo_url = formData.get('logoUrl') as string
     const location = formData.get('location') as string
     const status = formData.get('status') as string
+    const pan_number = formData.get('panNumber') as string
+    const vat_id = formData.get('vatId') as string
 
     const social_urls = {
       tiktok: formData.get('tiktok') as string || '',
@@ -123,6 +129,8 @@ export async function updateClientRecord(clientId: string, formData: FormData) {
         status,
         referral_source,
         social_urls,
+        pan_number,
+        vat_id,
       })
       .eq('id', clientId)
 

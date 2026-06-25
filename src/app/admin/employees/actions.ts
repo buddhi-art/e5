@@ -32,6 +32,7 @@ export async function createEmployee(formData: FormData) {
       facebook: formData.get('facebook') as string || '',
       instagram: formData.get('instagram') as string || '',
       threads: formData.get('threads') as string || '',
+      vehicle: formData.get('vehicle') as string || 'no',
     }
 
     if (!loginId || !password || !fullName || !designation) {

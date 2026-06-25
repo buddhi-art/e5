@@ -34,12 +34,14 @@ type Client = {
     status: string | null
     referral_source: string | null
     social_urls: Record<string, string> | null
+    pan_number: string | null
+    vat_id: string | null
 }
 
 interface EditClientDialogProps {
-  client: Client
-  companyNatures?: string[]
-  referralSources?: string[]
+    client: Client
+    companyNatures?: string[]
+    referralSources?: string[]
 }
 
 export function EditClientDialog({ client, companyNatures = [], referralSources = [] }: EditClientDialogProps) {
@@ -112,6 +114,14 @@ export function EditClientDialog({ client, companyNatures = [], referralSources 
                         <div className="space-y-2">
                             <Label htmlFor="location" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">Location</Label>
                             <Input id="location" name="location" defaultValue={client.location || ''} className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="panNumber" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">PAN Number</Label>
+                            <Input id="panNumber" name="panNumber" defaultValue={client.pan_number || ''} placeholder="e.g. 123456789" className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="vatId" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">VAT ID</Label>
+                            <Input id="vatId" name="vatId" defaultValue={client.vat_id || ''} placeholder="e.g. VAT-123456" className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="referralSource" className="text-zinc-700 dark:text-zinc-300 text-xs uppercase tracking-wider font-medium">Referral Source</Label>
@@ -190,4 +200,3 @@ export function EditClientDialog({ client, companyNatures = [], referralSources 
         </Dialog>
     )
 }
-

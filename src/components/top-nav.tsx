@@ -3,6 +3,7 @@
 import { logout } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
+import { ChangePasscodeDialog } from '@/components/change-passcode-dialog'
 
 export function TopNav({ userEmail, title = "Admin Portal" }: { userEmail: string, title?: string }) {
   return (
@@ -12,6 +13,7 @@ export function TopNav({ userEmail, title = "Admin Portal" }: { userEmail: strin
       </div>
       <div className="flex items-center gap-4">
         <span className="text-sm text-zinc-600 dark:text-zinc-400">{userEmail}</span>
+        <ChangePasscodeDialog />
         <Button variant="ghost" size="sm" onClick={() => logout()} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800">
           <LogOut className="w-4 h-4 mr-2" />
           Logout

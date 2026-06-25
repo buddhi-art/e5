@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CalendarDays } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -15,47 +15,41 @@ type AttendanceRecord = {
     date: string
     status: string
     created_at: string
+    check_in_time: string | null
+    check_out_time: string | null
     profiles: { full_name: string; designation: string } | null
+}
+
+function formatTime(iso: string | null) {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
 export default async function AttendanceMonthPage({ params }: { params: Promise<{ yearMonth: string }> }) {
     const { yearMonth } = await params
 
-    // Validate yearMonth format: YYYY-MM
-    if (!/^\d{4}-\d{2}$/.test(yearMonth)) {
-        notFound()
-    }
+    if (!/^\d{4}-\d{2}$/.test(yearMonth)) notFound()
 
     const [yearStr, monthStr] = yearMonth.split('-')
     const year = parseInt(yearStr)
     const month = parseInt(monthStr)
-
-    if (month < 1 || month > 12) {
-        notFound()
-    }
+    if (month < 1 || month > 12) notFound()
 
     const monthLabel = `${MONTH_NAMES[month - 1]} ${year}`
-
-    // Build date range for the full month
     const startDate = `${yearStr}-${monthStr}-01`
     const endDay = new Date(year, month, 0).getDate()
     const endDate = `${yearStr}-${monthStr}-${String(endDay).padStart(2, '0')}`
 
     const supabase = await createClient()
-
     const { data: rawLogs } = await supabase
         .from('attendance')
-        .select(`
-      *,
-      profiles ( full_name, designation )
-    `)
+        .select(`*, profiles ( full_name, designation )`)
         .gte('date', startDate)
         .lte('date', endDate)
         .order('date', { ascending: false })
         .order('created_at', { ascending: false })
 
     const attendanceLogs = (rawLogs || []) as AttendanceRecord[]
-
     const presentCount = attendanceLogs.filter(r => r.status === 'present').length
     const lateCount = attendanceLogs.filter(r => r.status === 'late').length
     const halfDayCount = attendanceLogs.filter(r => r.status === 'half-day').length
@@ -75,29 +69,13 @@ export default async function AttendanceMonthPage({ params }: { params: Promise<
                 </div>
             </div>
 
-            {/* Summary badges */}
             <div className="flex flex-wrap gap-3">
-                <Badge variant="outline" className="bg-green-400/10 text-green-600 dark:text-green-400 border-green-500/20 px-3 py-1.5 text-sm">
-                    {presentCount} present
-                </Badge>
-                {lateCount > 0 && (
-                    <Badge variant="outline" className="bg-orange-400/10 text-orange-600 dark:text-orange-400 border-orange-500/20 px-3 py-1.5 text-sm">
-                        {lateCount} late
-                    </Badge>
-                )}
-                {halfDayCount > 0 && (
-                    <Badge variant="outline" className="bg-blue-400/10 text-blue-600 dark:text-blue-400 border-blue-500/20 px-3 py-1.5 text-sm">
-                        {halfDayCount} half-day
-                    </Badge>
-                )}
-                {absentCount > 0 && (
-                    <Badge variant="outline" className="bg-red-400/10 text-red-600 dark:text-red-400 border-red-500/20 px-3 py-1.5 text-sm">
-                        {absentCount} absent
-                    </Badge>
-                )}
+                <Badge variant="outline" className="bg-green-400/10 text-green-600 dark:text-green-400 border-green-500/20 px-3 py-1.5 text-sm">{presentCount} present</Badge>
+                {lateCount > 0 && <Badge variant="outline" className="bg-orange-400/10 text-orange-600 dark:text-orange-400 border-orange-500/20 px-3 py-1.5 text-sm">{lateCount} late</Badge>}
+                {halfDayCount > 0 && <Badge variant="outline" className="bg-blue-400/10 text-blue-600 dark:text-blue-400 border-blue-500/20 px-3 py-1.5 text-sm">{halfDayCount} half-day</Badge>}
+                {absentCount > 0 && <Badge variant="outline" className="bg-red-400/10 text-red-600 dark:text-red-400 border-red-500/20 px-3 py-1.5 text-sm">{absentCount} absent</Badge>}
             </div>
 
-            {/* Attendance Table - like an attendance book */}
             <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
                 <CardHeader>
                     <CardTitle className="text-zinc-900 dark:text-white flex items-center gap-2">
@@ -105,7 +83,7 @@ export default async function AttendanceMonthPage({ params }: { params: Promise<
                         Attendance Register — {monthLabel}
                     </CardTitle>
                     <CardDescription className="text-zinc-600 dark:text-zinc-400">
-                        All attendance entries organized like a traditional attendance book.
+                        Check-in / check-out times for all employees.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -113,11 +91,12 @@ export default async function AttendanceMonthPage({ params }: { params: Promise<
                         <Table>
                             <TableHeader>
                                 <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:bg-zinc-800/50">
-                                    <TableHead className="text-zinc-600 dark:text-zinc-400 w-[120px]">Date</TableHead>
+                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Date</TableHead>
                                     <TableHead className="text-zinc-600 dark:text-zinc-400">Employee</TableHead>
                                     <TableHead className="text-zinc-600 dark:text-zinc-400">Designation</TableHead>
+                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Check In</TableHead>
+                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Check Out</TableHead>
                                     <TableHead className="text-zinc-600 dark:text-zinc-400">Status</TableHead>
-                                    <TableHead className="text-zinc-600 dark:text-zinc-400 text-right">Time Logged</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -127,25 +106,42 @@ export default async function AttendanceMonthPage({ params }: { params: Promise<
                                             {new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                         </TableCell>
                                         <TableCell className="text-zinc-700 dark:text-zinc-300">
-                                            {log.profiles?.full_name || 'Unknown'}
+                                            <div className="font-medium">{log.profiles?.full_name || 'Unknown'}</div>
                                         </TableCell>
                                         <TableCell className="text-zinc-500 dark:text-zinc-500 text-sm capitalize">
                                             {log.profiles?.designation || '—'}
                                         </TableCell>
+                                        <TableCell className="text-sm">
+                                            {log.check_in_time ? (
+                                                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                                                    <Clock className="w-3 h-3" />
+                                                    {formatTime(log.check_in_time)}
+                                                </span>
+                                            ) : (
+                                                <span className="text-zinc-400">—</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-sm">
+                                            {log.check_out_time ? (
+                                                <span className="inline-flex items-center gap-1 text-orange-600 dark:text-orange-400 font-medium">
+                                                    <Clock className="w-3 h-3" />
+                                                    {formatTime(log.check_out_time)}
+                                                </span>
+                                            ) : (
+                                                <span className="text-zinc-400">—</span>
+                                            )}
+                                        </TableCell>
                                         <TableCell>
                                             <Badge
                                                 variant="outline"
-                                                className={`border-zinc-300 dark:border-zinc-700 capitalize ${log.status === 'present' ? 'text-green-600 dark:text-green-400 bg-green-400/10 border-green-500/20' :
-                                                        log.status === 'absent' ? 'text-red-600 dark:text-red-400 bg-red-400/10 border-red-500/20' :
-                                                            log.status === 'late' ? 'text-orange-600 dark:text-orange-400 bg-orange-400/10 border-orange-500/20' :
-                                                                'text-blue-600 dark:text-blue-400 bg-blue-400/10 border-blue-500/20'
+                                                className={`capitalize ${log.status === 'present' ? 'text-green-600 dark:text-green-400 bg-green-400/10 border-green-500/20' :
+                                                    log.status === 'absent' ? 'text-red-600 dark:text-red-400 bg-red-400/10 border-red-500/20' :
+                                                        log.status === 'late' ? 'text-orange-600 dark:text-orange-400 bg-orange-400/10 border-orange-500/20' :
+                                                            'text-blue-600 dark:text-blue-400 bg-blue-400/10 border-blue-500/20'
                                                     }`}
                                             >
                                                 {log.status}
                                             </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-zinc-500 dark:text-zinc-400 text-sm text-right">
-                                            {new Date(log.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                         </TableCell>
                                     </TableRow>
                                 ))}

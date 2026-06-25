@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Film, LayoutDashboard, Users, UserSquare2, FolderKanban, CalendarCheck, CheckSquare, Receipt, Wallet, CalendarOff, Clock, Camera, ArrowRightLeft, ClipboardCheck, PenTool, CalendarRange, Users2, DollarSign, CalendarDays } from 'lucide-react'
+import { Film, LayoutDashboard, Users, UserSquare2, FolderKanban, CalendarCheck, CheckSquare, Receipt, Wallet, CalendarOff, Camera, ArrowRightLeft, ClipboardCheck, PenTool, CalendarRange, Users2, DollarSign, CalendarDays } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './theme-toggle'
 
@@ -12,7 +12,6 @@ const adminLinks = [
   { name: 'Clients', href: '/admin/clients', icon: UserSquare2 },
   { name: 'Projects', href: '/admin/projects', icon: FolderKanban },
   { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare },
-  { name: 'Timesheets', href: '/admin/timesheets', icon: Clock },
   { name: 'Attendance', href: '/admin/attendance', icon: CalendarCheck },
   { name: 'Leave', href: '/admin/leave', icon: CalendarOff },
 ]
