@@ -7,6 +7,9 @@ import { ArrowLeft, CalendarDays, Clock, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+// Layer 2: ISR — Cache for 5 minutes
+export const revalidate = 300
+
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 type AttendanceRecord = {
@@ -149,9 +152,9 @@ export default async function AttendanceMonthPage({ params }: { params: Promise<
                                                 <Badge
                                                     variant="outline"
                                                     className={`capitalize text-xs ${log.status === 'present' ? 'text-primary bg-primary-container/40 border-primary/30' :
-                                                            log.status === 'absent' ? 'text-destructive bg-error-container/40 border-destructive/30' :
-                                                                log.status === 'late' ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' :
-                                                                    'text-[var(--md-sys-color-on-tertiary-container)] bg-tertiary-container/40 border-[var(--md-sys-color-outline)]/40'
+                                                        log.status === 'absent' ? 'text-destructive bg-error-container/40 border-destructive/30' :
+                                                            log.status === 'late' ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' :
+                                                                'text-[var(--md-sys-color-on-tertiary-container)] bg-tertiary-container/40 border-[var(--md-sys-color-outline)]/40'
                                                         }`}
                                                 >
                                                     {log.status}

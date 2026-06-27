@@ -1,5 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+
 import { InvoiceTable } from './invoice-table'
+
+// Layer 2: ISR — Cache for 5 minutes
+export const revalidate = 300
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'

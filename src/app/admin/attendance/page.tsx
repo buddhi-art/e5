@@ -4,6 +4,9 @@ import { Badge } from '@/components/ui/badge'
 import { ChevronRight, CalendarDays } from 'lucide-react'
 import Link from 'next/link'
 
+// Layer 2: ISR — Cache for 5 minutes
+export const revalidate = 300
+
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 type AttendanceRecord = {

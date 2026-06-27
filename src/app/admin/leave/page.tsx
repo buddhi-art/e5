@@ -1,4 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+
+// Layer 2: ISR — Cache for 5 minutes
+export const revalidate = 300
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CalendarOff, Users, CheckCircle, FileText } from 'lucide-react'

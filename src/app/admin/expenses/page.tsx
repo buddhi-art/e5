@@ -1,4 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+
+// Layer 2: ISR — Cache for 5 minutes
+export const revalidate = 300
 import { ExpenseTable } from './expense-table'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -42,9 +45,9 @@ export default async function ExpensesPage() {
         </Button>
       </div>
 
-      <ExpenseTable 
-        initialExpenses={expenses || []} 
-        projects={(projects || []) as { id: string, title: string }[]} 
+      <ExpenseTable
+        initialExpenses={expenses || []}
+        projects={(projects || []) as { id: string, title: string }[]}
       />
     </div>
   )
