@@ -156,7 +156,7 @@ export function InvoiceForm({ clients, projects, initialData }: { clients: any[]
               </div>
 
               <div className="space-y-2">
-                <Label>Project (Optional)</Label>
+                <Label>Project</Label>
                 <Select value={projectId} onValueChange={(val) => val && setProjectId(val)} disabled={!clientId}>
                   <SelectTrigger className="bg-zinc-50 dark:bg-zinc-800/50">
                     <SelectValue placeholder={clientId ? "Select project" : "Select client first"}>
