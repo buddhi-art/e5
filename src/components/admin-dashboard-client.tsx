@@ -498,7 +498,7 @@ export function AdminDashboardClient({ data }: { data: HealthMetrics }) {
                                 {[
                                     { label: 'People', value: `${checkedInToday}/${totalEmployees} present`, pct: totalEmployees > 0 ? Math.round((checkedInToday / totalEmployees) * 100) : 0, clr: 'primary' },
                                     { label: 'Tasks', value: `${completedTasks} done of ${totalTasks}`, pct: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0, clr: 'tertiary' },
-                                    { label: 'Revenue', value: `${revenueThisMonth.toLocaleString()} this month`, pct: revenueLastMonth > 0 ? Math.min(Math.round((revenueThisMonth / revenueLastMonth) * 100), 100) : 50, clr: 'emerald' },
+                                    { label: 'Revenue', value: `${revenueThisMonth.toLocaleString()} this month`, pct: revenueLastMonth > 0 ? Math.min(Math.round((revenueThisMonth / revenueLastMonth) * 100), 100) : 0, clr: 'emerald' },
                                     { label: 'Equipment', value: `${equipmentAvailable} units available`, pct: Math.round((equipmentAvailable / Math.max(equipmentAvailable + equipmentCheckedOut + equipmentInMaintenance, 1)) * 100), clr: 'amber' },
                                 ].map(item => (
                                     <div key={item.label}>

@@ -1,8 +1,22 @@
 import { updateSession } from '@/lib/supabase/middleware'
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function proxy(request: NextRequest) {
-  return await updateSession(request)
+  try {
+    return await updateSession(request)
+  } catch (error: any) {
+    // If the refresh token is invalid/stale (e.g. DB was reset), redirect to login
+    // instead of crashing with an unhandled server error
+    if (error?.__isAuthError || error?.code === 'refresh_token_not_found') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    // For any other unexpected error, still redirect to login gracefully
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
 }
 
 export const config = {
