@@ -7,7 +7,6 @@ import { Plus } from 'lucide-react'
 export default async function InvoicesPage() {
   const supabase = await createClient()
 
-  // Business Logic: Overdue detection
   const today = new Date().toISOString().split('T')[0]
   await supabase
     .from('invoices')
@@ -16,7 +15,6 @@ export default async function InvoicesPage() {
     .in('status', ['sent', 'partially_paid'])
     .is('deleted_at', null)
 
-  // Fetch invoices
   const { data: invoices, error: invoicesErr } = await supabase
     .from('invoices')
     .select('*, clients(company_name), projects(title)')
@@ -25,7 +23,6 @@ export default async function InvoicesPage() {
 
   if (invoicesErr) console.error('Invoices fetch error:', invoicesErr.message)
 
-  // Fetch clients for filter
   const { data: clients } = await supabase
     .from('clients')
     .select('id, company_name')
@@ -34,20 +31,20 @@ export default async function InvoicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 morph-fade-in">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Invoices</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">Manage client billing and track payments.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Invoices</h1>
+          <p className="text-on-surface-variant">Manage client billing and track payments.</p>
         </div>
-        <Button render={<Link href="/admin/invoices/new" />} className="bg-gradient-to-r from-sky-500 to-sky-400 hover:from-sky-400 hover:to-sky-300 text-white font-semibold border-none">
+        <Button render={<Link href="/admin/invoices/new" />} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold border-none btn-morph">
           <Plus className="w-4 h-4 mr-2" />
           New Invoice
         </Button>
       </div>
 
-      <InvoiceTable 
-        initialInvoices={invoices || []} 
-        clients={(clients || []) as { id: string, company_name: string }[]} 
+      <InvoiceTable
+        initialInvoices={invoices || []}
+        clients={(clients || []) as { id: string; company_name: string }[]}
       />
     </div>
   )

@@ -40,12 +40,12 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
   function getStatusBadge(status: string) {
     switch (status) {
-      case 'paid': return <Badge className="bg-emerald-500 hover:bg-emerald-600">Paid</Badge>
-      case 'partially_paid': return <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">Partial</Badge>
-      case 'sent': return <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200">Sent</Badge>
+      case 'paid': return <Badge className="bg-primary-container text-on-primary-container">Paid</Badge>
+      case 'partially_paid': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">Partial</Badge>
+      case 'sent': return <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 dark:text-amber-400">Sent</Badge>
       case 'draft': return <Badge variant="outline">Draft</Badge>
       case 'overdue': return <Badge variant="destructive">Overdue</Badge>
-      case 'cancelled': return <Badge variant="destructive" className="bg-zinc-500 hover:bg-zinc-600">Cancelled</Badge>
+      case 'cancelled': return <Badge variant="destructive" className="bg-destructive/20 text-destructive hover:bg-destructive/30">Cancelled</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }
@@ -54,7 +54,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* Top Bar - hidden on print */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
-        <Link href="/admin/invoices" className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors -ml-2 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800">
+        <Link href="/admin/invoices" className="inline-flex items-center gap-2 text-sm text-on-surface-variant hover:text-foreground transition-colors -ml-2 px-2 py-1 rounded-md hover:bg-surface-container-high">
           <ArrowLeft className="w-4 h-4" />
           Back to Invoices
         </Link>
@@ -71,7 +71,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   Send Invoice
                 </Button>
               </form>
-              <Link href={`/admin/invoices/${invoice.id}/edit`} className="inline-flex items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 h-8 px-2.5 text-sm font-medium gap-1.5">
+              <Link href={`/admin/invoices/${invoice.id}/edit`} className="inline-flex items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-surface-container-lowest hover:bg-zinc-50 dark:hover:bg-zinc-800 h-8 px-2.5 text-sm font-medium gap-1.5">
                 <Pencil className="w-4 h-4" />
                 Edit
               </Link>
@@ -84,17 +84,17 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       </div>
 
       {isOverdue && (
-        <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 rounded-lg p-4 flex items-start gap-3 print:hidden">
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-500 mt-0.5" />
+        <div className="bg-error-container/30 border border-destructive/20 rounded-lg p-4 flex items-start gap-3 print:hidden">
+          <AlertCircle className="w-5 h-5 text-destructive mt-0.5" />
           <div>
-            <h4 className="font-medium text-red-800 dark:text-red-400">This invoice is overdue</h4>
-            <p className="text-sm text-red-600 dark:text-red-300">Payment was due on {format(new Date(invoice.due_date), 'MMM d, yyyy')}.</p>
+            <h4 className="font-medium text-destructive">This invoice is overdue</h4>
+            <p className="text-sm text-destructive/80">Payment was due on {format(new Date(invoice.due_date), 'MMM d, yyyy')}.</p>
           </div>
         </div>
       )}
 
       {/* Invoice Document */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none print:bg-transparent">
+      <div className="print-area bg-surface-container-lowest border border-outline-variant/40 rounded-2xl shadow-sm overflow-hidden print:border-none print:shadow-none print:bg-transparent card-morph morph-fade-in">
         <div className="p-8 sm:p-12 space-y-12">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start gap-8">
@@ -103,61 +103,61 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <div className="w-16 h-16 bg-gradient-to-tr from-sky-500 to-orange-400 rounded-xl mb-6 shadow-sm flex items-center justify-center text-white font-bold text-2xl tracking-tighter">
                 E5
               </div>
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">E5 Chronicles</h2>
-              <p className="text-zinc-500 text-sm mt-1">
+              <h2 className="text-lg font-semibold text-foreground">E5 Chronicles</h2>
+              <p className="text-on-surface-variant text-sm mt-1">
                 Kathmandu, Nepal<br />
                 info@e5chronicles.com
               </p>
             </div>
             <div className="text-left md:text-right">
-              <h1 className="text-4xl font-bold text-zinc-900 dark:text-white mb-2 uppercase tracking-tight">Invoice</h1>
-              <p className="text-xl font-medium text-zinc-500 mb-4">{invoice.invoice_number}</p>
+              <h1 className="text-4xl font-bold text-foreground mb-2 uppercase tracking-tight">Invoice</h1>
+              <p className="text-xl font-medium text-on-surface-variant mb-4">{invoice.invoice_number}</p>
               <div className="flex items-center md:justify-end gap-2 mb-4 print:hidden">
-                <span className="text-sm text-zinc-500 font-medium">Status:</span>
+                <span className="text-sm text-on-surface-variant font-medium">Status:</span>
                 {getStatusBadge(invoice.status)}
               </div>
             </div>
           </div>
 
           {/* Info grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6 border-y border-zinc-200 dark:border-zinc-800">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6 border-y border-outline-variant/40">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">Billed To</p>
-              <h3 className="font-semibold text-zinc-900 dark:text-white text-lg">{invoice.clients?.company_name}</h3>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1 whitespace-pre-wrap">
+              <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-3">Billed To</p>
+              <h3 className="font-semibold text-foreground text-lg">{invoice.clients?.company_name}</h3>
+              <p className="text-on-surface-variant text-sm mt-1 whitespace-pre-wrap">
                 {invoice.clients?.billing_address || 'No billing address provided.'}
               </p>
               {invoice.clients?.tax_id && (
-                <p className="text-zinc-500 text-sm mt-2">Tax ID: {invoice.clients.tax_id}</p>
+                <p className="text-on-surface-variant text-sm mt-2">Tax ID: {invoice.clients.tax_id}</p>
               )}
             </div>
             <div className="space-y-4 md:text-right">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1">Issue Date</p>
-                <p className="text-zinc-900 dark:text-white font-medium">{format(new Date(invoice.issue_date), 'MMM d, yyyy')}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">Issue Date</p>
+                <p className="text-foreground font-medium">{format(new Date(invoice.issue_date), 'MMM d, yyyy')}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1">Due Date</p>
-                <p className="text-zinc-900 dark:text-white font-medium">{format(new Date(invoice.due_date), 'MMM d, yyyy')}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">Due Date</p>
+                <p className="text-foreground font-medium">{format(new Date(invoice.due_date), 'MMM d, yyyy')}</p>
               </div>
               {invoice.projects && (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1">Project</p>
-                  <p className="text-zinc-900 dark:text-white font-medium">{invoice.projects.title}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1">Project</p>
+                  <p className="text-foreground font-medium">{invoice.projects.title}</p>
                 </div>
               )}
             </div>
           </div>
 
           <div className="mb-4">
-            <h4 className="font-semibold text-zinc-900 dark:text-white text-lg">{invoice.title}</h4>
-            {invoice.description && <p className="text-zinc-600 dark:text-zinc-400 mt-1">{invoice.description}</p>}
+            <h4 className="font-semibold text-foreground text-lg">{invoice.title}</h4>
+            {invoice.description && <p className="text-on-surface-variant mt-1">{invoice.description}</p>}
           </div>
 
           {/* Line Items */}
           <div>
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-500">
+              <thead className="border-b border-outline-variant/40 text-on-surface-variant">
                 <tr>
                   <th className="pb-3 font-semibold w-full">Description</th>
                   <th className="pb-3 font-semibold text-right whitespace-nowrap px-4">Qty</th>
@@ -165,13 +165,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   <th className="pb-3 font-semibold text-right whitespace-nowrap pl-4">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <tbody className="divide-y divide-outline-variant/20">
                 {items.map((item: any) => (
                   <tr key={item.id}>
-                    <td className="py-4 text-zinc-900 dark:text-white">{item.description}</td>
-                    <td className="py-4 text-right text-zinc-600 dark:text-zinc-400 px-4">{item.quantity}</td>
-                    <td className="py-4 text-right text-zinc-600 dark:text-zinc-400 px-4">{Number(item.unit_price).toLocaleString()}</td>
-                    <td className="py-4 text-right text-zinc-900 dark:text-white font-medium pl-4">{Number(item.amount).toLocaleString()}</td>
+                    <td className="py-4 text-foreground">{item.description}</td>
+                    <td className="py-4 text-right text-on-surface-variant px-4">{item.quantity}</td>
+                    <td className="py-4 text-right text-on-surface-variant px-4">{Number(item.unit_price).toLocaleString()}</td>
+                    <td className="py-4 text-right text-foreground font-medium pl-4">{Number(item.amount).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -181,23 +181,23 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           {/* Totals */}
           <div className="flex justify-end pt-6">
             <div className="w-full md:w-1/2 space-y-3">
-              <div className="flex justify-between text-zinc-600 dark:text-zinc-400 text-sm">
+              <div className="flex justify-between text-on-surface-variant text-sm">
                 <span>Subtotal</span>
                 <span>{Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {invoice.currency}</span>
               </div>
               {invoice.discount_value > 0 && (
-                <div className="flex justify-between text-zinc-600 dark:text-zinc-400 text-sm">
+                <div className="flex justify-between text-on-surface-variant text-sm">
                   <span>Discount {invoice.discount_type === 'percentage' ? `(${invoice.discount_value}%)` : ''}</span>
                   <span className="text-amber-600 dark:text-amber-400">- {Number(invoice.discount_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {invoice.currency}</span>
                 </div>
               )}
               {invoice.tax_rate > 0 && (
-                <div className="flex justify-between text-zinc-600 dark:text-zinc-400 text-sm">
+                <div className="flex justify-between text-on-surface-variant text-sm">
                   <span>Tax ({invoice.tax_rate}%)</span>
                   <span>{Number(invoice.tax_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {invoice.currency}</span>
                 </div>
               )}
-              <div className="flex justify-between text-lg font-bold text-zinc-900 dark:text-white pt-3 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="flex justify-between text-lg font-bold text-foreground pt-3 border-t border-outline-variant/40">
                 <span>Grand Total</span>
                 <span>{Number(invoice.grand_total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {invoice.currency}</span>
               </div>
@@ -213,7 +213,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   <span>- {Number(invoice.paid_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {invoice.currency}</span>
                 </div>
               )}
-              <div className="flex justify-between text-lg font-bold text-zinc-900 dark:text-white pt-2">
+              <div className="flex justify-between text-lg font-bold text-foreground pt-2">
                 <span>Balance Due</span>
                 <span>{Number(invoice.balance_due || invoice.grand_total - invoice.paid_amount - invoice.advance_received).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {invoice.currency}</span>
               </div>
@@ -222,9 +222,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
           {/* Notes */}
           {invoice.notes && (
-            <div className="pt-12 border-t border-zinc-200 dark:border-zinc-800 text-sm">
-              <p className="font-semibold text-zinc-900 dark:text-white mb-2">Notes & Terms</p>
-              <p className="text-zinc-500 whitespace-pre-wrap">{invoice.notes}</p>
+            <div className="pt-12 border-t border-outline-variant/40 text-sm">
+              <p className="font-semibold text-foreground mb-2">Notes & Terms</p>
+              <p className="text-on-surface-variant whitespace-pre-wrap">{invoice.notes}</p>
             </div>
           )}
         </div>
@@ -233,10 +233,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       {/* Payment History - Hidden on print */}
       {payments.length > 0 && (
         <div className="space-y-4 print:hidden">
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">Payment History</h3>
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden">
+          <h3 className="text-lg font-semibold text-foreground">Payment History</h3>
+          <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl shadow-sm overflow-hidden">
             <table className="w-full text-left text-sm">
-              <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500">
+              <thead className="bg-surface-container border-b border-outline-variant/40 text-on-surface-variant">
                 <tr>
                   <th className="py-3 px-4 font-semibold">Date</th>
                   <th className="py-3 px-4 font-semibold">Amount</th>
@@ -245,7 +245,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   <th className="py-3 px-4 font-semibold">Recorded By</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <tbody className="divide-y divide-outline-variant/20">
                 {payments.map((p: any) => (
                   <tr key={p.id}>
                     <td className="py-3 px-4">{format(new Date(p.payment_date), 'MMM d, yyyy')}</td>
@@ -253,8 +253,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                       {Number(p.amount).toLocaleString()} {invoice.currency}
                     </td>
                     <td className="py-3 px-4 capitalize">{p.payment_method.replace('_', ' ')}</td>
-                    <td className="py-3 px-4 text-zinc-500">{p.reference_number || '-'}</td>
-                    <td className="py-3 px-4 text-zinc-500">{p.received_by_profile?.full_name || 'System'}</td>
+                    <td className="py-3 px-4 text-on-surface-variant">{p.reference_number || '-'}</td>
+                    <td className="py-3 px-4 text-on-surface-variant">{p.received_by_profile?.full_name || 'System'}</td>
                   </tr>
                 ))}
               </tbody>

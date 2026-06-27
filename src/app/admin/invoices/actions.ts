@@ -105,7 +105,7 @@ export async function createInvoice(formData: FormData) {
         }
 
         revalidatePath('/admin/invoices')
-        return { success: true }
+        return { success: true, invoiceId: invoice.id }
     } catch (err: any) {
         console.error('Error in createInvoice:', err)
         return { error: err.message || 'An unexpected error occurred' }

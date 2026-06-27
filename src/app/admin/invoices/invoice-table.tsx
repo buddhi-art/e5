@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, Eye, Pencil, Trash, FileDown } from "lucide-react"
 import Link from 'next/link'
 import { deleteInvoice } from './actions'
@@ -67,12 +67,12 @@ export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: an
 
   function getStatusBadge(status: string) {
     switch (status) {
-      case 'paid': return <Badge className="bg-emerald-500 hover:bg-emerald-600">Paid</Badge>
-      case 'partially_paid': return <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">Partial</Badge>
-      case 'sent': return <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200">Sent</Badge>
-      case 'draft': return <Badge variant="outline">Draft</Badge>
+      case 'paid': return <Badge className="bg-primary-container text-on-primary-container">Paid</Badge>
+      case 'partially_paid': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">Partial</Badge>
+      case 'sent': return <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 dark:text-amber-400">Sent</Badge>
+      case 'draft': return <Badge variant="outline" className="text-on-surface-variant">Draft</Badge>
       case 'overdue': return <Badge variant="destructive">Overdue</Badge>
-      case 'cancelled': return <Badge variant="destructive" className="bg-zinc-500 hover:bg-zinc-600">Cancelled</Badge>
+      case 'cancelled': return <Badge variant="destructive" className="bg-destructive/20 text-destructive hover:bg-destructive/30">Cancelled</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }
@@ -80,11 +80,11 @@ export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: an
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 items-end bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <div className="flex flex-wrap gap-4 items-end bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/40 card-morph">
         <div className="space-y-1.5 flex-1 min-w-[200px]">
-          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Status</label>
+          <label className="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Status</label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || 'all')}>
-            <SelectTrigger className="bg-zinc-50 dark:bg-zinc-800/50">
+            <SelectTrigger className="bg-surface-container-high">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -100,9 +100,9 @@ export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: an
         </div>
 
         <div className="space-y-1.5 flex-1 min-w-[200px]">
-          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Client</label>
+          <label className="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Client</label>
           <Select value={clientFilter} onValueChange={(v) => setClientFilter(v || 'all')}>
-            <SelectTrigger className="bg-zinc-50 dark:bg-zinc-800/50">
+            <SelectTrigger className="bg-surface-container-high">
               <SelectValue placeholder="All Clients">
                 {clientFilter !== 'all' ? clients.find(c => c.id === clientFilter)?.company_name : null}
               </SelectValue>
@@ -117,67 +117,67 @@ export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: an
         </div>
 
         <div className="space-y-1.5 flex-1 min-w-[150px]">
-          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">From Date</label>
-          <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-zinc-50 dark:bg-zinc-800/50 [color-scheme:light] dark:[color-scheme:dark]" />
+          <label className="text-xs font-medium text-on-surface-variant uppercase tracking-wider">From Date</label>
+          <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-surface-container-high [color-scheme:light] dark:[color-scheme:dark]" />
         </div>
 
         <div className="space-y-1.5 flex-1 min-w-[150px]">
-          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">To Date</label>
-          <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-zinc-50 dark:bg-zinc-800/50 [color-scheme:light] dark:[color-scheme:dark]" />
+          <label className="text-xs font-medium text-on-surface-variant uppercase tracking-wider">To Date</label>
+          <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-surface-container-high [color-scheme:light] dark:[color-scheme:dark]" />
         </div>
 
-        <Button variant="outline" onClick={handleExportCsv} className="bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+        <Button variant="outline" onClick={handleExportCsv} className="bg-surface-container-lowest border-outline-variant btn-morph">
           <FileDown className="w-4 h-4 mr-2" />
           Export CSV
         </Button>
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl overflow-hidden card-morph">
         <Table>
-          <TableHeader className="bg-zinc-50 dark:bg-zinc-950">
+          <TableHeader className="bg-surface-container">
             <TableRow>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Invoice #</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Client</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Project</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Amount</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Due Date</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Status</TableHead>
-              <TableHead className="text-right font-semibold text-zinc-900 dark:text-white">Actions</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Invoice #</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Client</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Project</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Amount</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Due Date</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Status</TableHead>
+              <TableHead className="text-right font-semibold text-on-surface-variant">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredInvoices.length > 0 ? (
               filteredInvoices.map((inv) => (
-                <TableRow key={inv.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                  <TableCell className="font-medium text-sky-600 dark:text-sky-400">
+                <TableRow key={inv.id} className="hover:bg-surface-container-high transition-colors">
+                  <TableCell className="font-medium text-primary">
                     <Link href={`/admin/invoices/${inv.id}`}>{inv.invoice_number}</Link>
                   </TableCell>
-                  <TableCell>{inv.clients?.company_name || 'N/A'}</TableCell>
-                  <TableCell>{inv.projects?.title || '-'}</TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="text-foreground">{inv.clients?.company_name || 'N/A'}</TableCell>
+                  <TableCell className="text-on-surface-variant">{inv.projects?.title || '-'}</TableCell>
+                  <TableCell className="font-medium text-foreground">
                     {Number(inv.grand_total).toLocaleString()} {inv.currency}
                   </TableCell>
-                  <TableCell className="text-zinc-500">{new Date(inv.due_date).toLocaleDateString()}</TableCell>
+                  <TableCell className="text-on-surface-variant">{new Date(inv.due_date).toLocaleDateString()}</TableCell>
                   <TableCell>{getStatusBadge(inv.status)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger render={<Button variant="ghost" className="h-8 w-8 p-0" />}>
+                      <DropdownMenuTrigger render={<Button variant="ghost" className="h-8 w-8 p-0 btn-morph" />}>
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem render={<Link href={`/admin/invoices/${inv.id}`} />}>
-                          <Eye className="w-4 h-4 mr-2 text-zinc-500" />
+                          <Eye className="w-4 h-4 mr-2 text-on-surface-variant" />
                           View Details
                         </DropdownMenuItem>
                         {inv.status === 'draft' && (
                           <DropdownMenuItem render={<Link href={`/admin/invoices/${inv.id}/edit`} />}>
-                            <Pencil className="w-4 h-4 mr-2 text-sky-500" />
+                            <Pencil className="w-4 h-4 mr-2 text-primary" />
                             Edit Invoice
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={() => handleDelete(inv.id)} className="text-red-600 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950/50">
+                        <DropdownMenuItem onClick={() => handleDelete(inv.id)} className="text-destructive focus:bg-error-container/30 focus:text-destructive">
                           <Trash className="w-4 h-4 mr-2" />
                           Cancel Invoice
                         </DropdownMenuItem>
@@ -188,7 +188,7 @@ export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: an
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-zinc-500">
+                <TableCell colSpan={7} className="text-center py-10 text-on-surface-variant">
                   No invoices found matching your filters.
                 </TableCell>
               </TableRow>

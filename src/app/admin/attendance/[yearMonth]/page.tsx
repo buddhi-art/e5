@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CalendarDays, Clock } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Clock, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -17,12 +17,24 @@ type AttendanceRecord = {
     created_at: string
     check_in_time: string | null
     check_out_time: string | null
+    day_summary: string | null
     profiles: { full_name: string; designation: string } | null
 }
 
 function formatTime(iso: string | null) {
-    if (!iso) return '—'
+    if (!iso) return '\u2014'
     return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+}
+
+function truncateSummary(text: string | null, maxLen = 120): string {
+    if (!text) return '\u2014'
+    if (text.length <= maxLen) return text
+    return text.slice(0, maxLen) + '...'
+}
+
+function wordCount(text: string | null): number {
+    if (!text) return 0
+    return text.trim().split(/\s+/).filter(Boolean).length
 }
 
 export default async function AttendanceMonthPage({ params }: { params: Promise<{ yearMonth: string }> }) {
@@ -57,100 +69,127 @@ export default async function AttendanceMonthPage({ params }: { params: Promise<
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 morph-fade-in">
                 <Link href="/admin/attendance">
-                    <Button variant="outline" size="icon" className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                    <Button variant="outline" size="icon" className="bg-surface-container-lowest border-outline-variant text-on-surface-variant hover:bg-surface-container-high shrink-0 btn-morph">
                         <ArrowLeft className="w-4 h-4" />
                     </Button>
                 </Link>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-1">{monthLabel}</h1>
-                    <p className="text-zinc-600 dark:text-zinc-400">{attendanceLogs.length} record{attendanceLogs.length !== 1 ? 's' : ''} for this month.</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-1">{monthLabel}</h1>
+                    <p className="text-sm sm:text-base text-on-surface-variant">{attendanceLogs.length} record{attendanceLogs.length !== 1 ? 's' : ''} for this month.</p>
                 </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-                <Badge variant="outline" className="bg-green-400/10 text-green-600 dark:text-green-400 border-green-500/20 px-3 py-1.5 text-sm">{presentCount} present</Badge>
-                {lateCount > 0 && <Badge variant="outline" className="bg-orange-400/10 text-orange-600 dark:text-orange-400 border-orange-500/20 px-3 py-1.5 text-sm">{lateCount} late</Badge>}
-                {halfDayCount > 0 && <Badge variant="outline" className="bg-blue-400/10 text-blue-600 dark:text-blue-400 border-blue-500/20 px-3 py-1.5 text-sm">{halfDayCount} half-day</Badge>}
-                {absentCount > 0 && <Badge variant="outline" className="bg-red-400/10 text-red-600 dark:text-red-400 border-red-500/20 px-3 py-1.5 text-sm">{absentCount} absent</Badge>}
+            <div className="flex flex-wrap gap-2 sm:gap-3 morph-fade-in morph-delay-2">
+                <Badge variant="outline" className="bg-primary-container/40 text-primary border-primary/30 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">{presentCount} present</Badge>
+                {lateCount > 0 && <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">{lateCount} late</Badge>}
+                {halfDayCount > 0 && <Badge variant="outline" className="bg-tertiary-container/40 text-[var(--md-sys-color-on-tertiary-container)] border-[var(--md-sys-color-outline)]/40 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">{halfDayCount} half-day</Badge>}
+                {absentCount > 0 && <Badge variant="outline" className="bg-error-container/40 text-[var(--md-sys-color-on-error-container)] border-[var(--md-sys-color-outline)]/40 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">{absentCount} absent</Badge>}
             </div>
 
-            <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-                <CardHeader>
-                    <CardTitle className="text-zinc-900 dark:text-white flex items-center gap-2">
-                        <CalendarDays className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                        Attendance Register — {monthLabel}
+            <Card className="bg-surface-container-lowest border-outline-variant/40 card-morph morph-fade-in morph-delay-3">
+                <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-foreground flex items-center gap-2 text-lg sm:text-xl">
+                        <CalendarDays className="w-5 h-5 text-primary shrink-0" />
+                        Attendance Register &mdash; {monthLabel}
                     </CardTitle>
-                    <CardDescription className="text-zinc-600 dark:text-zinc-400">
-                        Check-in / check-out times for all employees.
+                    <CardDescription className="text-on-surface-variant text-sm">
+                        Check-in / check-out times and day summaries for all employees.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0 sm:p-6 sm:pt-0">
                     {attendanceLogs.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:bg-zinc-800/50">
-                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Date</TableHead>
-                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Employee</TableHead>
-                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Designation</TableHead>
-                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Check In</TableHead>
-                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Check Out</TableHead>
-                                    <TableHead className="text-zinc-600 dark:text-zinc-400">Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {attendanceLogs.map((log) => (
-                                    <TableRow key={log.id} className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:bg-zinc-800/50">
-                                        <TableCell className="font-medium text-zinc-900 dark:text-white">
-                                            {new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                        </TableCell>
-                                        <TableCell className="text-zinc-700 dark:text-zinc-300">
-                                            <div className="font-medium">{log.profiles?.full_name || 'Unknown'}</div>
-                                        </TableCell>
-                                        <TableCell className="text-zinc-500 dark:text-zinc-500 text-sm capitalize">
-                                            {log.profiles?.designation || '—'}
-                                        </TableCell>
-                                        <TableCell className="text-sm">
-                                            {log.check_in_time ? (
-                                                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                                                    <Clock className="w-3 h-3" />
-                                                    {formatTime(log.check_in_time)}
-                                                </span>
-                                            ) : (
-                                                <span className="text-zinc-400">—</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-sm">
-                                            {log.check_out_time ? (
-                                                <span className="inline-flex items-center gap-1 text-orange-600 dark:text-orange-400 font-medium">
-                                                    <Clock className="w-3 h-3" />
-                                                    {formatTime(log.check_out_time)}
-                                                </span>
-                                            ) : (
-                                                <span className="text-zinc-400">—</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant="outline"
-                                                className={`capitalize ${log.status === 'present' ? 'text-green-600 dark:text-green-400 bg-green-400/10 border-green-500/20' :
-                                                    log.status === 'absent' ? 'text-red-600 dark:text-red-400 bg-red-400/10 border-red-500/20' :
-                                                        log.status === 'late' ? 'text-orange-600 dark:text-orange-400 bg-orange-400/10 border-orange-500/20' :
-                                                            'text-blue-600 dark:text-blue-400 bg-blue-400/10 border-blue-500/20'
-                                                    }`}
-                                            >
-                                                {log.status}
-                                            </Badge>
-                                        </TableCell>
+                        <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="border-outline-variant/30 hover:bg-surface-container-high">
+                                        <TableHead className="text-on-surface-variant whitespace-nowrap">Date</TableHead>
+                                        <TableHead className="text-on-surface-variant whitespace-nowrap">Employee</TableHead>
+                                        <TableHead className="hidden sm:table-cell text-on-surface-variant whitespace-nowrap">Designation</TableHead>
+                                        <TableHead className="text-on-surface-variant whitespace-nowrap">In</TableHead>
+                                        <TableHead className="text-on-surface-variant whitespace-nowrap">Out</TableHead>
+                                        <TableHead className="text-on-surface-variant whitespace-nowrap">Status</TableHead>
+                                        <TableHead className="text-on-surface-variant whitespace-nowrap min-w-[200px]">Day Summary</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {attendanceLogs.map((log) => (
+                                        <TableRow key={log.id} className="border-outline-variant/30 hover:bg-surface-container-high">
+                                            <TableCell className="font-medium text-foreground whitespace-nowrap text-sm">
+                                                {new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                            </TableCell>
+                                            <TableCell className="text-foreground whitespace-nowrap text-sm">
+                                                <div className="font-medium">{log.profiles?.full_name || 'Unknown'}</div>
+                                            </TableCell>
+                                            <TableCell className="hidden sm:table-cell text-on-surface-variant text-sm capitalize whitespace-nowrap">
+                                                {log.profiles?.designation || '\u2014'}
+                                            </TableCell>
+                                            <TableCell className="text-sm whitespace-nowrap">
+                                                {log.check_in_time ? (
+                                                    <span className="inline-flex items-center gap-1 text-[var(--md-sys-color-tertiary)] font-medium">
+                                                        <Clock className="w-3 h-3 shrink-0" />
+                                                        {formatTime(log.check_in_time)}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-outline">\u2014</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-sm whitespace-nowrap">
+                                                {log.check_out_time ? (
+                                                    <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                                                        <Clock className="w-3 h-3 shrink-0" />
+                                                        {formatTime(log.check_out_time)}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-outline">\u2014</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap">
+                                                <Badge
+                                                    variant="outline"
+                                                    className={`capitalize text-xs ${log.status === 'present' ? 'text-primary bg-primary-container/40 border-primary/30' :
+                                                            log.status === 'absent' ? 'text-destructive bg-error-container/40 border-destructive/30' :
+                                                                log.status === 'late' ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' :
+                                                                    'text-[var(--md-sys-color-on-tertiary-container)] bg-tertiary-container/40 border-[var(--md-sys-color-outline)]/40'
+                                                        }`}
+                                                >
+                                                    {log.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-sm text-on-surface-variant max-w-[280px]">
+                                                {log.day_summary ? (
+                                                    <div className="group relative">
+                                                        <p className="text-xs sm:text-sm leading-relaxed line-clamp-2">
+                                                            {truncateSummary(log.day_summary)}
+                                                        </p>
+                                                        {log.day_summary.length > 120 && (
+                                                            <>
+                                                                <details className="group mt-1">
+                                                                    <summary className="text-xs text-primary cursor-pointer hover:underline inline-flex items-center gap-1 select-none">
+                                                                        <FileText className="w-3 h-3" />
+                                                                        Read full summary ({wordCount(log.day_summary)} words)
+                                                                    </summary>
+                                                                    <div className="mt-2 p-3 bg-surface-container-high rounded-lg border border-outline-variant/30 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                                                                        {log.day_summary}
+                                                                    </div>
+                                                                </details>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-outline text-xs italic">No summary</span>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     ) : (
                         <div className="text-center py-12">
-                            <CalendarDays className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
-                            <div className="text-zinc-500 dark:text-zinc-500 mb-1">No attendance records for {monthLabel}.</div>
+                            <CalendarDays className="w-10 h-10 text-outline mx-auto mb-3" />
+                            <div className="text-on-surface-variant mb-1">No attendance records for {monthLabel}.</div>
                         </div>
                     )}
                 </CardContent>

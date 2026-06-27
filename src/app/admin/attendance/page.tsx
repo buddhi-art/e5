@@ -18,19 +18,14 @@ type AttendanceRecord = {
 export default async function AttendancePage() {
   const supabase = await createClient()
 
-  // Fetch all attendance records with profile info
   const { data: rawLogs } = await supabase
     .from('attendance')
-    .select(`
-      *,
-      profiles ( full_name, designation )
-    `)
+    .select(`*, profiles ( full_name, designation )`)
     .order('date', { ascending: false })
     .order('created_at', { ascending: false })
 
   const attendanceLogs = (rawLogs || []) as AttendanceRecord[]
 
-  // Group by year-month
   const monthsMap = new Map<string, { year: number; month: number; label: string; records: AttendanceRecord[] }>()
 
   for (const log of attendanceLogs) {
@@ -51,14 +46,14 @@ export default async function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Attendance</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Monthly attendance records — click a month to view details.</p>
+      <div className="morph-fade-in">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-2">Attendance</h1>
+        <p className="text-sm sm:text-base text-on-surface-variant">Monthly attendance records &mdash; click a month to view details.</p>
       </div>
 
       {months.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {months.map(([key, month]) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+          {months.map(([key, month], idx) => {
             const presentCount = month.records.filter(r => r.status === 'present').length
             const lateCount = month.records.filter(r => r.status === 'late').length
             const halfDayCount = month.records.filter(r => r.status === 'half-day').length
@@ -66,33 +61,33 @@ export default async function AttendancePage() {
 
             return (
               <Link key={key} href={`/admin/attendance/${key}`}>
-                <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-all duration-200 cursor-pointer group h-full">
-                  <CardHeader className="pb-3">
+                <Card className="bg-surface-container-lowest border-outline-variant/40 hover:bg-surface-container-high transition-all duration-200 cursor-pointer group h-full card-morph morph-fade-in" style={{ animationDelay: `${idx * 80}ms` }}>
+                  <CardHeader className="pb-3 p-4 sm:p-6">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-zinc-900 dark:text-white text-base">{month.label}</CardTitle>
-                      <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors" />
+                      <CardTitle className="text-foreground text-sm sm:text-base">{month.label}</CardTitle>
+                      <ChevronRight className="w-4 h-4 text-outline group-hover:text-foreground transition-colors shrink-0 icon-morph" />
                     </div>
-                    <CardDescription className="text-zinc-500 dark:text-zinc-500">
+                    <CardDescription className="text-on-surface-variant text-xs sm:text-sm">
                       {month.records.length} record{month.records.length !== 1 ? 's' : ''}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6 sm:pt-0">
                     <div className="flex flex-wrap gap-1.5">
-                      <Badge variant="outline" className="bg-green-400/10 text-green-500 dark:text-green-400 border-green-500/20 text-xs">
+                      <Badge variant="outline" className="bg-primary-container/40 text-primary border-primary/30 text-xs">
                         {presentCount} present
                       </Badge>
                       {lateCount > 0 && (
-                        <Badge variant="outline" className="bg-orange-400/10 text-orange-400 border-orange-500/20 text-xs">
+                        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-xs">
                           {lateCount} late
                         </Badge>
                       )}
                       {halfDayCount > 0 && (
-                        <Badge variant="outline" className="bg-blue-400/10 text-blue-400 border-blue-500/20 text-xs">
+                        <Badge variant="outline" className="bg-tertiary-container/40 text-[var(--md-sys-color-on-tertiary-container)] border-[var(--md-sys-color-outline)]/40 text-xs">
                           {halfDayCount} half-day
                         </Badge>
                       )}
                       {absentCount > 0 && (
-                        <Badge variant="outline" className="bg-red-400/10 text-red-400 border-red-500/20 text-xs">
+                        <Badge variant="outline" className="bg-error-container/40 text-[var(--md-sys-color-on-error-container)] border-[var(--md-sys-color-outline)]/40 text-xs">
                           {absentCount} absent
                         </Badge>
                       )}
@@ -104,11 +99,11 @@ export default async function AttendancePage() {
           })}
         </div>
       ) : (
-        <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+        <Card className="bg-surface-container-lowest border-outline-variant/40 card-morph morph-fade-in">
           <CardContent className="text-center py-12">
-            <CalendarDays className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
-            <div className="text-zinc-500 dark:text-zinc-500 mb-1">No attendance records found.</div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">Records will appear here once employees start marking attendance.</p>
+            <CalendarDays className="w-10 h-10 text-outline mx-auto mb-3" />
+            <div className="text-on-surface-variant mb-1">No attendance records found.</div>
+            <p className="text-sm text-outline">Records will appear here once employees start marking attendance.</p>
           </CardContent>
         </Card>
       )}

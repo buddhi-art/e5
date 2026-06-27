@@ -45,22 +45,22 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
 
   function getStatusBadge(status: string) {
     switch (status) {
-      case 'approved': return <Badge className="bg-emerald-500 hover:bg-emerald-600">Approved</Badge>
-      case 'reimbursed': return <Badge variant="secondary" className="bg-sky-100 text-sky-800 hover:bg-sky-200 border-sky-200 border">Reimbursed</Badge>
+      case 'approved': return <Badge className="bg-primary-container text-on-primary-container">Approved</Badge>
+      case 'reimbursed': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">Reimbursed</Badge>
       case 'rejected': return <Badge variant="destructive">Rejected</Badge>
-      case 'pending': return <Badge variant="outline" className="text-amber-600 border-amber-300">Pending</Badge>
+      case 'pending': return <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/30">Pending</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 morph-fade-in">
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 items-end bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <div className="flex flex-wrap gap-4 items-end bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/40 shadow-sm card-morph">
         <div className="space-y-1.5 flex-1 min-w-[150px]">
-          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Status</label>
+          <label className="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Status</label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || 'all')}>
-            <SelectTrigger className="bg-zinc-50 dark:bg-zinc-800/50">
+            <SelectTrigger className="bg-surface-container-high">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -74,9 +74,9 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
         </div>
 
         <div className="space-y-1.5 flex-1 min-w-[200px]">
-          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Project</label>
+          <label className="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Project</label>
           <Select value={projectFilter} onValueChange={(v) => setProjectFilter(v || 'all')}>
-            <SelectTrigger className="bg-zinc-50 dark:bg-zinc-800/50">
+            <SelectTrigger className="bg-surface-container-high">
               <SelectValue placeholder="All Projects">
                 {projectFilter !== 'all' ? projects.find(p => p.id === projectFilter)?.title : null}
               </SelectValue>
@@ -91,9 +91,9 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
         </div>
 
         <div className="space-y-1.5 flex-1 min-w-[180px]">
-          <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Category</label>
+          <label className="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Category</label>
           <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v || 'all')}>
-            <SelectTrigger className="bg-zinc-50 dark:bg-zinc-800/50">
+            <SelectTrigger className="bg-surface-container-high">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -114,31 +114,31 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl overflow-hidden shadow-sm card-morph">
         <Table>
-          <TableHeader className="bg-zinc-50 dark:bg-zinc-950">
+          <TableHeader className="bg-surface-container">
             <TableRow>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Date</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Employee</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Project</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Category</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Amount</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Receipt</TableHead>
-              <TableHead className="font-semibold text-zinc-900 dark:text-white">Status</TableHead>
-              <TableHead className="text-right font-semibold text-zinc-900 dark:text-white">Actions</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Date</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Employee</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Project</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Category</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Amount</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Receipt</TableHead>
+              <TableHead className="font-semibold text-on-surface-variant">Status</TableHead>
+              <TableHead className="text-right font-semibold text-on-surface-variant">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredExpenses.length > 0 ? (
               filteredExpenses.map((exp) => (
-                <TableRow key={exp.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                  <TableCell className="text-zinc-500 whitespace-nowrap">{new Date(exp.expense_date).toLocaleDateString()}</TableCell>
-                  <TableCell className="font-medium text-zinc-900 dark:text-white">
+                <TableRow key={exp.id} className="hover:bg-surface-container-high">
+                  <TableCell className="text-on-surface-variant whitespace-nowrap">{new Date(exp.expense_date).toLocaleDateString()}</TableCell>
+                  <TableCell className="font-medium text-foreground">
                     {exp.submitted_by_profile?.full_name || 'Unknown'}
                   </TableCell>
-                  <TableCell className="text-zinc-600 dark:text-zinc-400">{exp.projects?.title || '-'}</TableCell>
-                  <TableCell className="capitalize text-zinc-600 dark:text-zinc-400">{exp.category.replace('_', ' ')}</TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="text-on-surface-variant">{exp.projects?.title || '-'}</TableCell>
+                  <TableCell className="capitalize text-on-surface-variant">{exp.category.replace('_', ' ')}</TableCell>
+                  <TableCell className="font-medium text-foreground">
                     {Number(exp.amount).toLocaleString()}
                   </TableCell>
                   <TableCell>
@@ -153,17 +153,17 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[160px]">
                         <DropdownMenuItem render={<Link href={`/admin/expenses/${exp.id}`} />}>
-                          <Eye className="w-4 h-4 mr-2 text-zinc-500" />
+                          <Eye className="w-4 h-4 mr-2 text-on-surface-variant" />
                           View Details
                         </DropdownMenuItem>
 
                         {exp.status === 'pending' && (
                           <>
-                            <DropdownMenuItem onClick={() => handleStatusChange(exp.id, 'approved')} className="text-emerald-600 focus:bg-emerald-50 focus:text-emerald-600 dark:focus:bg-emerald-950/50">
+                            <DropdownMenuItem onClick={() => handleStatusChange(exp.id, 'approved')} className="text-primary focus:bg-primary-container/30 focus:text-on-primary-container">
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Approve
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(exp.id, 'rejected')} className="text-red-600 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950/50">
+                            <DropdownMenuItem onClick={() => handleStatusChange(exp.id, 'rejected')} className="text-destructive focus:bg-error-container/30 focus:text-destructive">
                               <XCircle className="w-4 h-4 mr-2" />
                               Reject
                             </DropdownMenuItem>
@@ -171,14 +171,14 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
                         )}
 
                         {exp.status === 'approved' && (
-                          <DropdownMenuItem onClick={() => handleStatusChange(exp.id, 'reimbursed')} className="text-sky-600 focus:bg-sky-50 focus:text-sky-600 dark:focus:bg-sky-950/50">
+                          <DropdownMenuItem onClick={() => handleStatusChange(exp.id, 'reimbursed')} className="text-primary focus:bg-primary-container focus:text-on-primary-container">
                             <DollarSign className="w-4 h-4 mr-2" />
                             Mark Reimbursed
                           </DropdownMenuItem>
                         )}
 
                         {exp.status === 'pending' && (
-                          <DropdownMenuItem onClick={() => handleDelete(exp.id)} className="text-red-600 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950/50 mt-2 border-t border-red-100 dark:border-red-900/30 pt-2">
+                          <DropdownMenuItem onClick={() => handleDelete(exp.id)} className="text-red-600 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950/50 mt-2 border-t border-outline-variant/40 pt-2">
                             <Trash className="w-4 h-4 mr-2" />
                             Delete
                           </DropdownMenuItem>
@@ -190,7 +190,7 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-10 text-zinc-500">
+                <TableCell colSpan={8} className="text-center py-10 text-on-surface-variant">
                   No expenses found matching your filters.
                 </TableCell>
               </TableRow>

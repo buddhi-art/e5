@@ -121,6 +121,9 @@ export function InvoiceForm({ clients, projects, initialData }: { clients: any[]
     if (result?.error) {
       toast.error(result.error)
       setLoading(false)
+    } else if ('invoiceId' in (result || {})) {
+      toast.success('Invoice created successfully')
+      router.push(`/admin/invoices/${(result as any).invoiceId}`)
     } else {
       toast.success(initialData ? 'Invoice updated successfully' : 'Invoice created successfully as Draft')
       router.push('/admin/invoices')

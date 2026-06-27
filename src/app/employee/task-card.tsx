@@ -53,11 +53,11 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
   const progress = totalSubs === 0 ? (task.status === 'completed' ? 100 : 0) : Math.round((completedSubs / totalSubs) * 100)
 
   return (
-    <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+    <Card className="bg-surface-container-lowest border-outline-variant/40 card-morph morph-fade-in">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-zinc-900 dark:text-white text-lg">
+            <CardTitle className="text-foreground text-lg">
               {(() => {
                 const match = task.title.match(/^E5_Task_(\d+)\s*-\s*(.*)/);
                 const clientName = task.projects?.clients?.company_name || 'Client';
@@ -68,7 +68,7 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
                 return `E5 - ${clientName} - ${projectName} - ${task.title}`;
               })()}
             </CardTitle>
-            <div className="flex items-center gap-2 mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="flex items-center gap-2 mt-2 text-sm text-on-surface-variant">
               <span>{
                 task.phase === 'Phase 1' ? 'Phase 1: Client Requirement' :
                 task.phase === 'Phase 2' ? 'Phase 2: Pre-Production' :
@@ -79,9 +79,9 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
             </div>
           </div>
           <Badge variant="outline" className={`
-            ${task.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : ''}
-            ${task.status === 'in_progress' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20' : ''}
-            ${task.status === 'pending' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-300 dark:border-zinc-700' : ''}
+            ${task.status === 'completed' ? 'bg-tertiary-container/40 text-tertiary border-tertiary/30' : ''}
+            ${task.status === 'in_progress' ? 'bg-sky-500/10 text-primary border-sky-500/20' : ''}
+            ${task.status === 'pending' ? 'bg-surface-container-high text-on-surface-variant border-outline-variant/40' : ''}
           `}>
             {task.status.replace('_', ' ')}
           </Badge>
@@ -90,12 +90,12 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
 
       <CardContent className="space-y-4">
         {task.description && (
-          <p className="text-zinc-600 dark:text-zinc-400 text-sm whitespace-pre-wrap">{task.description}</p>
+          <p className="text-on-surface-variant text-sm whitespace-pre-wrap">{task.description}</p>
         )}
 
         <div className="flex items-center gap-4 text-xs font-medium">
           {task.deadline && (
-            <div className="flex items-center gap-1.5 text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20">
+            <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
               <Clock className="w-3.5 h-3.5" />
               Due: {new Date(task.deadline).toLocaleString()}
             </div>
@@ -103,18 +103,18 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
         </div>
 
         {totalSubs > 0 && (
-          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800/50">
+          <div className="pt-4 border-t border-outline-variant/40/50">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Sub-Tasks</h4>
-              <span className={`text-xs ${progress === 100 ? 'text-emerald-400' : 'text-sky-600 dark:text-sky-400'}`}>
+              <h4 className="text-sm font-medium text-foreground uppercase tracking-wider">Sub-Tasks</h4>
+              <span className={`text-xs ${progress === 100 ? 'text-[var(--md-sys-color-tertiary)]' : 'text-primary'}`}>
                 {completedSubs} of {totalSubs} completed
               </span>
             </div>
 
             {/* Progress bar */}
-            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 mb-4 rounded-full overflow-hidden">
+            <div className="w-full bg-surface-container-high h-1.5 mb-4 rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-500 ${progress === 100 ? 'bg-emerald-500' : 'bg-sky-500'}`}
+                className={`h-full transition-all duration-500 ${progress === 100 ? 'bg-[var(--md-sys-color-tertiary)]' : 'bg-sky-500'}`}
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -123,18 +123,18 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
               {task.subtasks.map((st: any) => {
                 const subComments = commentsBySubtask[st.id] || []
                 return (
-                  <div key={st.id} className="bg-zinc-50 dark:bg-zinc-950/30 rounded-md border border-zinc-200 dark:border-zinc-800/80 overflow-hidden">
-                    <div className="flex items-start gap-3 p-3 hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 transition-colors">
+                  <div key={st.id} className="bg-surface-container-high rounded-md border border-outline-variant/40/80 overflow-hidden">
+                    <div className="flex items-start gap-3 p-3 hover:bg-surface-container-high transition-colors transition-colors">
                       <Checkbox
                         id={`subtask-${st.id}`}
                         checked={st.is_completed}
                         disabled={loading === st.id}
                         onCheckedChange={() => handleSubtaskToggle(st.id, st.is_completed)}
-                        className="mt-0.5 border-zinc-600 data-[state=checked]:bg-sky-500 data-[state=checked]:border-sky-500"
+                        className="mt-0.5 border-outline data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <label
                         htmlFor={`subtask-${st.id}`}
-                        className={`text-sm cursor-pointer select-none leading-tight ${st.is_completed ? 'text-zinc-500 dark:text-zinc-500 line-through' : 'text-zinc-700 dark:text-zinc-300 font-medium'}`}
+                        className={`text-sm cursor-pointer select-none leading-tight ${st.is_completed ? 'text-on-surface-variant line-through' : 'text-foreground font-medium'}`}
                       >
                         {st.title}
                       </label>
@@ -142,7 +142,7 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
                     
                     {/* Sub-sub-tasks */}
                     {st.sub_subtasks && st.sub_subtasks.length > 0 && (
-                      <div className="pl-9 pr-3 pb-3 space-y-1.5 border-t border-zinc-100 dark:border-zinc-800/50 pt-2">
+                      <div className="pl-9 pr-3 pb-3 space-y-1.5 border-t border-outline-variant/20 pt-2">
                         {st.sub_subtasks.map((sst: any) => (
                           <div key={sst.id} className="flex items-start gap-2.5">
                             <Checkbox
@@ -150,11 +150,11 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
                               checked={sst.is_completed}
                               disabled={loading === sst.id}
                               onCheckedChange={() => handleSubSubtaskToggle(sst.id, sst.is_completed)}
-                              className="mt-0.5 w-3.5 h-3.5 border-zinc-400 dark:border-zinc-600 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                              className="mt-0.5 w-3.5 h-3.5 border-zinc-400 dark:border-outline data-[state=checked]:bg-[var(--md-sys-color-tertiary)] data-[state=checked]:border-emerald-500"
                             />
                             <label
                               htmlFor={`sst-${sst.id}`}
-                              className={`text-xs cursor-pointer select-none leading-tight ${sst.is_completed ? 'text-zinc-400 dark:text-zinc-600 line-through' : 'text-zinc-600 dark:text-zinc-400'}`}
+                              className={`text-xs cursor-pointer select-none leading-tight ${sst.is_completed ? 'text-outline line-through' : 'text-on-surface-variant'}`}
                             >
                               {sst.title}
                             </label>
@@ -174,13 +174,13 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
         )}
 
         {totalSubs === 0 && (
-          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800/50 flex items-center justify-end">
+          <div className="pt-4 border-t border-outline-variant/40/50 flex items-center justify-end">
             <button
               onClick={() => handleMainStatusUpdate(task.status === 'completed' ? 'in_progress' : 'completed')}
               disabled={loading === 'main'}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${task.status === 'completed'
-                  ? 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800'
-                  : 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20'
+                  ? 'text-on-surface-variant hover:text-foreground bg-surface-container-high'
+                  : 'text-[var(--md-sys-color-tertiary)] bg-tertiary-container/40 hover:bg-[var(--md-sys-color-tertiary)]/20 border border-tertiary/30'
                 }`}
             >
               <CheckCircle2 className="w-4 h-4" />

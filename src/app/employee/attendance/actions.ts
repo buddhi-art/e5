@@ -46,12 +46,14 @@ export async function checkOut(daySummary: string) {
   const now = new Date().toISOString()
 
   try {
-    const { data: record } = await supabase
+    const { data: record, error: fetchErr } = await supabase
       .from('attendance')
       .select('id, check_in_time, check_out_time')
       .eq('user_id', user.id)
       .eq('date', today)
-      .single()
+      .maybeSingle()
+
+    if (fetchErr) return { error: fetchErr.message }
 
     if (!record) {
       return { error: 'You must check in first before checking out.' }

@@ -28,19 +28,19 @@ export function RecordPaymentDialog({ invoice }: { invoice: any }) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
-    
+
     const formData = new FormData(e.currentTarget)
     formData.set('invoice_id', invoice.id)
-    
+
     const res = await recordPayment(formData)
-    
+
     if (res?.error) {
       toast.error(res.error)
     } else {
       toast.success('Payment recorded successfully')
       setOpen(false)
     }
-    
+
     setLoading(false)
   }
 
@@ -48,10 +48,12 @@ export function RecordPaymentDialog({ invoice }: { invoice: any }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button className="bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-sm print:hidden" />}>
+      <DialogTrigger render={
+        <Button variant="default" className="bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-sm print:hidden">
           <CreditCard className="w-4 h-4 mr-2" />
           Record Payment
-      </DialogTrigger>
+        </Button>
+      } />
       <DialogContent className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Record Payment</DialogTitle>
@@ -62,26 +64,26 @@ export function RecordPaymentDialog({ invoice }: { invoice: any }) {
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
             <Label>Amount Received ({invoice.currency})</Label>
-            <Input 
-              name="amount" 
-              type="number" 
-              step="0.01" 
+            <Input
+              name="amount"
+              type="number"
+              step="0.01"
               min="0.01"
-              max={balanceDue.toString()} 
-              defaultValue={balanceDue} 
+              max={balanceDue.toString()}
+              defaultValue={balanceDue}
               required
               className="bg-white dark:bg-zinc-900"
             />
             <p className="text-xs text-zinc-500">Balance due: {Number(balanceDue).toLocaleString()}</p>
           </div>
-          
+
           <div className="space-y-2">
             <Label>Payment Date</Label>
-            <Input 
-              name="payment_date" 
-              type="date" 
-              required 
-              defaultValue={new Date().toISOString().split('T')[0]} 
+            <Input
+              name="payment_date"
+              type="date"
+              required
+              defaultValue={new Date().toISOString().split('T')[0]}
               className="bg-white dark:bg-zinc-900 [color-scheme:light] dark:[color-scheme:dark]"
             />
           </div>

@@ -30,13 +30,13 @@ export default async function ExpensesPage() {
     .order('title', { ascending: true })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 card-morph morph-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Expenses</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">Review, approve, and track company expenses.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Expenses</h1>
+          <p className="text-on-surface-variant">Review, approve, and track company expenses.</p>
         </div>
-        <Button render={<Link href="/admin/expenses/new" />} className="bg-gradient-to-r from-sky-500 to-sky-400 hover:from-sky-400 hover:to-sky-300 text-white font-semibold border-none">
+        <Button render={<Link href="/admin/expenses/new" />} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold border-none btn-morph">
           <Plus className="w-4 h-4 mr-2" />
           New Expense
         </Button>
