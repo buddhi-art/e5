@@ -29,6 +29,7 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 * **The Health Score:** A real-time, weighted ring gauge that scores the entire company's operational health based on attendance, overdue tasks, active cash flow, and equipment status.
 * **Smart Performance Windows:** A unique dual-window approach. Top stat cards show **historical lifetime data** (always cumulative), while the lower domain blocks show **isolated monthly metrics** that reset every month. This keeps performance tracking highly relevant to the current month without losing historical context.
 * Optimized via **Incremental Static Regeneration (ISR)** to auto-refresh the data every 5 minutes, preventing constant, heavy DB reads on complex analytics.
+* **In-Memory Caching:** The admin dashboard's 35 parallel Supabase queries are wrapped in a `node-cache` layer with 60-second TTL, so repeated hits within the same minute serve data from RAM instead of the database.
 
 ### 👥 People, Attendance & Leave
 

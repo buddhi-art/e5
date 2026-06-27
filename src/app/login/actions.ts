@@ -28,5 +28,5 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/') // Middleware will redirect to /admin or /employee
+  redirect('/admin') // Middleware will redirect employee users to /employee if needed
 }
