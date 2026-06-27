@@ -1,7 +1,3 @@
-Here is a fully humanized, developer-to-developer rewrite of your `README.md`. It strips away the sterile, robotic AI formatting and writes it with the tone of an engineer who is proud of their architecture, transparent about their design choices, and direct about how to get the app running.
-
----
-
 # 🎬 E5 Chronicles — Production Management Portal
 
 This is the all-in-one internal portal built to run a fast-paced production house. Instead of fragmenting our operations across a dozen messy Google Sheets and random apps, **E5 Chronicles** centralizes everything: employee attendance, client invoicing, project task lifecycles, equipment tracking (with live QR scanning), and financial health.
