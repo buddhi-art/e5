@@ -39,9 +39,9 @@ export default async function AdminDashboard() {
     // Invoices
     { data: invoicesData } = { data: [] },
     // Invoice revenue — issued this month
-    { count: invoicesThisMonth } = { count: 0 },
+    { count: invoicesThisMonthCount } = { count: 0 },
     // Invoice revenue — issued last month
-    { count: invoicesLastMonth } = { count: 0 },
+    { count: invoicesLastMonthCount } = { count: 0 },
     // Expenses
     { data: expensesData } = { data: [] },
     { data: expensesThisMonth } = { data: [] },
@@ -55,10 +55,18 @@ export default async function AdminDashboard() {
     { count: equipmentInMaintenance } = { count: 0 },
     // Leave today
     { data: leaveRequestsToday } = { data: [] },
-    // Meetings
+    // All meetings (lifetime)
     { count: totalMeetings } = { count: 0 },
     // All leave requests count
     { count: totalLeaveRequests } = { count: 0 },
+    // Completed tasks this month (for Task Completion domain score)
+    { count: completedTasksThisMonth } = { count: 0 },
+    // All tasks created this month (for domain score denominator)
+    { count: tasksThisMonth } = { count: 0 },
+    // Invoices issued this month with statuses (for monthly Collection Rate)
+    { data: invoicesThisMonthData } = { data: [] },
+    // Meetings this month (for Client Engagements domain score)
+    { count: meetingsThisMonthCount } = { count: 0 },
     // Active clients — project client_ids for active projects
     activeClientsResult,
     // Project health
@@ -115,7 +123,7 @@ export default async function AdminDashboard() {
     supabase.from('tasks').select('*', { count: 'exact', head: true })
       .eq('status', 'in_progress'),
 
-    // Completed tasks
+    // Completed tasks (lifetime)
     supabase.from('tasks').select('*', { count: 'exact', head: true })
       .eq('status', 'completed'),
 
@@ -197,7 +205,7 @@ export default async function AdminDashboard() {
       .lte('start_date', todayStr)
       .gte('end_date', todayStr),
 
-    // Total meetings
+    // All meetings (lifetime)
     supabase.from('client_meetings')
       .select('*', { count: 'exact', head: true }),
 
@@ -205,6 +213,30 @@ export default async function AdminDashboard() {
     supabase.from('leave_requests')
       .select('*', { count: 'exact', head: true })
       .is('deleted_at', null),
+
+    // NEW: Completed tasks this month (for Task Completion domain score)
+    supabase.from('tasks').select('*', { count: 'exact', head: true })
+      .eq('status', 'completed')
+      .gte('created_at', startOfMonth)
+      .lte('created_at', endOfMonth),
+
+    // NEW: All tasks created this month (for domain score denominator)
+    supabase.from('tasks').select('*', { count: 'exact', head: true })
+      .gte('created_at', startOfMonth)
+      .lte('created_at', endOfMonth),
+
+    // NEW: Invoices issued this month with statuses (for monthly Collection Rate)
+    supabase.from('invoices')
+      .select('status')
+      .is('deleted_at', null)
+      .gte('issue_date', startOfMonth)
+      .lte('issue_date', endOfMonth),
+
+    // NEW: Meetings this month (for Client Engagements domain score)
+    supabase.from('client_meetings')
+      .select('*', { count: 'exact', head: true })
+      .gte('meeting_date', startOfMonth)
+      .lte('meeting_date', endOfMonth),
 
     // Active clients — client_ids from active projects
     supabase.from('projects')
@@ -346,11 +378,26 @@ export default async function AdminDashboard() {
   const equipCheckedOut = equipmentCheckedOut || 0
   const equipInMaintenance = equipmentInMaintenance || 0
 
-  // Total meetings
+  // Lifetime meetings (for stat card subtitle)
   const meetingsCount = totalMeetings || 0
 
   // Today attendance for display
   const todayAttendance = (todayAttendanceResult?.data || []).slice(0, 20)
+
+  // ──────────────────────────────────────────────
+  // Monthly-windowed domain score data
+  // ──────────────────────────────────────────────
+  // Task Completion: tasks completed this month ÷ tasks created this month
+  const completedTasksThisMonthVal = completedTasksThisMonth || 0
+  const tasksThisMonthVal = tasksThisMonth || 0
+
+  // Collection Rate (monthly): paid invoices issued this month ÷ all invoices issued this month
+  const monthlyInvoicesList = invoicesThisMonthData || []
+  const monthlyInvoicesPaid = monthlyInvoicesList.filter((i: any) => i.status === 'paid').length
+  const monthlyInvoicesTotal = monthlyInvoicesList.length
+
+  // Client Engagements (monthly): meetings this month
+  const meetingsThisMonthVal = meetingsThisMonthCount || 0
 
   return (
     <AdminDashboardClient
@@ -393,6 +440,12 @@ export default async function AdminDashboard() {
         equipmentAvailable: equipAvailable,
         totalMeetings: meetingsCount,
         month: monthStr,
+        // New monthly-windowed domain score fields
+        completedTasksThisMonth: completedTasksThisMonthVal,
+        tasksThisMonth: tasksThisMonthVal,
+        monthlyInvoicesPaid,
+        monthlyInvoicesTotal,
+        meetingsThisMonth: meetingsThisMonthVal,
       }}
     />
   )

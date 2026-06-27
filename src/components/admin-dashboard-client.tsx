@@ -39,6 +39,10 @@ interface HealthMetrics {
     employeeCountChange: number; attendanceTrend: number; completionTrend: number
     revenueThisMonth: number; revenueLastMonth: number; activeClients: number; projectHealthPercent: number
     equipmentCheckedOut: number; equipmentInMaintenance: number; equipmentAvailable: number; totalMeetings: number; month: string
+    // Monthly-windowed domain score data
+    completedTasksThisMonth: number; tasksThisMonth: number
+    monthlyInvoicesPaid: number; monthlyInvoicesTotal: number
+    meetingsThisMonth: number
 }
 
 /* ──────────────────────────────────────
@@ -273,6 +277,9 @@ export function AdminDashboardClient({ data }: { data: HealthMetrics }) {
         employeeCountChange, completionTrend, revenueThisMonth, revenueLastMonth,
         activeClients, projectHealthPercent, equipmentCheckedOut, equipmentInMaintenance,
         equipmentAvailable, clientCount, totalMeetings, month, activeProjectCount, recentTasks, todayAttendance,
+        completedTasksThisMonth, tasksThisMonth,
+        monthlyInvoicesPaid, monthlyInvoicesTotal,
+        meetingsThisMonth,
     } = data
 
     const attendanceWeight = 0.25; const taskWeight = 0.25; const financeWeight = 0.20; const projectWeight = 0.15; const equipmentWeight = 0.15
@@ -342,7 +349,7 @@ export function AdminDashboardClient({ data }: { data: HealthMetrics }) {
                         trend={{ direction: completionTrend > 0 ? 'up' : completionTrend < 0 ? 'down' : 'neutral', text: `${Math.abs(completionTrend).toFixed(1)}%` }} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                    <DomainScore label="Task Completion" score={completedTasks} max={Math.max(totalTasks, 1)} icon={Target} />
+                    <DomainScore label="Task Completion (This Month)" score={completedTasksThisMonth} max={Math.max(tasksThisMonth, 1)} icon={Target} />
                     <DomainScore label="Project Health" score={projectHealthPercent} max={100} icon={BarChart3} />
                     <DomainScore label="On-Time Delivery" score={Math.round(onTimeCompletion)} max={100} icon={Gauge} />
                 </div>
@@ -364,7 +371,7 @@ export function AdminDashboardClient({ data }: { data: HealthMetrics }) {
                         color={budgetUtilization <= 70 ? 'emerald' : budgetUtilization <= 85 ? 'amber' : 'error'} suffix="%" decimals={1} delay={240} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                    <DomainScore label="Collection Rate" score={paidInvoices} max={Math.max(paidInvoices + activeInvoices + overdueInvoices + draftInvoices, 1)} icon={DollarSign} />
+                    <DomainScore label="Collection Rate (This Month)" score={monthlyInvoicesPaid} max={Math.max(monthlyInvoicesTotal, 1)} icon={DollarSign} />
                     <DomainScore label="Budget Discipline" score={100 - Math.min(budgetUtilization, 100)} max={100} icon={Percent} />
                     <DomainScore label="Pending Approvals" score={pendingApprovals} max={Math.max(pendingApprovals, 5)} icon={AlertTriangle} />
                 </div>
@@ -382,7 +389,7 @@ export function AdminDashboardClient({ data }: { data: HealthMetrics }) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                     <DomainScore label="Equipment Availability" score={equipmentAvailable} max={Math.max(equipmentAvailable + equipmentCheckedOut + equipmentInMaintenance, 1)} icon={Camera} />
-                    <DomainScore label="Client Engagements" score={totalMeetings} max={Math.max(totalMeetings, 10)} icon={UserSquare2} />
+                    <DomainScore label="Client Engagements (This Month)" score={meetingsThisMonth} max={Math.max(meetingsThisMonth, 10)} icon={UserSquare2} />
                 </div>
             </section>
 
