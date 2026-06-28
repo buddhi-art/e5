@@ -17,6 +17,27 @@ export default async function AdminLayout({
     redirect('/login')
   }
 
+  // Defense-in-depth: verify user is actually admin
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, designation')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) {
+    redirect('/login')
+  }
+
+  // Founder designation — founder portal
+  if (profile.designation === 'Founder') {
+    redirect('/founder')
+  }
+
+  // Employees must not access admin
+  if (profile.role === 'employee') {
+    redirect('/employee')
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground selection:bg-primary/20">
       {/* Desktop sidebar — M3 navigation drawer */}

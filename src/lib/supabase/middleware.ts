@@ -35,35 +35,79 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect routes based on role and authentication
   const path = request.nextUrl.pathname
 
+  // Not logged in → login page
   if (!user && path !== '/login') {
-    // If not logged in and not on login page, redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
   if (user && path === '/login') {
-    // If logged in and on login page, check email and redirect
+    // Logged in and visiting login → redirect to correct portal
     const url = request.nextUrl.clone()
-    if (user.email === 'admin@e5chronicles.com') {
-      url.pathname = '/admin'
-    } else {
-      url.pathname = '/employee'
-    }
+    const portal = await getPortal(user.id, supabase)
+    url.pathname = portal
     return NextResponse.redirect(url)
   }
 
-  // Prevent employees from accessing admin routes
-  if (user && path.startsWith('/admin')) {
-    if (user.email !== 'admin@e5chronicles.com') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/employee'
-      return NextResponse.redirect(url)
+  // Protect routes based on portal
+  if (user) {
+    const portal = await getPortal(user.id, supabase)
+
+    // Founder trying to access admin or employee routes
+    if (portal === '/founder') {
+      if (path.startsWith('/admin') || path.startsWith('/employee')) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/founder'
+        return NextResponse.redirect(url)
+      }
+    }
+
+    // Admin trying to access founder or employee routes
+    if (portal === '/admin') {
+      if (path.startsWith('/founder') || path.startsWith('/employee')) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/admin'
+        return NextResponse.redirect(url)
+      }
+    }
+
+    // Employee trying to access admin or founder routes
+    if (portal === '/employee') {
+      if (path.startsWith('/admin') || path.startsWith('/founder')) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/employee'
+        return NextResponse.redirect(url)
+      }
     }
   }
 
   return supabaseResponse
+}
+
+async function getPortal(
+  userId: string,
+  supabase: ReturnType<typeof createServerClient>,
+): Promise<string> {
+  // Try to get profile for this user
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, designation')
+    .eq('id', userId)
+    .single()
+
+  // Founder designation — founder portal
+  if (profile?.designation === 'Founder') {
+    return '/founder'
+  }
+
+  // Admin role — admin portal
+  if (profile?.role === 'admin') {
+    return '/admin'
+  }
+
+  // Fallback — employee portal
+  return '/employee'
 }

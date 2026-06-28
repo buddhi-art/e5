@@ -17,6 +17,27 @@ export default async function EmployeeLayout({
     redirect('/login')
   }
 
+  // Defense-in-depth: verify user is not an admin or founder trying to access employee portal
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, designation')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) {
+    redirect('/login')
+  }
+
+  // Founder — founder portal
+  if (profile.designation === 'Founder') {
+    redirect('/founder')
+  }
+
+  // Admin — admin portal
+  if (profile.role === 'admin') {
+    redirect('/admin')
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground selection:bg-primary/20">
       {/* Desktop sidebar */}
