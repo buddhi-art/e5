@@ -20,9 +20,10 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 
 ### 🔐 Auth & Role-Based Routing
 
-* Uses Supabase Auth under the hood with automatic, role-based routing.
+* Uses Supabase Auth under the hood with automatic, role-based routing via **`src/middleware.ts`** — a Next.js standard middleware that refreshes SSR sessions on every request and protects routes server-side before any page renders.
 * **Admin Role:** Full dashboard access, global financial metrics, and operational overviews.
 * **Employee Role:** Self-service portal focused strictly on their own check-ins, tasks, leave balances, and profile updates.
+* **Founder Role:** High-level strategic dashboard with project, resource, and financial overviews.
 
 ### 📊 The Operations Dashboard
 
@@ -47,29 +48,29 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 
 ### 💰 Invoicing & Expense Tracking
 
-* Complete billing lifecycles from Draft to Paid/Overdue, including native **PDF invoice generation** with custom branding.
+* Complete billing lifecycles from Draft to Paid/Overdue, including native **PDF invoice generation** via `jspdf` + `html2canvas` (client-side rendering, triggered from the invoice detail page).
 * **Atomic Invoice Numbering:** Features robust Postgres sequences to guarantee sequential, collision-free invoice numbering, even under concurrent high load.
+* **Overdue Automation:** A client-side `OverdueChecker` component fires a server action on mount to mark invoices past-due, keeping statuses accurate without a cron job.
 * Tracks localized payment routes like Cash, Bank, eSewa, Khalti, and ConnectIPS.
 * Secure receipt image uploads mapped straight to Supabase Storage buckets.
 
 ---
 
-## 🏗️ Architecture Note: The Routing Proxy
-
-If you look at the root directory, you’ll notice we aren't using a standard Next.js `middleware.ts` file.
-
-Instead, session refreshes and strict admin route protection are handled cleanly by **`src/proxy.ts`**. This acts as a highly optimized middleware replacement engineered specifically to interface flawlessly with Next.js 16’s SSR cookie handshakes.
+## 🏗️ Project Structure
 
 ```
 src/
-├── proxy.ts                  # Handles session refreshes & route security
+├── middleware.ts              # Next.js middleware — session refresh & route protection
 ├── app/
-│   ├── login/                # Entry point
-│   ├── admin/                # Admin views (Powered by a single optimized RPC for dashboard analytics)
-│   └── employee/             # Employee self-service views
-├── components/               # Navbars, sidebars, and modular client UI
-└── lib/                      # Supabase clients, caching layers, and storage drivers
-
+│   ├── login/                 # Entry point
+│   ├── admin/                 # Admin views (Powered by a single optimized RPC for dashboard analytics)
+│   ├── employee/              # Employee self-service views
+│   └── founder/               # Founder strategic overview
+├── components/                # Navbars, sidebars, and modular client UI
+├── lib/
+│   ├── supabase/              # Supabase clients (browser, server, middleware, admin, storage)
+│   └── cache.ts               # In-memory node-cache layer (Termux/self-hosted only)
+└── types/                     # Shared TypeScript type definitions
 ```
 
 ---
@@ -82,7 +83,6 @@ src/
 git clone https://github.com/buddhi-art/e5.git
 cd e5-chronicles
 npm install
-
 ```
 
 ### 2. Configure Environment Variables
@@ -95,7 +95,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
 ADMIN_EMAIL=your-admin-email@domain.com
 ADMIN_PASSWORD=your-secure-password
-
 ```
 
 ### 3. Initialize the Database
@@ -108,14 +107,12 @@ Run our bootstrap script to seed your first admin profile into the database:
 
 ```bash
 node create-admin.mjs
-
 ```
 
 ### 5. Fire up the Dev Server
 
 ```bash
 npm run dev
-
 ```
 
 Head over to `http://localhost:3000` to log in.
@@ -125,7 +122,9 @@ Head over to `http://localhost:3000` to log in.
 ## ⚠️ Good to Know / Quirks
 
 * **Initial Health Score Fallback:** On a completely fresh database with zero entries, the main dashboard's Health Score will default to roughly **65–75%** due to optimistic fallback calculations. Don't worry—it automatically self-corrects the moment real attendance and task data begin flowing in.
-* **Database Reset Cookie Lock:** If you manually purge or drop your local Supabase database while testing, your browser cookies will temporarily hold a dead session. If the app throws a refresh loop error, simply clear your browser cookies or use an incognito window to log back in.
+* **Database Reset Cookie Lock:** If you manually purge or drop your local Supabase database while testing, your browser cookies will temporarily hold a dead session. The middleware catches this and redirects to `/login` gracefully. If you still see issues, clear browser cookies or use an incognito window.
+* **`node-cache` (in-memory cache):** The app uses `node-cache` with a 600s TTL in `src/lib/cache.ts` for dashboard analytics. This works well on Termux or any long-running Node process (e.g., self-hosted VPS), but **will not provide caching across cold starts on serverless platforms** (Vercel, Netlify). Each serverless instance starts with an empty cache. If deploying to serverless, either accept the cache is per-instance or swap in an external cache like Upstash Redis.
+* **PDF Generation:** Invoice PDFs are generated **client-side** using `jspdf` + `html2canvas` (`npm install` already includes both). The `PrintButton` component on the invoice detail page renders the invoice content to a canvas and produces a downloadable PDF. This approach avoids a server-side PDF library dependency and works offline, but **cannot be used to e-mail invoices automatically** from the server. For automated PDF delivery, a server-side solution (e.g., `@react-pdf/renderer` or a Puppeteer-based worker) would need to be added separately.
 
 ---
 
