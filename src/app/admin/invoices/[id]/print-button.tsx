@@ -1,13 +1,59 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Printer } from 'lucide-react'
+import { Printer, Download } from 'lucide-react'
+import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
 
 export function PrintButton() {
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const generatePDF = async () => {
+    const element = document.querySelector('.print-area') as HTMLElement
+    if (!element) return
+
+    setIsGenerating(true)
+    try {
+      const originalBackground = element.style.background
+      element.style.background = 'white'
+      
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      })
+      
+      element.style.background = originalBackground
+
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+      pdf.save('invoice.pdf')
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   return (
-    <Button onClick={() => typeof window !== 'undefined' && window.print()} className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200">
-      <Printer className="w-4 h-4 mr-2" />
-      Print Invoice
-    </Button>
+    <div className="flex gap-2">
+      <Button onClick={() => typeof window !== 'undefined' && window.print()} variant="outline">
+        <Printer className="w-4 h-4 mr-2" />
+        Print
+      </Button>
+      <Button 
+        onClick={generatePDF} 
+        disabled={isGenerating}
+        className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+      >
+        <Download className="w-4 h-4 mr-2" />
+        {isGenerating ? 'Generating...' : 'Download PDF'}
+      </Button>
+    </div>
   )
 }

@@ -325,3 +325,28 @@ export async function getProjectDates(projectId: string) {
         return { error: err.message }
     }
 }
+
+export async function updateOverdueInvoices() {
+    try {
+        const supabase = await createClient()
+        const today = new Date().toISOString().split('T')[0]
+        const { error } = await supabase
+            .from('invoices')
+            .update({ status: 'overdue', updated_at: new Date().toISOString() })
+            .lt('due_date', today)
+            .in('status', ['sent', 'partially_paid'])
+            .is('deleted_at', null)
+
+        if (error) {
+            console.error('Error updating overdue invoices:', error)
+            return { error: error.message }
+        }
+
+        revalidatePath('/admin/invoices')
+        revalidatePath('/admin')
+        return { success: true }
+    } catch (err: any) {
+        console.error('Exception in updateOverdueInvoices:', err)
+        return { error: err.message }
+    }
+}

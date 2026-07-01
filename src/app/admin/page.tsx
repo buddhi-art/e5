@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { AdminDashboardClient } from '@/components/admin-dashboard-client'
-import globalCache from '@/lib/cache'
 import { MONTHS } from '@/lib/utils'
 import { TaskSummary, AttendanceEntry } from '@/types'
 
@@ -65,10 +64,6 @@ async function fetchDashboardData(): Promise<DashboardData> {
   const yesterday = new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   const startOfMonth = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0]
   const endOfMonth = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0]
-
-  const cacheKey = `admin_dashboard_${monthStr}_${todayStr}`
-  const cached = globalCache.get<DashboardData>(cacheKey)
-  if (cached) return cached
 
   const { data: dbMetrics, error } = await supabase.rpc('get_admin_dashboard_metrics', {
     p_today: todayStr,
@@ -183,7 +178,6 @@ async function fetchDashboardData(): Promise<DashboardData> {
     meetingsThisMonth: meetingsThisMonthCount,
   }
 
-  globalCache.set(cacheKey, data, 60)
 
   return data
 }

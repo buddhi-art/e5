@@ -6,18 +6,12 @@ import { InvoiceTable } from './invoice-table'
 export const revalidate = 300
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { OverdueChecker } from '@/components/overdue-checker'
 import { Plus } from 'lucide-react'
 
 export default async function InvoicesPage() {
   const supabase = await createClient()
 
-  const today = new Date().toISOString().split('T')[0]
-  await supabase
-    .from('invoices')
-    .update({ status: 'overdue' })
-    .lt('due_date', today)
-    .in('status', ['sent', 'partially_paid'])
-    .is('deleted_at', null)
 
   const { data: invoices, error: invoicesErr } = await supabase
     .from('invoices')
@@ -35,6 +29,7 @@ export default async function InvoicesPage() {
 
   return (
     <div className="space-y-6">
+      <OverdueChecker />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 morph-fade-in">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Invoices</h1>
