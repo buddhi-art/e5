@@ -29,11 +29,12 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 * **The Health Score:** A real-time, weighted ring gauge that scores the entire company's operational health based on attendance, overdue tasks, active cash flow, and equipment status.
 * **Smart Performance Windows:** A unique dual-window approach. Top stat cards show **historical lifetime data** (always cumulative), while the lower domain blocks show **isolated monthly metrics** that reset every month. This keeps performance tracking highly relevant to the current month without losing historical context.
 * Optimized via **Incremental Static Regeneration (ISR)** to auto-refresh the data every 5 minutes, preventing constant, heavy DB reads on complex analytics.
-* **In-Memory Caching:** The admin dashboard's 35 parallel Supabase queries are wrapped in a `node-cache` layer with 60-second TTL, so repeated hits within the same minute serve data from RAM instead of the database.
+* **Single RPC Architecture:** The admin dashboard's analytics have been vastly improved by consolidating 35+ parallel database queries into a single, lightning-fast PostgreSQL RPC (`get_admin_dashboard_metrics`).
+* **In-Memory Caching:** This single RPC call is further wrapped in a `node-cache` layer with a 60-second TTL, serving repeated hits within the same minute directly from RAM.
 
 ### 👥 People, Attendance & Leave
 
-* Real-time employee check-in tracking with status variables (**Present**, **Late**, **Absent**, **Half-Day**).
+* **Optimistic Check-ins:** Real-time employee check-in tracking with status variables (**Present**, **Late**, **Absent**, **Half-Day**) featuring instant Optimistic UI feedback.
 * Visual admin panels showing yesterday-vs-today attendance trends and 30-day consistency rates.
 * A clean leave request calendar view to prevent team scheduling conflicts.
 
@@ -41,11 +42,13 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 
 * Kanban-style task lifecycles (**To Do → In Progress → Completed**) mapped directly to client projects.
 * Live tracking of expensive gear with distinct statuses (**Available**, **Checked Out**, **In Maintenance**).
+* **Atomic Checkouts:** Equipment checkout features robust Postgres RPC functions (`checkout_equipment`) preventing race conditions and keeping status perfectly synced.
 * Built-in **QR scanning** via the device camera for instantaneous equipment check-ins/check-outs on set.
 
 ### 💰 Invoicing & Expense Tracking
 
 * Complete billing lifecycles from Draft to Paid/Overdue, including native **PDF invoice generation** with custom branding.
+* **Atomic Invoice Numbering:** Features robust Postgres sequences to guarantee sequential, collision-free invoice numbering, even under concurrent high load.
 * Tracks localized payment routes like Cash, Bank, eSewa, Khalti, and ConnectIPS.
 * Secure receipt image uploads mapped straight to Supabase Storage buckets.
 
@@ -62,7 +65,7 @@ src/
 ├── proxy.ts                  # Handles session refreshes & route security
 ├── app/
 │   ├── login/                # Entry point
-│   ├── admin/                # Admin views (Runs 33 parallel Supabase queries on the main page)
+│   ├── admin/                # Admin views (Powered by a single optimized RPC for dashboard analytics)
 │   └── employee/             # Employee self-service views
 ├── components/               # Navbars, sidebars, and modular client UI
 └── lib/                      # Supabase clients, caching layers, and storage drivers
@@ -97,7 +100,7 @@ ADMIN_PASSWORD=your-secure-password
 
 ### 3. Initialize the Database
 
-Take the 15 structured migration files located inside `supabase/migrations/` and execute them sequentially against your Supabase project instance to build out the tables, relational indexes, and **Row Level Security (RLS)** guardrails.
+Take the 16 structured migration files located inside `supabase/migrations/` and execute them sequentially against your Supabase project instance to build out the tables, relational indexes, **Row Level Security (RLS)** guardrails, and our **advanced RPC functions**.
 
 ### 4. Create the Initial Admin Account
 
