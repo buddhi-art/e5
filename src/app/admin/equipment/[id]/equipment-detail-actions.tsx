@@ -1,11 +1,22 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { archiveEquipment, restoreEquipment, deleteEquipment } from '../actions'
 import { Archive, RefreshCw, Trash2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export function EquipmentDetailActions({
     equipmentId,
@@ -18,16 +29,17 @@ export function EquipmentDetailActions({
 }) {
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
 
     function handleArchive() {
-        if (!confirm(`Archive ${equipmentName}? This will set its status to retired.`)) return
-
         startTransition(async () => {
             const result = await archiveEquipment(equipmentId)
             if (result.error) {
                 toast.error(result.error)
             } else {
                 toast.success('Equipment archived')
+                setIsArchiveDialogOpen(false)
             }
         })
     }
@@ -44,14 +56,13 @@ export function EquipmentDetailActions({
     }
 
     function handleDelete() {
-        if (!confirm(`Permanently delete ${equipmentName}? This cannot be undone.`)) return
-
         startTransition(async () => {
             const result = await deleteEquipment(equipmentId)
             if (result.error) {
                 toast.error(result.error)
             } else {
                 toast.success('Equipment permanently deleted')
+                setIsDeleteDialogOpen(false)
                 router.push('/admin/equipment')
             }
         })
@@ -64,18 +75,52 @@ export function EquipmentDetailActions({
                     <RefreshCw className="w-4 h-4 mr-1" />
                     Restore
                 </Button>
-                <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
+                <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)} disabled={isPending}>
                     <Trash2 className="w-4 h-4 mr-1" />
                     {isPending ? 'Deleting...' : 'Permanently Delete'}
                 </Button>
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Permanently Delete Equipment?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to permanently delete <strong>{equipmentName}</strong>? This cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white" disabled={isPending}>
+                                Permanently Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         )
     }
 
     return (
-        <Button variant="outline" onClick={handleArchive} disabled={isPending}>
-            <Archive className="w-4 h-4 mr-1" />
-            {isPending ? 'Archiving...' : 'Archive'}
-        </Button>
+        <>
+            <Button variant="outline" onClick={() => setIsArchiveDialogOpen(true)} disabled={isPending}>
+                <Archive className="w-4 h-4 mr-1" />
+                {isPending ? 'Archiving...' : 'Archive'}
+            </Button>
+            <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Archive Equipment?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to archive <strong>{equipmentName}</strong>? This will set its status to retired.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleArchive} className="bg-red-600 hover:bg-red-700 text-white" disabled={isPending}>
+                            Archive
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     )
 }

@@ -19,12 +19,15 @@ export function AttendanceForm({ hasCheckedIn, hasCheckedOut, checkInTime }: Att
   const [checkingIn, setCheckingIn] = useState(false)
   const [checkingOut, setCheckingOut] = useState(false)
   const [daySummary, setDaySummary] = useState('')
+  const [localCheckedIn, setLocalCheckedIn] = useState(hasCheckedIn)
 
   async function handleCheckIn() {
     setCheckingIn(true)
+    setLocalCheckedIn(true)
     const result = await checkIn()
     if (result?.error) {
       toast.error(result.error)
+      setLocalCheckedIn(false)
     } else {
       toast.success('Checked in successfully!')
     }
@@ -66,14 +69,14 @@ export function AttendanceForm({ hasCheckedIn, hasCheckedOut, checkInTime }: Att
               <Clock className="w-8 h-8 text-zinc-600 dark:text-zinc-400" />
             </div>
             <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">
-              {!hasCheckedIn
+              {!localCheckedIn
                 ? 'Ready to start your day?'
                 : !hasCheckedOut
                   ? 'Heading out?'
                   : 'All done for today!'}
             </h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {!hasCheckedIn
+              {!localCheckedIn
                 ? 'Click below to check in and mark your attendance.'
                 : !hasCheckedOut
                   ? 'Write a summary of your day and check out.'
@@ -81,7 +84,7 @@ export function AttendanceForm({ hasCheckedIn, hasCheckedOut, checkInTime }: Att
             </p>
           </div>
 
-          {!hasCheckedIn && (
+          {!localCheckedIn && (
             <Button
               onClick={handleCheckIn}
               disabled={checkingIn}
@@ -93,7 +96,7 @@ export function AttendanceForm({ hasCheckedIn, hasCheckedOut, checkInTime }: Att
             </Button>
           )}
 
-          {hasCheckedIn && !hasCheckedOut && (
+          {localCheckedIn && !hasCheckedOut && (
             <div className="space-y-4">
               {checkInTime && (
                 <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-900/50">
@@ -134,7 +137,7 @@ export function AttendanceForm({ hasCheckedIn, hasCheckedOut, checkInTime }: Att
             </div>
           )}
 
-          {hasCheckedIn && hasCheckedOut && (
+          {localCheckedIn && hasCheckedOut && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-900/50">

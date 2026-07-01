@@ -111,6 +111,9 @@ export function CheckoutForm({
       <div className="space-y-2">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Expected Return Date (Optional)</label>
         <Input type="date" value={expectedReturn} onChange={e => setExpectedReturn(e.target.value)} />
+        {expectedReturn && new Date(expectedReturn) < new Date(new Date().setHours(0,0,0,0)) && (
+          <p className="text-xs text-red-500 font-medium">Warning: The expected return date is in the past.</p>
+        )}
       </div>
 
       <div className="space-y-2">

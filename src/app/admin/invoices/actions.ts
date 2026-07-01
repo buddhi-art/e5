@@ -47,17 +47,11 @@ export async function createInvoice(formData: FormData) {
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (profile?.role !== 'admin') return { error: 'Unauthorized' }
 
-        const year = new Date().getFullYear()
-        const { count } = await supabase
-            .from('invoices')
-            .select('*', { count: 'exact', head: true })
-            .gte('issue_date', `${year}-01-01`)
-            .lte('issue_date', `${year}-12-31`)
-        const nextNum = String((count || 0) + 1).padStart(4, '0')
-        const invoice_number = `INV-${year}-${nextNum}`
+        const year = new Date().getFullYear().toString()
+        const { data: invoice_number_res, error: seqError } = await supabase.rpc('generate_invoice_number', { p_year: year })
+        if (seqError) return { error: 'Failed to generate invoice number: ' + seqError.message }
+        const invoice_number = invoice_number_res
 
         const { data: invoice, error: invError } = await supabase
             .from('invoices')
@@ -100,7 +94,7 @@ export async function createInvoice(formData: FormData) {
             .insert(itemInserts)
 
         if (itemsError) {
-            await supabase.from('invoices').delete().eq('id', invoice.id)
+            await supabase.from('invoices').update({ deleted_at: new Date().toISOString() }).eq('id', invoice.id)
             return { error: 'Failed to create invoice items: ' + itemsError.message }
         }
 
@@ -117,8 +111,6 @@ export async function updateInvoiceStatus(invoiceId: string, status: string) {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (profile?.role !== 'admin') return { error: 'Unauthorized' }
 
         const { error } = await supabase
             .from('invoices')
@@ -151,8 +143,6 @@ export async function recordPayment(formData: FormData) {
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (profile?.role !== 'admin') return { error: 'Unauthorized' }
 
         const { error: payError } = await supabase
             .from('payments')
@@ -199,8 +189,6 @@ export async function sendInvoice(invoiceId: string) {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (profile?.role !== 'admin') return { error: 'Unauthorized' }
 
         const { error } = await supabase
             .from('invoices')
@@ -223,8 +211,6 @@ export async function deleteInvoice(invoiceId: string) {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (profile?.role !== 'admin') return { error: 'Unauthorized' }
 
         const { error } = await supabase
             .from('invoices')
@@ -281,8 +267,6 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (profile?.role !== 'admin') return { error: 'Unauthorized' }
 
         const { data: currentInvoice } = await supabase.from('invoices').select('status').eq('id', invoiceId).single()
         if (currentInvoice?.status !== 'draft') return { error: 'Only draft invoices can be edited.' }

@@ -44,17 +44,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && path === '/login') {
-    // Logged in and visiting login → redirect to correct portal
-    const url = request.nextUrl.clone()
-    const portal = await getPortal(user.id, supabase)
-    url.pathname = portal
-    return NextResponse.redirect(url)
-  }
-
   // Protect routes based on portal
   if (user) {
     const portal = await getPortal(user.id, supabase)
+
+    if (path === '/login') {
+      const url = request.nextUrl.clone()
+      url.pathname = portal
+      return NextResponse.redirect(url)
+    }
 
     // Founder trying to access admin or employee routes
     if (portal === '/founder') {

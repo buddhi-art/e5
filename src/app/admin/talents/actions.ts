@@ -7,8 +7,7 @@ export async function addTalentType(name: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
     const { error } = await supabase.from('talent_types').insert({ name })
     if (error) return { error: error.message }
@@ -19,8 +18,7 @@ export async function createTalent(formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
     const full_name = formData.get('full_name') as string
     const stage_name = formData.get('stage_name') as string
@@ -75,8 +73,7 @@ export async function updateTalent(id: string, formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
     const full_name = formData.get('full_name') as string
     const stage_name = formData.get('stage_name') as string
@@ -133,8 +130,7 @@ export async function deleteTalent(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
     const { error } = await supabase.from('talents').delete().eq('id', id)
     if (error) return { error: error.message }
@@ -147,8 +143,7 @@ export async function restoreTalent(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
     const { error } = await supabase.from('talents').update({ is_active: true, deleted_at: null }).eq('id', id)
     if (error) return { error: error.message }
@@ -162,8 +157,7 @@ export async function archiveTalent(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
     const { error } = await supabase.from('talents').update({ is_active: false, deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) return { error: error.message }
@@ -238,8 +232,7 @@ export async function updateBookingStatus(bookingId: string, status: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
     const { error } = await supabase.from('talent_bookings').update({ status }).eq('id', bookingId)
     if (error) return { error: error.message }

@@ -15,8 +15,7 @@ export async function createEquipment(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
   const name = formData.get('name') as string
   const brand = formData.get('brand') as string
@@ -62,8 +61,7 @@ export async function updateEquipment(id: string, formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
   const name = formData.get('name') as string
   const brand = formData.get('brand') as string
@@ -110,8 +108,7 @@ export async function deleteEquipment(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
   const { error } = await supabase.from('equipment').delete().eq('id', id)
   if (error) return { error: error.message }
@@ -124,8 +121,7 @@ export async function restoreEquipment(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
   const { error } = await supabase.from('equipment').update({ status: 'available', deleted_at: null }).eq('id', id)
   if (error) return { error: error.message }
@@ -139,8 +135,7 @@ export async function archiveEquipment(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
   const { error } = await supabase.from('equipment').update({ status: 'retired', deleted_at: new Date().toISOString() }).eq('id', id)
   if (error) return { error: error.message }
@@ -154,21 +149,18 @@ export async function checkOutEquipment(data: { equipment_id: string, checked_ou
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
 
-  const { data: equipment, error: eqError } = await supabase.from('equipment').select('status').eq('id', data.equipment_id).single()
-  if (eqError || !equipment) return { error: 'Equipment not found' }
-  if (equipment.status !== 'available') return { error: 'Equipment is not available for checkout' }
 
-  const { error: insertError } = await supabase.from('equipment_checkouts').insert({
-    equipment_id: data.equipment_id, checked_out_by: data.checked_out_by,
-    expected_return_at: data.expected_return_at || null, project_id: data.project_id || null,
-    condition_at_checkout: data.condition_at_checkout || null, notes: data.notes || null,
+  const { error } = await supabase.rpc('checkout_equipment', {
+    p_equipment_id: data.equipment_id,
+    p_checked_out_by: data.checked_out_by,
+    p_expected_return_at: data.expected_return_at || null,
+    p_project_id: data.project_id || null,
+    p_condition: data.condition_at_checkout || null,
+    p_notes: data.notes || null
   })
 
-  if (insertError) return { error: insertError.message }
-  await supabase.from('equipment').update({ status: 'checked_out' }).eq('id', data.equipment_id)
+  if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')
   revalidatePath(`/admin/equipment/${data.equipment_id}`)
@@ -179,8 +171,7 @@ export async function checkInEquipment(data: { checkout_id: string, condition_at
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
   const { data: checkout } = await supabase.from('equipment_checkouts').select('*').eq('id', data.checkout_id).single()
   if (!checkout) return { error: 'Checkout record not found' }
@@ -203,8 +194,7 @@ export async function scheduleMaintenance(data: {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
   const { error: insertError } = await supabase.from('equipment_maintenance').insert({
     equipment_id: data.equipment_id, description: data.description, scheduled_date: data.scheduled_date,
@@ -228,8 +218,7 @@ export async function updateMaintenanceStatus(maintenanceId: string, status: 'sc
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+
 
   const { data: maintenance } = await supabase.from('equipment_maintenance').select('equipment_id').eq('id', maintenanceId).single()
   if (!maintenance) return { error: 'Not found' }

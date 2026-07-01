@@ -48,7 +48,7 @@ interface HealthMetrics {
 /* ──────────────────────────────────────
    Animated Counter
    ────────────────────────────────────── */
-function AnimatedNumber({ value, suffix = '', decimals = 0 }: { value: number; suffix?: string; decimals?: number }) {
+function AnimatedNumber({ value = 0, suffix = '', decimals = 0 }: { value?: number; suffix?: string; decimals?: number }) {
     const [display, setDisplay] = useState(0)
     const hasAnimated = useRef(false)
 
@@ -69,7 +69,11 @@ function AnimatedNumber({ value, suffix = '', decimals = 0 }: { value: number; s
         return () => clearInterval(timer)
     }, [value, decimals])
 
-    return <span className="tabular-nums">{decimals > 0 ? display.toFixed(decimals) : display}{suffix}</span>
+    const formatted = decimals > 0 
+        ? Number(display).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) 
+        : Math.round(display).toLocaleString()
+
+    return <span className="tabular-nums">{formatted}{suffix}</span>
 }
 
 /* ──────────────────────────────────────
@@ -239,7 +243,7 @@ function QuickAction({ label, href, icon: Icon, color }: { label: string; href: 
 /* ──────────────────────────────────────
    Domain Score Block
    ────────────────────────────────────── */
-function DomainScore({ label, score, max, icon: Icon }: { label: string; score: number; max: number; icon: any }) {
+function DomainScore({ label, score = 0, max = 0, icon: Icon }: { label: string; score?: number; max?: number; icon: any }) {
     const pct = max > 0 ? Math.min(Math.round((score / max) * 100), 100) : 0
     const color = pct >= 80 ? 'emerald' : pct >= 60 ? 'amber' : 'red'
     return (
@@ -256,7 +260,7 @@ function DomainScore({ label, score, max, icon: Icon }: { label: string; score: 
                 <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-medium text-foreground truncate">{label}</span>
                     <span className={cn('text-xs font-bold', color === 'emerald' ? 'text-emerald-500' : color === 'amber' ? 'text-amber-500' : 'text-red-500')}>
-                        {score}/{max}
+                        {max > 0 ? `${score}/${max}` : 'N/A'}
                     </span>
                 </div>
                 <MiniProgress value={score} max={max} color={color} />
@@ -406,8 +410,8 @@ export function AdminDashboardClient({ data }: { data: HealthMetrics }) {
                         </div>
                         <div className="px-5 pb-5">
                             {todayAttendance && todayAttendance.length > 0 ? (
-                                <div className="divide-y divide-outline-variant/20">
-                                    {todayAttendance.slice(0, 7).map((entry, i) => (
+                                <div className="divide-y divide-outline-variant/20 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {todayAttendance.map((entry, i) => (
                                         <div key={entry.id} className={cn('flex items-center justify-between py-2.5', i === 0 && 'pt-0')}>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-7 h-7 rounded-full bg-primary-container text-primary flex items-center justify-center text-xs font-bold shadow-sm">
@@ -420,9 +424,6 @@ export function AdminDashboardClient({ data }: { data: HealthMetrics }) {
                                             </span>
                                         </div>
                                     ))}
-                                    {todayAttendance.length > 7 && (
-                                        <div className="py-3 text-center text-xs text-on-surface-variant">+{todayAttendance.length - 7} more entries</div>
-                                    )}
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
