@@ -31,6 +31,15 @@ DO $$ BEGIN
 END $$;
 
 -- 3. Drop deleted_at columns added by this migration
+-- Must drop dependent policies first (created by migration 021 section 6) to avoid dependency errors
+DROP POLICY IF EXISTS "Employees view own expenses" ON expenses;
+DROP POLICY IF EXISTS "Employees view own requests" ON leave_requests;
+DROP POLICY IF EXISTS "Employees can view subtasks" ON subtasks;
+DROP POLICY IF EXISTS "Employees can view sub_subtasks" ON sub_subtasks;
+DROP POLICY IF EXISTS "Employees view equipment" ON equipment;
+DROP POLICY IF EXISTS "Employees view talents" ON talents;
+DROP POLICY IF EXISTS "Employees view bookings" ON talent_bookings;
+
 ALTER TABLE talent_bookings DROP COLUMN IF EXISTS deleted_at;
 ALTER TABLE equipment_checkouts DROP COLUMN IF EXISTS deleted_at;
 ALTER TABLE equipment_maintenance DROP COLUMN IF EXISTS deleted_at;
