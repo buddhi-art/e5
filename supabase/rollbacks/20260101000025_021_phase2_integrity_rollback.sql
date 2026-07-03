@@ -65,10 +65,14 @@ CREATE POLICY "Employees view own expenses"
   ON expenses FOR SELECT
   USING (auth.uid() = submitted_by);
 
-DROP POLICY IF EXISTS "Employees view own timesheets" ON timesheets;
-CREATE POLICY "Employees view own timesheets"
-  ON timesheets FOR SELECT
-  USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'timesheets') THEN
+    DROP POLICY IF EXISTS "Employees view own timesheets" ON timesheets;
+    CREATE POLICY "Employees view own timesheets"
+      ON timesheets FOR SELECT
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 DROP POLICY IF EXISTS "Employees view own requests" ON leave_requests;
 CREATE POLICY "Employees view own requests"
