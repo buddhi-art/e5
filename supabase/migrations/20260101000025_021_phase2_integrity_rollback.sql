@@ -31,25 +31,17 @@ DO $$ BEGIN
 END $$;
 
 -- 3. Drop deleted_at columns added by this migration
--- Must drop dependent policies first (created by migration 021 section 6) to avoid dependency errors
-DROP POLICY IF EXISTS "Employees view own expenses" ON expenses;
-DROP POLICY IF EXISTS "Employees view own requests" ON leave_requests;
-DROP POLICY IF EXISTS "Employees can view subtasks" ON subtasks;
-DROP POLICY IF EXISTS "Employees can view sub_subtasks" ON sub_subtasks;
-DROP POLICY IF EXISTS "Employees view equipment" ON equipment;
-DROP POLICY IF EXISTS "Employees view talents" ON talents;
-DROP POLICY IF EXISTS "Employees view bookings" ON talent_bookings;
-
-ALTER TABLE talent_bookings DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE equipment_checkouts DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE equipment_maintenance DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE client_meetings DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE expense_categories DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE equipment_categories DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE talent_types DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE subtasks DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE sub_subtasks DROP COLUMN IF EXISTS deleted_at;
-ALTER TABLE attendance DROP COLUMN IF EXISTS deleted_at;
+-- Use CASCADE to drop dependent policies (created across multiple migrations)
+ALTER TABLE talent_bookings DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE equipment_checkouts DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE equipment_maintenance DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE client_meetings DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE expense_categories DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE equipment_categories DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE talent_types DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE subtasks DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE sub_subtasks DROP COLUMN IF EXISTS deleted_at CASCADE;
+ALTER TABLE attendance DROP COLUMN IF EXISTS deleted_at CASCADE;
 
 -- 4. Drop audit triggers added by this migration
 DROP TRIGGER IF EXISTS audit_equipment_checkouts_trigger ON equipment_checkouts;
