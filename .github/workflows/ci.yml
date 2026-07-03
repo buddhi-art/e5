@@ -19,19 +19,15 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        working-directory: e5-chronicles
         run: npm ci
 
       - name: Lint
-        working-directory: e5-chronicles
         run: npm run lint
 
       - name: Type check
-        working-directory: e5-chronicles
         run: npx tsc --noEmit
 
       - name: Run tests
-        working-directory: e5-chronicles
         run: npm run test
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
