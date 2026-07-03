@@ -8,7 +8,12 @@ SET search_path = public;
 -- 1. FIX: checkout_equipment RPC — merge migration 016's signature (used by
 --    server actions) with migration 019's FOR UPDATE lock for atomicity.
 --    Migration 019 BROKE this by rewriting it with a different param list.
+--    Drop the prior signatures first: CREATE OR REPLACE cannot add/remove
+--    parameter defaults on an existing function (Postgres error 42P13), and
+--    migration 019's accidental overload must be removed to avoid ambiguity.
 -- =============================================================================
+DROP FUNCTION IF EXISTS checkout_equipment(uuid, uuid, timestamp with time zone, uuid, text, text);
+DROP FUNCTION IF EXISTS checkout_equipment(uuid, uuid, uuid, date, text);
 CREATE OR REPLACE FUNCTION checkout_equipment(
   p_equipment_id uuid,
   p_checked_out_by uuid,

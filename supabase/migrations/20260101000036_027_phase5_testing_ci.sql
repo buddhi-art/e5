@@ -142,7 +142,11 @@ $$;
 
 -- =============================================================================
 -- 4. Ensure checkout_equipment is re-runnable (atomic checkout)
+--    Drop the existing signature first — CREATE OR REPLACE cannot change a
+--    parameter's default (this migration adds DEFAULT NULL to p_expected_return_at),
+--    which raises Postgres error 42P13.
 -- =============================================================================
+DROP FUNCTION IF EXISTS checkout_equipment(uuid, uuid, timestamp with time zone, uuid, text, text);
 CREATE OR REPLACE FUNCTION checkout_equipment(
   p_equipment_id uuid,
   p_checked_out_by uuid,
