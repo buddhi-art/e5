@@ -140,8 +140,8 @@ supabase/rollbacks/            # Manual-use reversal scripts (never auto-applied
 ### 1. Spin up the project locally
 
 ```bash
-git clone https://github.com/buddhi-art/e5-chronicles.git
-cd e5-chronicles
+git clone https://github.com/buddhi-art/e5.git
+cd e5
 npm install
 ```
 
