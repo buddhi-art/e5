@@ -1,9 +1,16 @@
 -- Rollback Migration 019
 
+-- Drop ALL triggers depending on process_audit_log() before dropping the function
+-- (migration 021 adds 5 more, so we must drop them all)
 DROP TRIGGER IF EXISTS audit_invoices_trigger ON invoices;
 DROP TRIGGER IF EXISTS audit_expenses_trigger ON expenses;
 DROP TRIGGER IF EXISTS audit_attendance_trigger ON attendance;
 DROP TRIGGER IF EXISTS audit_leave_requests_trigger ON leave_requests;
+DROP TRIGGER IF EXISTS audit_equipment_checkouts_trigger ON equipment_checkouts;
+DROP TRIGGER IF EXISTS audit_equipment_maintenance_trigger ON equipment_maintenance;
+DROP TRIGGER IF EXISTS audit_clients_trigger ON clients;
+DROP TRIGGER IF EXISTS audit_payments_trigger ON payments;
+DROP TRIGGER IF EXISTS audit_project_budgets_trigger ON project_budgets;
 
 DROP FUNCTION IF EXISTS process_audit_log();
 DROP TABLE IF EXISTS audit_logs;
