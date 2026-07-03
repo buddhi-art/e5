@@ -101,14 +101,19 @@ DROP POLICY IF EXISTS "Admins manage holidays" ON holidays;
 CREATE POLICY "Admins manage holidays" ON holidays FOR ALL
   USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
 
--- 15. Restore timesheet policies
-DROP POLICY IF EXISTS "Admins manage all timesheets" ON timesheets;
-CREATE POLICY "Admins manage all timesheets" ON timesheets FOR ALL
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
-
-DROP POLICY IF EXISTS "Admins manage all entries" ON timesheet_entries;
-CREATE POLICY "Admins manage all entries" ON timesheet_entries FOR ALL
-  USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+-- 15. Restore timesheet policies (table was dropped in migration 015, guard with existence check)
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'timesheets') THEN
+    DROP POLICY IF EXISTS "Admins manage all timesheets" ON timesheets;
+    CREATE POLICY "Admins manage all timesheets" ON timesheets FOR ALL
+      USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'timesheet_entries') THEN
+    DROP POLICY IF EXISTS "Admins manage all entries" ON timesheet_entries;
+    CREATE POLICY "Admins manage all entries" ON timesheet_entries FOR ALL
+      USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin'));
+  END IF;
+END $$;
 
 -- 16. Restore category policies
 DROP POLICY IF EXISTS "Admins manage expense categories" ON expense_categories;
