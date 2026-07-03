@@ -2,26 +2,33 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { CreateProjectSchema, ProjectBudgetSchema, ProjectStatusSchema, UuidParamSchema } from '@/lib/validations'
+import { verifyAdminOrFounder } from '@/lib/auth-utils'
 
 export async function createProject(formData: FormData) {
   try {
-    const client_id = formData.get('client_id') as string
-    const title = formData.get('title') as string
-    const start_date = formData.get('start_date') as string
-    const end_date = formData.get('end_date') as string
-
-    if (!client_id || !title) {
-      return { error: 'Client and Project Title are required' }
-    }
-
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = CreateProjectSchema.safeParse({
+      client_id: formData.get('client_id'),
+      title: formData.get('title'),
+      start_date: formData.get('start_date'),
+      end_date: formData.get('end_date'),
+    })
+
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const data = parsed.data
 
     const { error } = await supabase.from('projects').insert({
-      client_id,
-      title,
+      client_id: data.client_id,
+      title: data.title,
       status: 'not_started',
-      start_date: start_date || null,
-      end_date: end_date || null,
+      start_date: data.start_date || null,
+      end_date: data.end_date || null,
     })
 
     if (error) {
@@ -29,7 +36,8 @@ export async function createProject(formData: FormData) {
     }
 
     revalidatePath('/admin/projects')
-    revalidatePath(`/admin/clients/${client_id}`)
+    revalidatePath('/founder/projects')
+    revalidatePath(`/admin/clients/${data.client_id}`)
     return { success: true }
   } catch (err: any) {
     console.error('Error in createProject:', err)
@@ -40,24 +48,28 @@ export async function createProject(formData: FormData) {
 export async function updateProject(projectId: string, formData: FormData) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
-    const title = formData.get('title') as string
-    const client_id = formData.get('client_id') as string
+    const parsed = CreateProjectSchema.safeParse({
+      client_id: formData.get('client_id'),
+      title: formData.get('title'),
+      start_date: formData.get('start_date'),
+      end_date: formData.get('end_date'),
+    })
 
-    if (!title || !client_id) {
-      return { error: 'Title and Client are required' }
-    }
-
-    const start_date = formData.get('start_date') as string
-    const end_date = formData.get('end_date') as string
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const data = parsed.data
 
     const { error } = await supabase
       .from('projects')
       .update({
-        title,
-        client_id,
-        start_date: start_date || null,
-        end_date: end_date || null,
+        title: data.title,
+        client_id: data.client_id,
+        start_date: data.start_date || null,
+        end_date: data.end_date || null,
       })
       .eq('id', projectId)
 
@@ -66,6 +78,7 @@ export async function updateProject(projectId: string, formData: FormData) {
     }
 
     revalidatePath('/admin/projects')
+    revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: any) {
     console.error('Error in updateProject:', err)
@@ -76,17 +89,25 @@ export async function updateProject(projectId: string, formData: FormData) {
 export async function archiveProject(projectId: string) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = UuidParamSchema.safeParse({ id: projectId });
+    if (!parsed.success) return { error: 'Invalid project ID' };
 
     const { error } = await supabase
       .from('projects')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', projectId)
+      .eq('id', parsed.data.id)
 
     if (error) {
       return { error: error.message }
     }
 
     revalidatePath('/admin/projects')
+    revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: any) {
     console.error('Error in archiveProject:', err)
@@ -97,17 +118,25 @@ export async function archiveProject(projectId: string) {
 export async function deleteProject(projectId: string) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = UuidParamSchema.safeParse({ id: projectId });
+    if (!parsed.success) return { error: 'Invalid project ID' };
 
     const { error } = await supabase
       .from('projects')
       .delete()
-      .eq('id', projectId)
+      .eq('id', parsed.data.id)
 
     if (error) {
       return { error: error.message }
     }
 
     revalidatePath('/admin/projects')
+    revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: any) {
     console.error('Error in deleteProject:', err)
@@ -118,17 +147,25 @@ export async function deleteProject(projectId: string) {
 export async function restoreProject(projectId: string) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = UuidParamSchema.safeParse({ id: projectId });
+    if (!parsed.success) return { error: 'Invalid project ID' };
 
     const { error } = await supabase
       .from('projects')
       .update({ deleted_at: null })
-      .eq('id', projectId)
+      .eq('id', parsed.data.id)
 
     if (error) {
       return { error: error.message }
     }
 
     revalidatePath('/admin/projects')
+    revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: any) {
     console.error('Error in restoreProject:', err)
@@ -139,21 +176,27 @@ export async function restoreProject(projectId: string) {
 export async function setProjectBudget(projectId: string, formData: FormData) {
   try {
     const supabase = await createClient()
-    const budget_amount = parseFloat(formData.get('budget_amount') as string) || 0
-    const contingency_percent = parseFloat(formData.get('contingency_percent') as string) || 10
-    const notes = formData.get('notes') as string
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
-    if (!budget_amount) {
-      return { error: 'Budget amount is required' }
-    }
+    const parsed = ProjectBudgetSchema.safeParse({
+      budget_amount: parseFloat(formData.get('budget_amount') as string) || 0,
+      contingency_percent: parseFloat(formData.get('contingency_percent') as string) || 10,
+      notes: formData.get('notes'),
+    })
+
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const data = parsed.data
 
     const { error } = await supabase
       .from('project_budgets')
       .upsert({
         project_id: projectId,
-        budget_amount,
-        contingency_percent,
-        notes: notes || null,
+        budget_amount: data.budget_amount,
+        contingency_percent: data.contingency_percent,
+        notes: data.notes || null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'project_id' })
 
@@ -171,6 +214,10 @@ export async function setProjectBudget(projectId: string, formData: FormData) {
 export async function getProjectFinancials(projectId: string) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
     // Get budget
     const { data: budget } = await supabase
@@ -220,20 +267,45 @@ export async function getProjectFinancials(projectId: string) {
 export async function updateProjectStatus(projectId: string, status: string) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = ProjectStatusSchema.safeParse({ projectId, status })
+    if (!parsed.success) return { error: parsed.error.issues[0].message }
 
     const { error } = await supabase
       .from('projects')
-      .update({ status })
-      .eq('id', projectId)
+      .update({ status: parsed.data.status })
+      .eq('id', parsed.data.projectId)
 
     if (error) {
       return { error: error.message }
     }
 
     revalidatePath('/admin/projects')
+    revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: any) {
     console.error('Error in updateProjectStatus:', err)
     return { error: err.message || 'An unexpected error occurred' }
+  }
+}
+
+export async function getProjectDates(projectId: string) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    const { data } = await supabase
+      .from('projects')
+      .select('start_date, end_date')
+      .eq('id', projectId)
+      .single()
+    return { data }
+  } catch (err: any) {
+    return { error: err.message }
   }
 }

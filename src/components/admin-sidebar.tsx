@@ -18,6 +18,7 @@ const adminLinks = [
   { name: 'Clients', href: '/admin/clients', icon: UserSquare2 },
   { name: 'Projects', href: '/admin/projects', icon: FolderKanban },
   { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare },
+  { name: 'Kanban', href: '/admin/kanban', icon: ArrowRightLeft },
   { name: 'Attendance', href: '/admin/attendance', icon: CalendarCheck },
   { name: 'Leave', href: '/admin/leave', icon: CalendarOff },
 ]

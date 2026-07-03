@@ -95,7 +95,7 @@ export function BookingForm({
         <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Talent *</label>
+                    <label className="block text-sm font-medium text-on-surface">Talent *</label>
                     <Select value={talentId} onValueChange={(v: string | null) => v && setTalentId(v)}>
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select talent">
@@ -113,7 +113,7 @@ export function BookingForm({
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Project</label>
+                    <label className="block text-sm font-medium text-on-surface">Project</label>
                     <Select value={projectId} onValueChange={(v: string | null) => v && setProjectId(v)}>
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select project">
@@ -129,17 +129,17 @@ export function BookingForm({
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Booking Date *</label>
+                    <label className="block text-sm font-medium text-on-surface">Booking Date *</label>
                     <Input type="date" value={bookingDate} onChange={e => handleDateChange('start', e.target.value)} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">End Date</label>
+                    <label className="block text-sm font-medium text-on-surface">End Date</label>
                     <Input type="date" value={endDate} onChange={e => handleDateChange('end', e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Rate Type *</label>
+                    <label className="block text-sm font-medium text-on-surface">Rate Type *</label>
                     <Select value={rateType} onValueChange={(v: string | null) => v && handleRateChange(v, rateAmount, bookingDate, endDate)}>
                         <SelectTrigger className="w-full">
                             <SelectValue />
@@ -153,7 +153,7 @@ export function BookingForm({
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Rate Amount (NPR) *</label>
+                    <label className="block text-sm font-medium text-on-surface">Rate Amount (NPR) *</label>
                     <Input
                         type="number"
                         step="0.01"
@@ -166,28 +166,28 @@ export function BookingForm({
             </div>
 
             {totalCompensation > 0 && (
-                <div className="p-4 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800">
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">Total Compensation</p>
-                    <p className="text-xl font-bold text-zinc-900 dark:text-white">NPR {totalCompensation.toLocaleString('ne-NP')}</p>
+                <div className="p-4 rounded-lg bg-primary/10 border border-primary">
+                    <p className="text-sm text-on-surface-variant">Total Compensation</p>
+                    <p className="text-xl font-bold text-on-surface">NPR {totalCompensation.toLocaleString('ne-NP')}</p>
                 </div>
             )}
 
             <div className="space-y-2">
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Role / Description</label>
+                <label className="block text-sm font-medium text-on-surface">Role / Description</label>
                 <Input placeholder="e.g. Lead actor for commercial shoot" value={description} onChange={e => setDescription(e.target.value)} />
             </div>
 
             <div className="space-y-2">
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Location</label>
+                <label className="block text-sm font-medium text-on-surface">Location</label>
                 <Input placeholder="e.g. On location, Kathmandu" value={location} onChange={e => setLocation(e.target.value)} />
             </div>
 
             <div className="space-y-2">
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Notes</label>
+                <label className="block text-sm font-medium text-on-surface">Notes</label>
                 <Textarea placeholder="Additional booking notes..." value={notes} onChange={e => setNotes(e.target.value)} />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
                 <Button type="button" variant="outline" onClick={() => router.back()} disabled={isPending}>
                     Cancel
                 </Button>

@@ -53,7 +53,7 @@ export function CheckinForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Equipment to Return *</label>
+        <label className="block text-sm font-medium text-on-surface">Equipment to Return *</label>
         <Select value={checkoutId} onValueChange={(v: string | null) => setCheckoutId(v || '')}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select equipment..." />
@@ -70,7 +70,7 @@ export function CheckinForm({
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Condition at Check-in *</label>
+        <label className="block text-sm font-medium text-on-surface">Condition at Check-in *</label>
         <Textarea 
           placeholder="e.g. Good condition, returned with all cables" 
           value={condition} 
@@ -80,7 +80,7 @@ export function CheckinForm({
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Additional Notes</label>
+        <label className="block text-sm font-medium text-on-surface">Additional Notes</label>
         <Textarea 
           placeholder="Any other notes for this check-in..." 
           value={notes} 
@@ -88,7 +88,7 @@ export function CheckinForm({
         />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+      <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
         <Button type="button" variant="outline" onClick={() => router.back()} disabled={isPending}>
           Cancel
         </Button>

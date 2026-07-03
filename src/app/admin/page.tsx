@@ -185,5 +185,10 @@ async function fetchDashboardData(): Promise<DashboardData> {
 export default async function AdminDashboard() {
   const data = await fetchDashboardData()
 
-  return <AdminDashboardClient data={data} />
+  // Detect insufficient data — if no employees, invoices, or tasks
+  const insufficientData =
+    data.totalEmployees === 0 ||
+    (data.totalEmployees <= 1 && data.activeInvoices === 0 && data.taskCount === 0)
+
+  return <AdminDashboardClient data={data} insufficientData={insufficientData} />
 }

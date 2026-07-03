@@ -12,8 +12,8 @@ export default async function NewTalentPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Add New Talent</h1>
-                <p className="text-sm text-zinc-500">Add a model, actor, freelancer, or crew member to the directory.</p>
+                <h1 className="text-2xl font-bold tracking-tight text-on-surface">Add New Talent</h1>
+                <p className="text-sm text-outline">Add a model, actor, freelancer, or crew member to the directory.</p>
             </div>
             <TalentForm />
         </div>

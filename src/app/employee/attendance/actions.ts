@@ -2,13 +2,20 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { CheckOutSchema } from '@/lib/validations'
+
+function getNepalDate() {
+  const d = new Date()
+  d.setMinutes(d.getMinutes() + 345) // UTC+5:45
+  return d.toISOString().split('T')[0]
+}
 
 export async function checkIn() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getNepalDate()
   const now = new Date().toISOString()
 
   try {
@@ -34,15 +41,17 @@ export async function checkIn() {
 }
 
 export async function checkOut(daySummary: string) {
-  if (!daySummary || daySummary.trim().split(/\s+/).filter(Boolean).length < 20) {
-    return { error: 'Please write a day summary of at least 20 words describing what you did today.' }
+  const parsed = CheckOutSchema.safeParse({ daySummary });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message };
   }
+  const validSummary = parsed.data.daySummary;
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getNepalDate()
   const now = new Date().toISOString()
 
   try {
@@ -65,7 +74,7 @@ export async function checkOut(daySummary: string) {
 
     const { error } = await supabase
       .from('attendance')
-      .update({ check_out_time: now, day_summary: daySummary.trim() })
+      .update({ check_out_time: now, day_summary: validSummary.trim() })
       .eq('id', record.id)
 
     if (error) return { error: error.message }

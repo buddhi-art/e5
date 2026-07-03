@@ -21,10 +21,10 @@ const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
 ]
 
 const STATUS_STYLES: Record<ProjectStatus, string> = {
-    not_started: 'text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700',
-    in_progress: 'text-blue-400 bg-blue-400/10 border-blue-500/20',
-    completed: 'text-green-400 bg-green-400/10 border-green-500/20',
-    on_hold: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+    not_started: 'text-on-surface-variant bg-surface-container-high border-outline-variant',
+    in_progress: 'text-m3-info bg-m3-info-subtle border-m3-info',
+    completed: 'text-m3-success bg-m3-success-subtle border-m3-success',
+    on_hold: 'text-m3-warning bg-m3-warning-subtle border-m3-warning',
 }
 
 export function ProjectStatusSelect({ projectId, currentStatus }: { projectId: string; currentStatus: string }) {
@@ -51,7 +51,7 @@ export function ProjectStatusSelect({ projectId, currentStatus }: { projectId: s
             <SelectTrigger className={`w-[140px] h-7 text-xs font-medium border ${STATUS_STYLES[status as ProjectStatus] || STATUS_STYLES.not_started}`}>
                 <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+            <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
                 {STATUS_OPTIONS.map(opt => (
                     <SelectItem key={opt.value} value={opt.value} className="text-xs">
                         {opt.label}

@@ -42,14 +42,14 @@ export function EditBalanceCell({ balanceId, userId, leaveTypeId, year, totalDay
                     min="0"
                     value={value}
                     onChange={e => setValue(e.target.value)}
-                    className="w-16 h-8 text-right text-sm bg-zinc-50 dark:bg-zinc-900"
+                    className="w-16 h-8 text-right text-sm bg-surface-container"
                     disabled={isPending}
                     autoFocus
                 />
-                <Button variant="ghost" size="sm" onClick={handleSave} disabled={isPending} className="h-7 w-7 p-0 text-emerald-600">
+                <Button variant="ghost" size="sm" onClick={handleSave} disabled={isPending} className="h-7 w-7 p-0 btn-morph text-m3-success">
                     <Check className="w-3.5 h-3.5" />
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isPending} className="h-7 w-7 p-0 text-zinc-400">
+                <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isPending} className="h-7 w-7 p-0 btn-morph text-outline">
                     <X className="w-3.5 h-3.5" />
                 </Button>
             </div>
@@ -59,8 +59,8 @@ export function EditBalanceCell({ balanceId, userId, leaveTypeId, year, totalDay
     return (
         <div className="flex items-center justify-end gap-2">
             <span className="font-medium">{totalDays}</span>
-            <Button variant="ghost" size="sm" onClick={() => setEditing(true)} className="h-6 w-6 p-0">
-                <Pencil className="w-3 h-3 text-zinc-400 hover:text-zinc-600" />
+            <Button variant="ghost" size="sm" onClick={() => setEditing(true)} className="h-6 w-6 p-0 btn-morph">
+                <Pencil className="w-3 h-3 text-outline hover:text-on-surface-variant" />
             </Button>
         </div>
     )

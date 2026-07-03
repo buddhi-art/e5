@@ -2,14 +2,20 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { TalentSchema, TalentBookingSchema, UuidParamSchema } from '@/lib/validations'
+import { verifyAdminOrFounder } from '@/lib/auth-utils'
+import { validateFileUpload, generateStorageFilename, ALLOWED_IMAGE_TYPES } from '@/lib/supabase/storage'
 
 export async function addTalentType(name: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
+    if (!name || name.trim().length === 0) return { error: 'Type name is required' }
 
-    const { error } = await supabase.from('talent_types').insert({ name })
+    const { error } = await supabase.from('talent_types').insert({ name: name.trim() })
     if (error) return { error: error.message }
     return { success: true }
 }
@@ -18,27 +24,35 @@ export async function createTalent(formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
+    const parsed = TalentSchema.safeParse({
+        full_name: formData.get('full_name'),
+        stage_name: formData.get('stage_name'),
+        talent_type: formData.get('talent_type'),
+        phone_number: formData.get('phone_number'),
+        email: formData.get('email'),
+        gender: formData.get('gender'),
+        date_of_birth: formData.get('date_of_birth'),
+        location: formData.get('location'),
+        height_cm: formData.get('height_cm') ? Number(formData.get('height_cm')) : null,
+        languages: formData.get('languages') ? (formData.get('languages') as string).split(',').map(s => s.trim()).filter(Boolean) : [],
+        skills: formData.get('skills') ? (formData.get('skills') as string).split(',').map(s => s.trim()).filter(Boolean) : [],
+        rate_type: (formData.get('rate_type') as string) || 'per_project',
+        rate_amount: formData.get('rate_amount') ? Number(formData.get('rate_amount')) : null,
+        notes: formData.get('notes'),
+    })
 
-    const full_name = formData.get('full_name') as string
-    const stage_name = formData.get('stage_name') as string
-    const talent_type = formData.get('talent_type') as string
-    const phone_number = formData.get('phone_number') as string
-    const email = formData.get('email') as string
-    const gender = formData.get('gender') as string
-    const date_of_birth = formData.get('date_of_birth') as string
-    const location = formData.get('location') as string
-    const height_cm = formData.get('height_cm') ? Number(formData.get('height_cm')) : null
-    const languages = formData.get('languages') ? (formData.get('languages') as string).split(',').map(s => s.trim()).filter(Boolean) : []
-    const skills = formData.get('skills') ? (formData.get('skills') as string).split(',').map(s => s.trim()).filter(Boolean) : []
-    const rate_type = formData.get('rate_type') as string || 'per_project'
-    const rate_amount = formData.get('rate_amount') ? Number(formData.get('rate_amount')) : null
-    const notes = formData.get('notes') as string
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const data = parsed.data
 
     let photo_url = null
     const photo = formData.get('photo') as File | null
     if (photo && photo.size > 0) {
-        const fileName = `${Date.now()}_${Math.random()}.${photo.name.split('.').pop()}`
+        const validationError = validateFileUpload(photo, ALLOWED_IMAGE_TYPES)
+        if (validationError) return { error: validationError }
+        const fileName = generateStorageFilename(photo.name)
         const { data: uploadData, error: uploadError } = await supabase.storage
             .from('talent-photos')
             .upload(fileName, photo)
@@ -47,20 +61,20 @@ export async function createTalent(formData: FormData) {
     }
 
     const { error } = await supabase.from('talents').insert({
-        full_name,
-        stage_name: stage_name || null,
-        talent_type,
-        phone_number: phone_number || null,
-        email: email || null,
-        gender: gender || null,
-        date_of_birth: date_of_birth || null,
-        location: location || null,
-        height_cm,
-        languages,
-        skills,
-        rate_type,
-        rate_amount,
-        notes: notes || null,
+        full_name: data.full_name,
+        stage_name: data.stage_name || null,
+        talent_type: data.talent_type,
+        phone_number: data.phone_number || null,
+        email: data.email || null,
+        gender: data.gender || null,
+        date_of_birth: data.date_of_birth || null,
+        location: data.location || null,
+        height_cm: data.height_cm,
+        languages: data.languages,
+        skills: data.skills,
+        rate_type: data.rate_type,
+        rate_amount: data.rate_amount,
+        notes: data.notes || null,
         photo_url,
     })
 
@@ -73,44 +87,52 @@ export async function updateTalent(id: string, formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
+    const parsed = TalentSchema.safeParse({
+        full_name: formData.get('full_name'),
+        stage_name: formData.get('stage_name'),
+        talent_type: formData.get('talent_type'),
+        phone_number: formData.get('phone_number'),
+        email: formData.get('email'),
+        gender: formData.get('gender'),
+        date_of_birth: formData.get('date_of_birth'),
+        location: formData.get('location'),
+        height_cm: formData.get('height_cm') ? Number(formData.get('height_cm')) : null,
+        languages: formData.get('languages') ? (formData.get('languages') as string).split(',').map(s => s.trim()).filter(Boolean) : [],
+        skills: formData.get('skills') ? (formData.get('skills') as string).split(',').map(s => s.trim()).filter(Boolean) : [],
+        rate_type: (formData.get('rate_type') as string) || 'per_project',
+        rate_amount: formData.get('rate_amount') ? Number(formData.get('rate_amount')) : null,
+        notes: formData.get('notes'),
+    })
 
-    const full_name = formData.get('full_name') as string
-    const stage_name = formData.get('stage_name') as string
-    const talent_type = formData.get('talent_type') as string
-    const phone_number = formData.get('phone_number') as string
-    const email = formData.get('email') as string
-    const gender = formData.get('gender') as string
-    const date_of_birth = formData.get('date_of_birth') as string
-    const location = formData.get('location') as string
-    const height_cm = formData.get('height_cm') ? Number(formData.get('height_cm')) : null
-    const languages = formData.get('languages') ? (formData.get('languages') as string).split(',').map(s => s.trim()).filter(Boolean) : []
-    const skills = formData.get('skills') ? (formData.get('skills') as string).split(',').map(s => s.trim()).filter(Boolean) : []
-    const rate_type = formData.get('rate_type') as string || 'per_project'
-    const rate_amount = formData.get('rate_amount') ? Number(formData.get('rate_amount')) : null
-    const notes = formData.get('notes') as string
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const data = parsed.data
 
     const updates: Record<string, any> = {
-        full_name,
-        stage_name: stage_name || null,
-        talent_type,
-        phone_number: phone_number || null,
-        email: email || null,
-        gender: gender || null,
-        date_of_birth: date_of_birth || null,
-        location: location || null,
-        height_cm,
-        languages,
-        skills,
-        rate_type,
-        rate_amount,
-        notes: notes || null,
+        full_name: data.full_name,
+        stage_name: data.stage_name || null,
+        talent_type: data.talent_type,
+        phone_number: data.phone_number || null,
+        email: data.email || null,
+        gender: data.gender || null,
+        date_of_birth: data.date_of_birth || null,
+        location: data.location || null,
+        height_cm: data.height_cm,
+        languages: data.languages,
+        skills: data.skills,
+        rate_type: data.rate_type,
+        rate_amount: data.rate_amount,
+        notes: data.notes || null,
         updated_at: new Date().toISOString(),
     }
 
     const photo = formData.get('photo') as File | null
     if (photo && photo.size > 0) {
-        const fileName = `${Date.now()}_${Math.random()}.${photo.name.split('.').pop()}`
+        const validationError = validateFileUpload(photo, ALLOWED_IMAGE_TYPES)
+        if (validationError) return { error: validationError }
+        const fileName = generateStorageFilename(photo.name)
         const { data: uploadData, error: uploadError } = await supabase.storage
             .from('talent-photos')
             .upload(fileName, photo)
@@ -130,9 +152,13 @@ export async function deleteTalent(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
+    const parsed = UuidParamSchema.safeParse({ id });
+    if (!parsed.success) return { error: 'Invalid talent ID' };
 
-    const { error } = await supabase.from('talents').delete().eq('id', id)
+    const { error } = await supabase.from('talents').delete().eq('id', parsed.data.id)
     if (error) return { error: error.message }
 
     revalidatePath('/admin/talents')
@@ -143,9 +169,13 @@ export async function restoreTalent(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
+    const parsed = UuidParamSchema.safeParse({ id });
+    if (!parsed.success) return { error: 'Invalid talent ID' };
 
-    const { error } = await supabase.from('talents').update({ is_active: true, deleted_at: null }).eq('id', id)
+    const { error } = await supabase.from('talents').update({ is_active: true, deleted_at: null }).eq('id', parsed.data.id)
     if (error) return { error: error.message }
 
     revalidatePath('/admin/talents')
@@ -157,9 +187,13 @@ export async function archiveTalent(id: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
+    const parsed = UuidParamSchema.safeParse({ id });
+    if (!parsed.success) return { error: 'Invalid talent ID' };
 
-    const { error } = await supabase.from('talents').update({ is_active: false, deleted_at: new Date().toISOString() }).eq('id', id)
+    const { error } = await supabase.from('talents').update({ is_active: false, deleted_at: new Date().toISOString() }).eq('id', parsed.data.id)
     if (error) return { error: error.message }
 
     revalidatePath('/admin/talents')
@@ -171,54 +205,63 @@ export async function createBooking(formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
-    const talent_id = formData.get('talent_id') as string
-    const project_id = formData.get('project_id') as string
-    const booking_date = formData.get('booking_date') as string
-    const end_date = formData.get('end_date') as string
-    const rate_type = formData.get('rate_type') as string
-    const rate_amount = Number(formData.get('rate_amount')) || 0
-    const description = formData.get('description') as string
-    const location = formData.get('location') as string
-    const notes = formData.get('notes') as string
+    const parsed = TalentBookingSchema.safeParse({
+        talent_id: formData.get('talent_id'),
+        project_id: formData.get('project_id'),
+        booking_date: formData.get('booking_date'),
+        end_date: formData.get('end_date'),
+        rate_type: formData.get('rate_type'),
+        rate_amount: Number(formData.get('rate_amount')) || 0,
+        description: formData.get('description'),
+        location: formData.get('location'),
+        notes: formData.get('notes'),
+    })
 
-    if (!talent_id || !booking_date || !rate_type || !rate_amount) {
-        return { error: 'Talent, booking date, rate type, and rate amount are required' }
-    }
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const validated = parsed.data
 
-    // Check availability
+    // NOTE: This availability check + insert is NOT atomic. Two concurrent bookings
+    // can both pass this check before either inserts, causing a double-booking.
+    // The reliable fix is a DB-level guard — add to talent_bookings one of:
+    //   (a) an exclusion constraint over (talent_id, daterange(booking_date, end_date))
+    //       using btree_gist:  EXCLUDE USING gist (talent_id WITH =, daterange(...) WITH &&)
+    //   (b) a SECURITY DEFINER function that SELECT ... FOR UPDATE locks the talent row.
+    // Until then this check is best-effort only.
     const { data: existing } = await supabase
         .from('talent_bookings')
         .select('id')
-        .eq('talent_id', talent_id)
+        .eq('talent_id', validated.talent_id)
         .in('status', ['proposed', 'confirmed'])
-        .lte('booking_date', end_date || booking_date)
-        .gte('end_date', booking_date)
+        .lte('booking_date', validated.end_date || validated.booking_date)
+        .gte('end_date', validated.booking_date)
 
     if (existing && existing.length > 0) {
         return { error: 'Talent is already booked for these dates' }
     }
 
     // Calculate total compensation
-    let total_compensation = rate_amount
-    if (rate_type === 'per_day' && end_date) {
-        const start = new Date(booking_date)
-        const end = new Date(end_date)
+    let total_compensation = validated.rate_amount
+    if (validated.rate_type === 'per_day' && validated.end_date) {
+        const start = new Date(validated.booking_date)
+        const end = new Date(validated.end_date)
         const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1)
-        total_compensation = rate_amount * days
+        total_compensation = validated.rate_amount * days
     }
 
     const { error } = await supabase.from('talent_bookings').insert({
-        talent_id,
-        project_id: project_id || null,
-        booking_date,
-        end_date: end_date || null,
-        rate_type,
-        rate_amount,
+        talent_id: validated.talent_id,
+        project_id: validated.project_id || null,
+        booking_date: validated.booking_date,
+        end_date: validated.end_date || null,
+        rate_type: validated.rate_type,
+        rate_amount: validated.rate_amount,
         total_compensation,
-        description: description || null,
-        location: location || null,
-        notes: notes || null,
+        description: validated.description || null,
+        location: validated.location || null,
+        notes: validated.notes || null,
         booked_by: user.id,
     })
 
@@ -232,9 +275,13 @@ export async function updateBookingStatus(bookingId: string, status: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
+    const parsed = UuidParamSchema.safeParse({ id: bookingId });
+    if (!parsed.success) return { error: 'Invalid booking ID' };
 
-    const { error } = await supabase.from('talent_bookings').update({ status }).eq('id', bookingId)
+    const { error } = await supabase.from('talent_bookings').update({ status }).eq('id', parsed.data.id)
     if (error) return { error: error.message }
 
     revalidatePath('/admin/talents')

@@ -92,9 +92,14 @@ async function getPortal(
   // Try to get profile for this user
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, designation')
+    .select('role, designation, deleted_at')
     .eq('id', userId)
     .single()
+
+  // If the user's profile has been soft-deleted (archived), force them to login
+  if (profile?.deleted_at) {
+    return '/login'
+  }
 
   // Founder designation — founder portal
   if (profile?.designation === 'Founder') {

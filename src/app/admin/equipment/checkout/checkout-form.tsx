@@ -59,7 +59,7 @@ export function CheckoutForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Equipment *</label>
+        <label className="block text-sm font-medium text-on-surface">Equipment *</label>
         <Select value={equipmentId} onValueChange={(v: string | null) => setEquipmentId(v || '')}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select equipment to check out">
@@ -77,7 +77,7 @@ export function CheckoutForm({
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Assign To Employee *</label>
+        <label className="block text-sm font-medium text-on-surface">Assign To Employee *</label>
         <Select value={checkedOutBy} onValueChange={(v: string | null) => setCheckedOutBy(v || '')}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select employee">
@@ -93,7 +93,7 @@ export function CheckoutForm({
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Associated Project (Optional)</label>
+        <label className="block text-sm font-medium text-on-surface">Associated Project (Optional)</label>
         <Select value={projectId} onValueChange={(v: string | null) => setProjectId(v || '')}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="No specific project">
@@ -109,24 +109,24 @@ export function CheckoutForm({
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Expected Return Date (Optional)</label>
+        <label className="block text-sm font-medium text-on-surface">Expected Return Date (Optional)</label>
         <Input type="date" value={expectedReturn} onChange={e => setExpectedReturn(e.target.value)} />
         {expectedReturn && new Date(expectedReturn) < new Date(new Date().setHours(0,0,0,0)) && (
-          <p className="text-xs text-red-500 font-medium">Warning: The expected return date is in the past.</p>
+          <p className="text-xs text-m3-error font-medium">Warning: The expected return date is in the past.</p>
         )}
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Condition at Checkout</label>
+        <label className="block text-sm font-medium text-on-surface">Condition at Checkout</label>
         <Textarea placeholder="e.g. Minor scratches on lens body, fully functional" value={condition} onChange={e => setCondition(e.target.value)} />
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Additional Notes</label>
+        <label className="block text-sm font-medium text-on-surface">Additional Notes</label>
         <Textarea placeholder="Any other notes for this checkout..." value={notes} onChange={e => setNotes(e.target.value)} />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+      <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
         <Button type="button" variant="outline" onClick={() => router.back()} disabled={isPending}>
           Cancel
         </Button>

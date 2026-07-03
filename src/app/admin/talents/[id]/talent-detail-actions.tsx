@@ -61,7 +61,7 @@ export function TalentDetailActions({
     if (!isActive) {
         return (
             <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleRestore} disabled={isPending} className="text-emerald-600 hover:text-emerald-700">
+                <Button variant="outline" size="sm" onClick={handleRestore} disabled={isPending} className="text-m3-success hover:text-m3-success">
                     <RefreshCw className="w-4 h-4 mr-1" />
                     Restore
                 </Button>

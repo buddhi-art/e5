@@ -69,7 +69,7 @@ export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: an
     switch (status) {
       case 'paid': return <Badge className="bg-primary-container text-on-primary-container">Paid</Badge>
       case 'partially_paid': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">Partial</Badge>
-      case 'sent': return <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 dark:text-amber-400">Sent</Badge>
+      case 'sent': return <Badge variant="secondary" className="bg-m3-warning-subtle text-m3-warning">Sent</Badge>
       case 'draft': return <Badge variant="outline" className="text-on-surface-variant">Draft</Badge>
       case 'overdue': return <Badge variant="destructive">Overdue</Badge>
       case 'cancelled': return <Badge variant="destructive" className="bg-destructive/20 text-destructive hover:bg-destructive/30">Cancelled</Badge>

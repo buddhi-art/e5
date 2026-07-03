@@ -27,8 +27,8 @@ export default async function BookingsPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Talent Bookings</h1>
-                    <p className="text-sm text-zinc-500">View and manage all talent bookings across projects.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-on-surface">Talent Bookings</h1>
+                    <p className="text-sm text-outline">View and manage all talent bookings across projects.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Link href="/admin/talents">
@@ -44,31 +44,31 @@ export default async function BookingsPage() {
             </div>
 
             {!bookings || bookings.length === 0 ? (
-                <div className="text-center py-12 border border-dashed rounded-lg border-zinc-200 dark:border-zinc-800">
-                    <p className="text-zinc-500 mb-4">No bookings yet.</p>
+                <div className="text-center py-12 border border-dashed rounded-lg border-outline-variant">
+                    <p className="text-outline mb-4">No bookings yet.</p>
                     <Link href="/admin/talents/bookings/new">
                         <Button>Create Your First Booking</Button>
                     </Link>
                 </div>
             ) : (
-                <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                <div className="overflow-x-auto rounded-xl border border-outline-variant">
                     <table className="w-full text-sm">
-                        <thead className="bg-zinc-50 dark:bg-zinc-900">
-                            <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                                <th className="text-left p-3 font-semibold text-zinc-600 dark:text-zinc-400">Talent</th>
-                                <th className="text-left p-3 font-semibold text-zinc-600 dark:text-zinc-400">Project</th>
-                                <th className="text-left p-3 font-semibold text-zinc-600 dark:text-zinc-400">Dates</th>
-                                <th className="text-left p-3 font-semibold text-zinc-600 dark:text-zinc-400">Rate</th>
-                                <th className="text-left p-3 font-semibold text-zinc-600 dark:text-zinc-400">Compensation</th>
-                                <th className="text-left p-3 font-semibold text-zinc-600 dark:text-zinc-400">Status</th>
+                        <thead className="bg-surface-container-low">
+                            <tr className="border-b border-outline-variant">
+                                <th className="text-left p-3 font-semibold text-on-surface-variant">Talent</th>
+                                <th className="text-left p-3 font-semibold text-on-surface-variant">Project</th>
+                                <th className="text-left p-3 font-semibold text-on-surface-variant">Dates</th>
+                                <th className="text-left p-3 font-semibold text-on-surface-variant">Rate</th>
+                                <th className="text-left p-3 font-semibold text-on-surface-variant">Compensation</th>
+                                <th className="text-left p-3 font-semibold text-on-surface-variant">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white dark:bg-zinc-900/50">
+                        <tbody className="bg-surface-container-lowest">
                             {bookings.map((booking: any) => (
-                                <tr key={booking.id} className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/30">
+                                <tr key={booking.id} className="border-b border-outline-variant hover:bg-surface-container-high">
                                     <td className="p-3">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden flex items-center justify-center">
+                                            <div className="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center">
                                                 {booking.talents?.photo_url ? (
                                                     <img
                                                         src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/talent-photos/${booking.talents.photo_url}`}
@@ -79,22 +79,22 @@ export default async function BookingsPage() {
                                                     <span className="text-xs font-bold">{booking.talents?.full_name?.charAt(0)}</span>
                                                 )}
                                             </div>
-                                            <Link href={`/admin/talents/${booking.talent_id}`} className="font-medium text-zinc-900 dark:text-white hover:text-sky-500">
+                                            <Link href={`/admin/talents/${booking.talent_id}`} className="font-medium text-on-surface hover:text-primary">
                                                 {booking.talents?.full_name || 'Unknown'}
                                             </Link>
                                         </div>
                                     </td>
-                                    <td className="p-3 text-zinc-600 dark:text-zinc-400">
+                                    <td className="p-3 text-on-surface-variant">
                                         {booking.projects?.title || '—'}
                                     </td>
-                                    <td className="p-3 text-zinc-600 dark:text-zinc-400">
+                                    <td className="p-3 text-on-surface-variant">
                                         {new Date(booking.booking_date).toLocaleDateString()}
                                         {booking.end_date && ` - ${new Date(booking.end_date).toLocaleDateString()}`}
                                     </td>
-                                    <td className="p-3 text-zinc-600 dark:text-zinc-400">
+                                    <td className="p-3 text-on-surface-variant">
                                         NPR {Number(booking.rate_amount).toLocaleString('ne-NP')} / {booking.rate_type.replace('_', ' ')}
                                     </td>
-                                    <td className="p-3 font-medium text-zinc-900 dark:text-white">
+                                    <td className="p-3 font-medium text-on-surface">
                                         NPR {Number(booking.total_compensation).toLocaleString('ne-NP')}
                                     </td>
                                     <td className="p-3">

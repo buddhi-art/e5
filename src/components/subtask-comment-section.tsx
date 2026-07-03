@@ -49,30 +49,30 @@ export function SubtaskCommentSection({ subtaskId, initialComments }: { subtaskI
             <button
                 type="button"
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-foreground transition-colors"
             >
                 <MessageCircle className="w-3.5 h-3.5" />
                 {comments.length > 0 ? `${comments.length} comment${comments.length !== 1 ? 's' : ''}` : 'Add comment'}
             </button>
 
             {expanded && (
-                <div className="mt-2 space-y-2 pl-3 border-l-2 border-zinc-200 dark:border-zinc-700">
+                <div className="mt-2 space-y-2 pl-3 border-l-2 border-outline-variant">
                     {/* Existing comments */}
                     {comments.length > 0 && (
                         <div className="space-y-2 mb-3">
                             {comments.map((comment) => (
-                                <div key={comment.id} className="bg-zinc-50 dark:bg-zinc-900/50 rounded-md p-2.5">
+                                <div key={comment.id} className="bg-surface-container-high rounded-md p-2.5">
                                     <div className="flex items-center gap-1.5 mb-1">
-                                        <div className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-[10px]">
+                                        <div className="w-5 h-5 rounded-full bg-primary-container text-primary flex items-center justify-center font-bold text-[10px]">
                                             {(comment.profiles?.full_name || '?').charAt(0)}
                                         </div>
-                                        <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                                        <span className="text-xs font-medium text-foreground">
                                             {comment.profiles?.full_name || 'Unknown'}
                                         </span>
                                         {comment.profiles?.role === 'admin' && (
-                                            <Shield className="w-3 h-3 text-orange-500" />
+                                            <Shield className="w-3 h-3 text-tertiary" />
                                         )}
-                                        <span className="text-[10px] text-zinc-400 dark:text-zinc-500 ml-auto">
+                                        <span className="text-[10px] text-outline ml-auto">
                                             {new Date(comment.created_at).toLocaleString('en-US', {
                                                 month: 'short',
                                                 day: 'numeric',
@@ -81,7 +81,7 @@ export function SubtaskCommentSection({ subtaskId, initialComments }: { subtaskI
                                             })}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap">{comment.content}</p>
+                                    <p className="text-sm text-on-surface-variant whitespace-pre-wrap">{comment.content}</p>
                                 </div>
                             ))}
                         </div>
@@ -94,7 +94,7 @@ export function SubtaskCommentSection({ subtaskId, initialComments }: { subtaskI
                             onChange={(e) => setNewComment(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Write a comment... (Enter to send, Shift+Enter for new line)"
-                            className="min-h-[36px] h-9 text-sm bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white resize-none py-1.5"
+                            className="min-h-[36px] h-9 text-sm bg-surface-container-high border-outline-variant text-foreground resize-none py-1.5"
                             rows={1}
                         />
                         <Button
@@ -102,7 +102,7 @@ export function SubtaskCommentSection({ subtaskId, initialComments }: { subtaskI
                             size="sm"
                             onClick={handleSubmit}
                             disabled={loading || !newComment.trim()}
-                            className="h-9 shrink-0 bg-sky-600 hover:bg-sky-500 text-white"
+                            className="h-9 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
                         >
                             <Send className="w-3.5 h-3.5" />
                         </Button>

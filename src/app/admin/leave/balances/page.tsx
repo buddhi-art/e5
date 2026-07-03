@@ -21,17 +21,17 @@ export default async function AdminLeaveBalancesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Leave Balances ({currentYear})</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">Manage employee leave quotas for the current year.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">Leave Balances ({currentYear})</h1>
+          <p className="text-on-surface-variant">Manage employee leave quotas for the current year.</p>
         </div>
         <div className="flex gap-2">
           <SeedBalancesButton year={currentYear} />
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-surface-container-lowest border border-outline-variant/50 rounded-xl overflow-hidden elevation-1">
         <Table>
-          <TableHeader className="bg-zinc-50 dark:bg-zinc-950">
+          <TableHeader className="bg-surface-container-low">
             <TableRow>
               <TableHead className="font-semibold">Employee</TableHead>
               <TableHead className="font-semibold">Leave Type</TableHead>
@@ -43,10 +43,10 @@ export default async function AdminLeaveBalancesPage() {
           <TableBody>
             {balances && balances.length > 0 ? (
               balances.map((bal: any) => (
-                <TableRow key={bal.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                <TableRow key={bal.id} className="hover:bg-surface-container-high">
                   <TableCell>
-                    <div className="font-medium text-zinc-900 dark:text-white">{bal.profiles?.full_name}</div>
-                    <div className="text-xs text-zinc-500">{bal.profiles?.email}</div>
+                    <div className="font-medium text-on-surface">{bal.profiles?.full_name}</div>
+                    <div className="text-xs text-outline">{bal.profiles?.email}</div>
                   </TableCell>
                   <TableCell>{bal.leave_types?.name}</TableCell>
                   <TableCell className="text-right font-medium">
@@ -58,9 +58,9 @@ export default async function AdminLeaveBalancesPage() {
                       totalDays={bal.total_days}
                     />
                   </TableCell>
-                  <TableCell className="text-right text-zinc-500">{bal.used_days}</TableCell>
+                  <TableCell className="text-right text-outline">{bal.used_days}</TableCell>
                   <TableCell className="text-right">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${bal.remaining_days > 0 ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300' : 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300'}`}>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${bal.remaining_days > 0 ? 'bg-m3-info-subtle text-m3-info' : 'bg-m3-error-subtle text-m3-error'}`}>
                       {bal.remaining_days}
                     </span>
                   </TableCell>
@@ -68,7 +68,7 @@ export default async function AdminLeaveBalancesPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10 text-zinc-500">
+                <TableCell colSpan={5} className="text-center py-10 text-outline">
                   No leave balances found for {currentYear}. You may need to generate them.
                 </TableCell>
               </TableRow>

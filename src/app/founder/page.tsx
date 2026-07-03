@@ -62,7 +62,7 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
     const cacheKey = `founder_dashboard_${monthStr}_${todayStr}`
-    const cached = globalCache.get<FounderDashboardData>(cacheKey)
+    const cached = await globalCache.get(cacheKey) as FounderDashboardData | null
     if (cached) return cached
 
     // ── Parallel queries ──
@@ -297,7 +297,7 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
         monthlyInvoicesTotal: monthlyInvoicesTotalVal,
     }
 
-    globalCache.set(cacheKey, data, 60)
+    await globalCache.set(cacheKey, data, 60)
     return data
 }
 

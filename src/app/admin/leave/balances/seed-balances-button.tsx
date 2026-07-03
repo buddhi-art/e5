@@ -26,7 +26,7 @@ export function SeedBalancesButton({ year }: { year: number }) {
     <Button 
       onClick={handleSeed} 
       disabled={loading}
-      className="bg-sky-500 hover:bg-sky-600 text-white"
+      className="bg-primary hover:bg-primary/90 text-primary-foreground btn-morph"
     >
       <Play className="w-4 h-4 mr-2" />
       {loading ? 'Generating...' : `Generate Balances for ${year}`}

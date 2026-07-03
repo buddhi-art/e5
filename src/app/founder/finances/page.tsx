@@ -112,7 +112,7 @@ export default async function FounderFinancesPage() {
         <div className="space-y-8">
             <div className="morph-fade-in">
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight flex items-center gap-3">
-                    <DollarSign className="w-8 h-8 text-amber-500" />
+                    <DollarSign className="w-8 h-8 text-primary" />
                     Finances
                 </h1>
                 <p className="text-base text-on-surface-variant mt-2">
@@ -123,18 +123,18 @@ export default async function FounderFinancesPage() {
             {/* Revenue & Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 morph-fade-in morph-delay-2">
                 <div className="rounded-2xl bg-surface-container-lowest p-4 ring-1 ring-outline-variant/40 card-morph">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 flex items-center justify-center mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-m3-success-subtle text-m3-success flex items-center justify-center mb-2">
                         <TrendingUp className="w-4.5 h-4.5" />
                     </div>
                     <div className="text-xl font-bold text-foreground tabular-nums">{revenueThisMonth.toLocaleString()}</div>
                     <div className="text-xs text-on-surface-variant font-medium">Revenue This Month</div>
-                    <div className={cn('text-[10px] font-medium mt-0.5', Number(revenueChange) >= 0 ? 'text-emerald-500' : 'text-red-500')}>
+                    <div className={cn('text-[10px] font-medium mt-0.5', Number(revenueChange) >= 0 ? 'text-m3-success' : 'text-m3-error')}>
                         {Number(revenueChange) >= 0 ? '+' : ''}{revenueChange}% vs last month
                     </div>
                 </div>
 
                 <div className="rounded-2xl bg-surface-container-lowest p-4 ring-1 ring-outline-variant/40 card-morph">
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-m3-warning-subtle text-m3-warning flex items-center justify-center mb-2">
                         <Receipt className="w-4.5 h-4.5" />
                     </div>
                     <div className="text-xl font-bold text-foreground tabular-nums">{totalReceivable.toLocaleString()}</div>
@@ -158,7 +158,7 @@ export default async function FounderFinancesPage() {
                 </div>
 
                 <div className="rounded-2xl bg-surface-container-lowest p-4 ring-1 ring-outline-variant/40 card-morph">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 flex items-center justify-center mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-m3-success-subtle text-m3-success flex items-center justify-center mb-2">
                         <CheckSquare className="w-4.5 h-4.5" />
                     </div>
                     <div className="text-xl font-bold text-foreground">{collectionRate}%</div>
@@ -166,7 +166,7 @@ export default async function FounderFinancesPage() {
                 </div>
 
                 <div className="rounded-2xl bg-surface-container-lowest p-4 ring-1 ring-outline-variant/40 card-morph">
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-m3-warning-subtle text-m3-warning flex items-center justify-center mb-2">
                         <AlertTriangle className="w-4.5 h-4.5" />
                     </div>
                     <div className="text-xl font-bold text-foreground">{overdueInvoices}</div>
@@ -216,8 +216,8 @@ export default async function FounderFinancesPage() {
                             {[
                                 { label: 'Draft', value: draftInvoices, color: 'text-outline', bg: 'bg-surface-container-high' },
                                 { label: 'Active (Sent)', value: activeInvoices, color: 'text-primary', bg: 'bg-primary-container' },
-                                { label: 'Overdue', value: overdueInvoices, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-950/30' },
-                                { label: 'Paid', value: paidInvoices, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
+                                { label: 'Overdue', value: overdueInvoices, color: 'text-m3-error', bg: 'bg-m3-error-subtle' },
+                                { label: 'Paid', value: paidInvoices, color: 'text-m3-success', bg: 'bg-m3-success-subtle' },
                             ].map(item => {
                                 const pct = totalInvoiceCount > 0 ? Math.round((item.value / totalInvoiceCount) * 100) : 0
                                 return (
@@ -294,7 +294,7 @@ export default async function FounderFinancesPage() {
                                                 <span className="text-[11px] font-bold text-on-surface-variant tabular-nums">{total.toLocaleString()} ({pct}%)</span>
                                             </div>
                                             <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                                                <div className="h-full rounded-full bg-amber-500 transition-all duration-700" style={{ width: `${pct}%` }} />
+                                                <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${pct}%` }} />
                                             </div>
                                         </div>
                                     </div>
@@ -328,7 +328,7 @@ export default async function FounderFinancesPage() {
                                         <div className="text-sm font-bold text-foreground tabular-nums">{Number(exp.amount).toLocaleString()}</div>
                                         <div className={cn(
                                             'text-[10px] font-medium',
-                                            exp.status === 'approved' ? 'text-emerald-500' : exp.status === 'pending' ? 'text-amber-500' : 'text-on-surface-variant'
+                                            exp.status === 'approved' ? 'text-m3-success' : exp.status === 'pending' ? 'text-m3-warning' : 'text-on-surface-variant'
                                         )}>{exp.status}</div>
                                     </div>
                                 </div>

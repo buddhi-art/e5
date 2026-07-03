@@ -42,10 +42,10 @@ export function LeaveRequestsTable({ requests, leaveTypes }: { requests: LeaveRe
 
     function getStatusBadge(status: string) {
         switch (status) {
-            case 'approved': return <Badge className="bg-emerald-500 hover:bg-emerald-600">Approved</Badge>
+            case 'approved': return <Badge className="bg-m3-success hover:bg-m3-success">Approved</Badge>
             case 'rejected': return <Badge variant="destructive">Rejected</Badge>
             case 'cancelled': return <Badge variant="secondary">Cancelled</Badge>
-            case 'pending': return <Badge variant="outline" className="text-amber-600 border-amber-300">Pending</Badge>
+            case 'pending': return <Badge variant="outline" className="text-m3-warning border-m3-warning">Pending</Badge>
             default: return <Badge variant="outline">{status}</Badge>
         }
     }
@@ -53,20 +53,20 @@ export function LeaveRequestsTable({ requests, leaveTypes }: { requests: LeaveRe
     return (
         <div className="space-y-4">
             {/* Filters */}
-            <div className="flex flex-wrap gap-4 items-end bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div className="flex flex-wrap gap-4 items-end bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/50 elevation-1">
                 <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-outline" />
                     <Input
                         placeholder="Search by employee, email, or reason..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="pl-9 bg-zinc-50 dark:bg-zinc-800/50"
+                        className="pl-9 bg-surface-container"
                     />
                 </div>
                 <div className="space-y-1.5 min-w-[140px]">
-                    <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Status</label>
+                    <label className="text-xs font-medium text-outline uppercase tracking-wider">Status</label>
                     <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
-                        <SelectTrigger className="bg-zinc-50 dark:bg-zinc-800/50">
+                        <SelectTrigger className="bg-surface-container">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -79,9 +79,9 @@ export function LeaveRequestsTable({ requests, leaveTypes }: { requests: LeaveRe
                     </Select>
                 </div>
                 <div className="space-y-1.5 min-w-[160px]">
-                    <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Leave Type</label>
+                    <label className="text-xs font-medium text-outline uppercase tracking-wider">Leave Type</label>
                     <Select value={leaveTypeFilter} onValueChange={(v) => v && setLeaveTypeFilter(v)}>
-                        <SelectTrigger className="bg-zinc-50 dark:bg-zinc-800/50">
+                        <SelectTrigger className="bg-surface-container">
                             <SelectValue>
                                 {leaveTypeFilter !== 'all' ? leaveTypes.find(lt => lt.id === leaveTypeFilter)?.name : null}
                             </SelectValue>
@@ -97,9 +97,9 @@ export function LeaveRequestsTable({ requests, leaveTypes }: { requests: LeaveRe
             </div>
 
             {/* Table */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-surface-container-lowest border border-outline-variant/50 rounded-xl overflow-hidden elevation-1">
                 <Table>
-                    <TableHeader className="bg-zinc-50 dark:bg-zinc-950">
+                    <TableHeader className="bg-surface-container-low">
                         <TableRow>
                             <TableHead className="font-semibold">Employee</TableHead>
                             <TableHead className="font-semibold">Type</TableHead>
@@ -112,13 +112,13 @@ export function LeaveRequestsTable({ requests, leaveTypes }: { requests: LeaveRe
                     <TableBody>
                         {filteredRequests.length > 0 ? (
                             filteredRequests.map((req: any) => (
-                                <TableRow key={req.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                                <TableRow key={req.id} className="hover:bg-surface-container-high">
                                     <TableCell>
-                                        <div className="font-medium text-zinc-900 dark:text-white">{req.profiles?.full_name}</div>
-                                        <div className="text-xs text-zinc-500">{req.profiles?.email}</div>
+                                        <div className="font-medium text-on-surface">{req.profiles?.full_name}</div>
+                                        <div className="text-xs text-outline">{req.profiles?.email}</div>
                                     </TableCell>
                                     <TableCell>{req.leave_types?.name}</TableCell>
-                                    <TableCell className="text-zinc-500">
+                                    <TableCell className="text-outline">
                                         <div className="text-sm">{new Date(req.start_date).toLocaleDateString()} - {new Date(req.end_date).toLocaleDateString()}</div>
                                         <div className="text-xs">{req.total_days} days</div>
                                     </TableCell>
@@ -133,7 +133,7 @@ export function LeaveRequestsTable({ requests, leaveTypes }: { requests: LeaveRe
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-10 text-zinc-500">
+                                <TableCell colSpan={6} className="text-center py-10 text-outline">
                                     No leave requests found matching your filters.
                                 </TableCell>
                             </TableRow>

@@ -1,8 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { supabaseAdmin } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { EmployeeProfileSchema } from '@/lib/validations'
 
 export async function updateEmployeeProfile(formData: FormData) {
   try {
@@ -14,8 +14,10 @@ export async function updateEmployeeProfile(formData: FormData) {
       return { error: 'Unauthorized' }
     }
 
-    // First, fetch the existing profile to preserve vehicle and other social_urls data
-    const { data: existingProfile } = await supabaseAdmin
+    // First, fetch the existing profile to preserve vehicle and other social_urls data.
+    // Uses the RLS-enforced session client (not the service-role client) — the user is
+    // only ever reading/writing their own row (eq id = user.id), so RLS is sufficient.
+    const { data: existingProfile } = await supabase
       .from('profiles')
       .select('social_urls')
       .eq('id', user.id)
@@ -23,29 +25,39 @@ export async function updateEmployeeProfile(formData: FormData) {
 
     const existingSocial = existingProfile?.social_urls || {}
 
-    const location = formData.get('location') as string
-    const dob = formData.get('dob') as string
-    const cvUrl = formData.get('cvUrl') as string
+    const parsed = EmployeeProfileSchema.safeParse({
+      location: formData.get('location'),
+      dob: formData.get('dob'),
+      cvUrl: formData.get('cvUrl'),
+      tiktok: formData.get('tiktok'),
+      facebook: formData.get('facebook'),
+      instagram: formData.get('instagram'),
+      threads: formData.get('threads'),
+    });
+
+    if (!parsed.success) {
+      return { error: 'Validation failed: ' + parsed.error.issues[0].message };
+    }
+    const data = parsed.data;
 
     // Social Links — merge with existing data to preserve vehicle etc.
     const socialUrls = {
       ...existingSocial,
-      tiktok: formData.get('tiktok') as string || '',
-      facebook: formData.get('facebook') as string || '',
-      instagram: formData.get('instagram') as string || '',
-      threads: formData.get('threads') as string || '',
+      tiktok: data.tiktok || '',
+      facebook: data.facebook || '',
+      instagram: data.instagram || '',
+      threads: data.threads || '',
     }
 
     // Only update fields the employee is allowed to change
     const updateData: Record<string, any> = {
-      location: location || null,
-      dob: dob || null,
-      cv_url: cvUrl || null,
+      location: data.location || null,
+      dob: data.dob || null,
+      cv_url: data.cvUrl || null,
       social_urls: socialUrls,
     }
 
-    // Use admin client to bypass RLS
-    const { error: profileError } = await supabaseAdmin
+    const { error: profileError } = await supabase
       .from('profiles')
       .update(updateData)
       .eq('id', user.id)

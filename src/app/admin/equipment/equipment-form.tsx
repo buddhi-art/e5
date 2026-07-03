@@ -100,12 +100,12 @@ export function EquipmentForm({ initialData }: { initialData?: Equipment }) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Equipment Name *</label>
+          <label className="block text-sm font-medium text-on-surface">Equipment Name *</label>
           <Input placeholder="e.g. Sony A7S III" value={name} onChange={e => setName(e.target.value)} required />
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Category *</label>
+          <label className="block text-sm font-medium text-on-surface">Category *</label>
           {showNewCategory ? (
             <div className="flex gap-2">
               <Input value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="New category name" />
@@ -124,70 +124,70 @@ export function EquipmentForm({ initialData }: { initialData?: Equipment }) {
                 {categories.map(cat => (
                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
-                <SelectItem value="__ADD_NEW__" className="text-sky-600 dark:text-sky-400 font-medium">+ Add New</SelectItem>
+                <SelectItem value="__ADD_NEW__" className="text-primary font-medium">+ Add New</SelectItem>
               </SelectContent>
             </Select>
           )}
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Brand</label>
+          <label className="block text-sm font-medium text-on-surface">Brand</label>
           <Input placeholder="e.g. Sony" value={brand} onChange={e => setBrand(e.target.value)} />
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Model</label>
+          <label className="block text-sm font-medium text-on-surface">Model</label>
           <Input placeholder="e.g. ILCE-7SM3" value={model} onChange={e => setModel(e.target.value)} />
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Serial Number</label>
+          <label className="block text-sm font-medium text-on-surface">Serial Number</label>
           <Input placeholder="Leave blank if unknown" value={serialNumber} onChange={e => setSerialNumber(e.target.value)} />
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Storage Location</label>
+          <label className="block text-sm font-medium text-on-surface">Storage Location</label>
           <Input placeholder="e.g. Shelf A, Studio 1" value={location} onChange={e => setLocation(e.target.value)} />
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Purchase Date</label>
+          <label className="block text-sm font-medium text-on-surface">Purchase Date</label>
           <Input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Purchase Price (NPR)</label>
+            <label className="block text-sm font-medium text-on-surface">Purchase Price (NPR)</label>
             <Input type="number" step="0.01" value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Current Value (NPR)</label>
+            <label className="block text-sm font-medium text-on-surface">Current Value (NPR)</label>
             <Input type="number" step="0.01" value={currentValue} onChange={e => setCurrentValue(e.target.value)} />
           </div>
         </div>
       </div>
 
       {/* Vendor Information */}
-      <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Vendor Information</h3>
+      <div className="pt-4 border-t border-outline-variant">
+        <h3 className="text-sm font-semibold text-on-surface mb-3">Vendor Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Vendor Name</label>
+            <label className="block text-sm font-medium text-on-surface">Vendor Name</label>
             <Input placeholder="e.g. Sony Center" value={vendorName} onChange={e => setVendorName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Vendor Phone</label>
+            <label className="block text-sm font-medium text-on-surface">Vendor Phone</label>
             <Input type="tel" placeholder="e.g. 9800000000" value={vendorPhone} onChange={e => setVendorPhone(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Vendor Location</label>
+            <label className="block text-sm font-medium text-on-surface">Vendor Location</label>
             <Input placeholder="e.g. Kathmandu" value={vendorLocation} onChange={e => setVendorLocation(e.target.value)} />
           </div>
         </div>
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Photo (Optional)</label>
+        <label className="block text-sm font-medium text-on-surface">Photo (Optional)</label>
         <Input
           type="file"
           accept="image/*"
@@ -196,11 +196,11 @@ export function EquipmentForm({ initialData }: { initialData?: Equipment }) {
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Notes</label>
+        <label className="block text-sm font-medium text-on-surface">Notes</label>
         <Textarea placeholder="Condition notes, accessories included, etc." value={notes} onChange={e => setNotes(e.target.value)} />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+      <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
         <Button type="button" variant="outline" onClick={() => router.back()} disabled={isPending}>
           Cancel
         </Button>

@@ -28,10 +28,10 @@ export default async function EquipmentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 morph-fade-in">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Equipment & Assets</h1>
-          <p className="text-sm text-zinc-500">Manage all studio gear, rentals, and checkouts.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Equipment & Assets</h1>
+          <p className="text-sm text-outline">Manage all studio gear, rentals, and checkouts.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button render={<Link href="/admin/equipment/new" />} nativeButton={false}>

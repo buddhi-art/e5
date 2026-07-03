@@ -23,10 +23,10 @@ export default async function TalentsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 morph-fade-in">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Talent Directory</h1>
-                    <p className="text-sm text-zinc-500">Manage models, actors, freelancers, and crew.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-on-surface">Talent Directory</h1>
+                    <p className="text-sm text-outline">Manage models, actors, freelancers, and crew.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button render={<Link href="/admin/talents/bookings" />} variant="outline">

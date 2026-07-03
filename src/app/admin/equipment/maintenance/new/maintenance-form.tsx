@@ -59,7 +59,7 @@ export function MaintenanceForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Equipment *</label>
+        <label className="block text-sm font-medium text-on-surface">Equipment *</label>
         <Select value={equipmentId} onValueChange={(v: string | null) => setEquipmentId(v || '')}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select equipment...">
@@ -77,7 +77,7 @@ export function MaintenanceForm({
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Description / Reason *</label>
+        <label className="block text-sm font-medium text-on-surface">Description / Reason *</label>
         <Input
           placeholder="e.g. Sensor cleaning, repair broken mount"
           value={description}
@@ -88,7 +88,7 @@ export function MaintenanceForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Scheduled Date *</label>
+          <label className="block text-sm font-medium text-on-surface">Scheduled Date *</label>
           <Input
             type="date"
             value={scheduledDate}
@@ -98,7 +98,7 @@ export function MaintenanceForm({
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Estimated/Actual Cost (NPR)</label>
+          <label className="block text-sm font-medium text-on-surface">Estimated/Actual Cost (NPR)</label>
           <Input
             type="number"
             step="0.01"
@@ -109,7 +109,7 @@ export function MaintenanceForm({
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Vendor / Service Center</label>
+        <label className="block text-sm font-medium text-on-surface">Vendor / Service Center</label>
         <Input
           placeholder="e.g. Sony Service Center, New Road"
           value={vendor}
@@ -119,7 +119,7 @@ export function MaintenanceForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Vendor Phone</label>
+          <label className="block text-sm font-medium text-on-surface">Vendor Phone</label>
           <Input
             type="tel"
             placeholder="e.g. 9800000000"
@@ -128,7 +128,7 @@ export function MaintenanceForm({
           />
         </div>
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Vendor Location</label>
+          <label className="block text-sm font-medium text-on-surface">Vendor Location</label>
           <Input
             placeholder="e.g. Kathmandu"
             value={vendorLocation}
@@ -138,7 +138,7 @@ export function MaintenanceForm({
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Additional Notes</label>
+        <label className="block text-sm font-medium text-on-surface">Additional Notes</label>
         <Textarea
           placeholder="Any other notes..."
           value={notes}
@@ -146,7 +146,7 @@ export function MaintenanceForm({
         />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+      <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
         <Button type="button" variant="outline" onClick={() => router.back()} disabled={isPending}>
           Cancel
         </Button>

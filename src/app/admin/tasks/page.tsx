@@ -59,18 +59,18 @@ export default async function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Task Assignment</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Assign work to your team and track progress.</p>
+      <div className="morph-fade-in">
+        <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">Task Assignment</h1>
+        <p className="text-on-surface-variant">Assign work to your team and track progress.</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Assignment Form */}
         <div className="xl:col-span-1 space-y-6">
-          <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 morph-fade-in morph-delay-2">
             <CardHeader>
-              <CardTitle className="text-zinc-900 dark:text-white">Assign a Task</CardTitle>
-              <CardDescription className="text-zinc-600 dark:text-zinc-400">Delegate work with specific sub-tasks.</CardDescription>
+              <CardTitle className="text-on-surface">Assign a Task</CardTitle>
+              <CardDescription className="text-on-surface-variant">Delegate work with specific sub-tasks.</CardDescription>
             </CardHeader>
             <CardContent>
               <TaskForm projects={projects || []} employees={employees || []} />
@@ -80,12 +80,12 @@ export default async function TasksPage() {
 
         {/* Client Category View */}
         <div className="xl:col-span-2">
-          <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 morph-fade-in morph-delay-3">
             <CardHeader>
-              <CardTitle className="text-zinc-900 dark:text-white flex items-center gap-2">
-                <FolderKanban className="w-5 h-5 text-sky-600 dark:text-sky-400" /> Client Overview
+              <CardTitle className="text-on-surface flex items-center gap-2">
+                <FolderKanban className="w-5 h-5 text-primary" /> Client Overview
               </CardTitle>
-              <CardDescription className="text-zinc-600 dark:text-zinc-400">Track active projects and assignments by client.</CardDescription>
+              <CardDescription className="text-on-surface-variant">Track active projects and assignments by client.</CardDescription>
             </CardHeader>
 
             <ClientProjectsAccordion clients={clientOverview as any} />

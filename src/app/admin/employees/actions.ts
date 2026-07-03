@@ -1,51 +1,68 @@
 'use server'
 
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+import { CreateEmployeeSchema, UpdateEmployeeSchema, UuidParamSchema } from '@/lib/validations'
+import { verifyAdminOrFounder } from '@/lib/auth-utils'
 
 export async function createEmployee(formData: FormData) {
   try {
-    let loginId = formData.get('loginId') as string
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = CreateEmployeeSchema.safeParse({
+      loginId: formData.get('loginId'),
+      password: formData.get('password'),
+      fullName: formData.get('fullName'),
+      designation: formData.get('designation'),
+      newDesignation: formData.get('newDesignation'),
+      contactEmail: formData.get('contactEmail'),
+      phone: formData.get('phone'),
+      location: formData.get('location'),
+      joiningDate: formData.get('joiningDate'),
+      dob: formData.get('dob'),
+      cvUrl: formData.get('cvUrl'),
+      tiktok: formData.get('tiktok'),
+      facebook: formData.get('facebook'),
+      instagram: formData.get('instagram'),
+      threads: formData.get('threads'),
+      vehicle: formData.get('vehicle'),
+    })
+
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const data = parsed.data
+
+    let loginId = data.loginId
     if (loginId && !loginId.includes('@')) {
       loginId = `${loginId}@e5chronicles.com`
     }
-    const password = formData.get('password') as string
-    const contactEmail = formData.get('contactEmail') as string
-    const fullName = formData.get('fullName') as string
-    let designation = formData.get('designation') as string
-    if (designation === 'ADD_NEW') {
-      designation = formData.get('newDesignation') as string
-      if (designation) {
-        await supabaseAdmin.from('designations').insert({ name: designation }).select()
-      }
+
+    let designation = data.designation
+    if (designation === 'ADD_NEW' && data.newDesignation) {
+      designation = data.newDesignation
+      await supabaseAdmin.from('designations').insert({ name: designation }).select()
     }
 
-    const phone = formData.get('phone') as string
-    const location = formData.get('location') as string
-    const joiningDate = formData.get('joiningDate') as string
-    const dob = formData.get('dob') as string
-    const cvUrl = formData.get('cvUrl') as string
-
-    // Social Links
     const socialUrls = {
-      tiktok: formData.get('tiktok') as string || '',
-      facebook: formData.get('facebook') as string || '',
-      instagram: formData.get('instagram') as string || '',
-      threads: formData.get('threads') as string || '',
-      vehicle: formData.get('vehicle') as string || 'no',
-    }
-
-    if (!loginId || !password || !fullName || !designation) {
-      return { error: 'Full Name, Login ID, Password and Designation are required' }
+      tiktok: data.tiktok || '',
+      facebook: data.facebook || '',
+      instagram: data.instagram || '',
+      threads: data.threads || '',
+      vehicle: data.vehicle || 'no',
     }
 
     // Use the admin API to create the user in Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: loginId,
-      password,
+      password: data.password,
       email_confirm: true,
       user_metadata: {
-        full_name: fullName,
+        full_name: data.fullName,
       }
     })
 
@@ -54,25 +71,34 @@ export async function createEmployee(formData: FormData) {
     }
 
     if (authData.user) {
-      // Small delay to let the trigger fire
-      await new Promise(resolve => setTimeout(resolve, 500))
-
+      // Retry up to 3 times with backoff to handle trigger timing
       const updateData: Record<string, any> = {
         email: loginId,
-        contact_email: contactEmail || null,
+        contact_email: data.contactEmail || null,
         designation,
-        phone_number: phone || null,
-        location: location || null,
-        joining_date: joiningDate || null,
-        dob: dob || null,
-        cv_url: cvUrl || null,
+        phone_number: data.phone || null,
+        location: data.location || null,
+        joining_date: data.joiningDate || null,
+        dob: data.dob || null,
+        cv_url: data.cvUrl || null,
         social_urls: socialUrls,
       }
 
-      const { error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .update(updateData)
-        .eq('id', authData.user.id)
+      let profileError: any = null
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const result = await supabaseAdmin
+          .from('profiles')
+          .update(updateData)
+          .eq('id', authData.user.id)
+
+        if (!result.error) {
+          profileError = null
+          break
+        }
+        profileError = result.error
+        // Exponential backoff: 200ms, 400ms, 800ms
+        await new Promise(resolve => setTimeout(resolve, 200 * Math.pow(2, attempt)))
+      }
 
       if (profileError) {
         return { error: 'User created but failed to set profile details: ' + profileError.message }
@@ -89,11 +115,20 @@ export async function createEmployee(formData: FormData) {
 
 export async function archiveEmployee(employeeId: string) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = UuidParamSchema.safeParse({ id: employeeId });
+    if (!parsed.success) return { error: 'Invalid employee ID' };
+
     // First, nullify all non-completed task assignments for this employee
     const { error: taskError } = await supabaseAdmin
       .from('tasks')
       .update({ assigned_to: null })
-      .eq('assigned_to', employeeId)
+      .eq('assigned_to', parsed.data.id)
       .neq('status', 'completed')
 
     if (taskError) {
@@ -104,7 +139,7 @@ export async function archiveEmployee(employeeId: string) {
     const { error } = await supabaseAdmin
       .from('profiles')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', employeeId)
+      .eq('id', parsed.data.id)
 
     if (error) {
       return { error: error.message }
@@ -122,7 +157,16 @@ export async function archiveEmployee(employeeId: string) {
 
 export async function deleteEmployee(employeeId: string) {
   try {
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(employeeId)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = UuidParamSchema.safeParse({ id: employeeId });
+    if (!parsed.success) return { error: 'Invalid employee ID' };
+
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(parsed.data.id)
     if (error) {
       return { error: error.message }
     }
@@ -139,13 +183,24 @@ export async function deleteEmployee(employeeId: string) {
 
 export async function restoreEmployee(employeeId: string) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = UuidParamSchema.safeParse({ id: employeeId });
+    if (!parsed.success) return { error: 'Invalid employee ID' };
+
     const { error } = await supabaseAdmin
       .from('profiles')
       .update({ deleted_at: null })
-      .eq('id', employeeId)
+      .eq('id', parsed.data.id)
 
     if (error) {
-      return { error: error.message }
+      return {
+        error: error.message
+      }
     }
 
     revalidatePath('/admin/employees')
@@ -170,11 +225,17 @@ export async function updateEmployee(employeeId: string, data: {
   social_urls: Record<string, string> | null
 }) {
   try {
-    if (!data.full_name || !data.designation || !data.login_id) {
-      return { error: 'Full Name, Login ID and Designation are required' }
-    }
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
-    let formattedLoginId = data.login_id
+    const parsed = UpdateEmployeeSchema.safeParse(data)
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const validData = parsed.data
+
+    let formattedLoginId = validData.login_id
     if (formattedLoginId && !formattedLoginId.includes('@')) {
       formattedLoginId = `${formattedLoginId}@e5chronicles.com`
     }
@@ -182,22 +243,22 @@ export async function updateEmployee(employeeId: string, data: {
     // If this designation doesn't exist yet in the lookup table, insert it
     await supabaseAdmin
       .from('designations')
-      .upsert({ name: data.designation }, { onConflict: 'name' })
+      .upsert({ name: validData.designation }, { onConflict: 'name' })
 
     // Update the profile in the profiles table
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .update({
-        full_name: data.full_name,
+        full_name: validData.full_name,
         email: formattedLoginId,
-        contact_email: data.contact_email || null,
-        designation: data.designation,
-        phone_number: data.phone_number || null,
-        location: data.location || null,
-        joining_date: data.joining_date || null,
-        dob: data.dob || null,
-        cv_url: data.cv_url || null,
-        social_urls: data.social_urls,
+        contact_email: validData.contact_email || null,
+        designation: validData.designation,
+        phone_number: validData.phone_number || null,
+        location: validData.location || null,
+        joining_date: validData.joining_date || null,
+        dob: validData.dob || null,
+        cv_url: validData.cv_url || null,
+        social_urls: validData.social_urls,
       })
       .eq('id', employeeId)
 
@@ -208,12 +269,12 @@ export async function updateEmployee(employeeId: string, data: {
     // Update auth user - email, password, metadata
     const authUpdate: Record<string, any> = {
       email: formattedLoginId,
-      user_metadata: { full_name: data.full_name },
+      user_metadata: { full_name: validData.full_name },
     }
 
     // Only update password if a new one was provided
-    if (data.password) {
-      authUpdate.password = data.password
+    if (validData.password) {
+      authUpdate.password = validData.password
     }
 
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(employeeId, authUpdate)

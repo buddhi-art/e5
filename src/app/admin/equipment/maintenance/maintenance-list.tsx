@@ -30,31 +30,31 @@ export function MaintenanceList({ initialRecords }: { initialRecords: any[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex border-b border-outline-variant">
         <button
-          className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${tab === 'scheduled' ? 'border-zinc-900 dark:border-white text-zinc-900 dark:text-white' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+          className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${tab === 'scheduled' ? 'border-on-surface text-on-surface' : 'border-transparent text-outline hover:text-on-surface'}`}
           onClick={() => setTab('scheduled')}
         >
           Scheduled
         </button>
         <button
-          className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${tab === 'in_progress' ? 'border-zinc-900 dark:border-white text-zinc-900 dark:text-white' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+          className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${tab === 'in_progress' ? 'border-on-surface text-on-surface' : 'border-transparent text-outline hover:text-on-surface'}`}
           onClick={() => setTab('in_progress')}
         >
           In Progress
         </button>
         <button
-          className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${tab === 'completed' ? 'border-zinc-900 dark:border-white text-zinc-900 dark:text-white' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+          className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${tab === 'completed' ? 'border-on-surface text-on-surface' : 'border-transparent text-outline hover:text-on-surface'}`}
           onClick={() => setTab('completed')}
         >
           Completed
         </button>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+      <div className="rounded-xl border border-outline-variant/50 bg-surface-container-lowest overflow-hidden elevation-1">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50 uppercase border-b border-zinc-200 dark:border-zinc-800">
+            <thead className="text-xs text-outline bg-surface-container-low uppercase border-b border-outline-variant">
               <tr>
                 <th className="px-6 py-3 font-medium">Equipment</th>
                 <th className="px-6 py-3 font-medium">Description</th>
@@ -63,39 +63,39 @@ export function MaintenanceList({ initialRecords }: { initialRecords: any[] }) {
                 <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+            <tbody className="divide-y divide-outline-variant">
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-outline">
                     No {tab.replace('_', ' ')} maintenance records found.
                   </td>
                 </tr>
               ) : (
                 filteredRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                  <tr key={record.id} className="hover:bg-surface-container-high transition-colors">
                     <td className="px-6 py-4">
-                      <p className="font-medium text-zinc-900 dark:text-white">{record.equipment?.name}</p>
-                      <p className="text-xs text-zinc-500">{record.equipment?.category} • {record.equipment?.serial_number}</p>
+                      <p className="font-medium text-on-surface">{record.equipment?.name}</p>
+                      <p className="text-xs text-outline">{record.equipment?.category} • {record.equipment?.serial_number}</p>
                     </td>
-                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-400">
+                    <td className="px-6 py-4 text-on-surface-variant">
                       {record.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {tab === 'completed' ? (
                         <>
-                          <span className="block text-zinc-900 dark:text-white">{record.completed_date ? format(new Date(record.completed_date), 'MMM d, yyyy') : '-'}</span>
-                          <span className="text-xs text-zinc-500">Completed</span>
+                          <span className="block text-on-surface">{record.completed_date ? format(new Date(record.completed_date), 'MMM d, yyyy') : '-'}</span>
+                          <span className="text-xs text-outline">Completed</span>
                         </>
                       ) : (
                         <>
-                          <span className="block text-zinc-900 dark:text-white">{format(new Date(record.scheduled_date), 'MMM d, yyyy')}</span>
-                          <span className="text-xs text-zinc-500">Scheduled</span>
+                          <span className="block text-on-surface">{format(new Date(record.scheduled_date), 'MMM d, yyyy')}</span>
+                          <span className="text-xs text-outline">Scheduled</span>
                         </>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="block text-zinc-900 dark:text-white">{record.vendor || '-'}</span>
-                      <span className="text-xs text-zinc-500">{record.cost ? `NPR ${record.cost.toLocaleString()}` : '-'}</span>
+                      <span className="block text-on-surface">{record.vendor || '-'}</span>
+                      <span className="text-xs text-outline">{record.cost ? `NPR ${record.cost.toLocaleString()}` : '-'}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <DropdownMenu>

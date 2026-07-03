@@ -132,17 +132,17 @@ export function TalentForm({ initialData }: { initialData?: Talent }) {
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Full Name *</label>
+                    <label className="block text-sm font-medium text-on-surface">Full Name *</label>
                     <Input placeholder="e.g. John Doe" value={fullName} onChange={e => setFullName(e.target.value)} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Stage / Professional Name</label>
+                    <label className="block text-sm font-medium text-on-surface">Stage / Professional Name</label>
                     <Input placeholder="e.g. Johnny D" value={stageName} onChange={e => setStageName(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Talent Type *</label>
+                    <label className="block text-sm font-medium text-on-surface">Talent Type *</label>
                     {showNewType ? (
                         <div className="flex gap-2">
                             <Input value={newType} onChange={e => setNewType(e.target.value)} placeholder="New talent type" />
@@ -161,14 +161,14 @@ export function TalentForm({ initialData }: { initialData?: Talent }) {
                                 {talentTypes.map(type => (
                                     <SelectItem key={type} value={type} className="capitalize">{type.replace(/_/g, ' ')}</SelectItem>
                                 ))}
-                                <SelectItem value="__ADD_NEW__" className="text-sky-600 dark:text-sky-400 font-medium">+ Add New</SelectItem>
+                                <SelectItem value="__ADD_NEW__" className="text-primary font-medium">+ Add New</SelectItem>
                             </SelectContent>
                         </Select>
                     )}
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Gender</label>
+                    <label className="block text-sm font-medium text-on-surface">Gender</label>
                     <Select value={gender} onValueChange={(v: string | null) => v && setGender(v)}>
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select gender" />
@@ -182,42 +182,42 @@ export function TalentForm({ initialData }: { initialData?: Talent }) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Phone Number</label>
+                    <label className="block text-sm font-medium text-on-surface">Phone Number</label>
                     <Input type="tel" placeholder="+977-98XXXXXXXX" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>
+                    <label className="block text-sm font-medium text-on-surface">Email</label>
                     <Input type="email" placeholder="talent@example.com" value={email} onChange={e => setEmail(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Date of Birth</label>
+                    <label className="block text-sm font-medium text-on-surface">Date of Birth</label>
                     <Input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Location</label>
+                    <label className="block text-sm font-medium text-on-surface">Location</label>
                     <Input placeholder="e.g. Kathmandu" value={location} onChange={e => setLocation(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Height (cm)</label>
+                    <label className="block text-sm font-medium text-on-surface">Height (cm)</label>
                     <Input type="number" step="0.1" placeholder="e.g. 170" value={heightCm} onChange={e => setHeightCm(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Languages (comma separated)</label>
+                    <label className="block text-sm font-medium text-on-surface">Languages (comma separated)</label>
                     <Input placeholder="e.g. Nepali, English, Hindi" value={languagesStr} onChange={e => setLanguagesStr(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Skills (comma separated)</label>
+                    <label className="block text-sm font-medium text-on-surface">Skills (comma separated)</label>
                     <Input placeholder="e.g. Dancing, Singing, Stunts" value={skillsStr} onChange={e => setSkillsStr(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Rate Type</label>
+                    <label className="block text-sm font-medium text-on-surface">Rate Type</label>
                     <Select value={rateType} onValueChange={(v: string | null) => v && setRateType(v)}>
                         <SelectTrigger className="w-full">
                             <SelectValue />
@@ -231,12 +231,12 @@ export function TalentForm({ initialData }: { initialData?: Talent }) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Rate Amount</label>
+                    <label className="block text-sm font-medium text-on-surface">Rate Amount</label>
                     <Input type="number" step="0.01" placeholder="e.g. 5000" value={rateAmount} onChange={e => setRateAmount(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Currency</label>
+                    <label className="block text-sm font-medium text-on-surface">Currency</label>
                     <Select value={currency} onValueChange={(v: string | null) => v && setCurrency(v)}>
                         <SelectTrigger className="w-full">
                             <SelectValue />
@@ -250,36 +250,36 @@ export function TalentForm({ initialData }: { initialData?: Talent }) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Photo</label>
+                    <label className="block text-sm font-medium text-on-surface">Photo</label>
                     <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
                 </div>
             </div>
 
             {/* Portfolio URLs */}
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Portfolio Links</h3>
+            <div className="pt-4 border-t border-outline-variant">
+                <h3 className="text-sm font-semibold text-on-surface mb-3">Portfolio Links</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-zinc-500">Instagram URL</label>
+                        <label className="block text-sm font-medium text-outline">Instagram URL</label>
                         <Input placeholder="https://instagram.com/..." value={portfolioInstagram} onChange={e => setPortfolioInstagram(e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-zinc-500">Website / Portfolio</label>
+                        <label className="block text-sm font-medium text-outline">Website / Portfolio</label>
                         <Input placeholder="https://..." value={portfolioWebsite} onChange={e => setPortfolioWebsite(e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-zinc-500">Portfolio PDF</label>
+                        <label className="block text-sm font-medium text-outline">Portfolio PDF</label>
                         <Input placeholder="https://..." value={portfolioPdf} onChange={e => setPortfolioPdf(e.target.value)} />
                     </div>
                 </div>
             </div>
 
             <div className="space-y-2">
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Notes</label>
+                <label className="block text-sm font-medium text-on-surface">Notes</label>
                 <Textarea placeholder="Additional notes, measurements, special requirements..." value={notes} onChange={e => setNotes(e.target.value)} />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
                 <Button type="button" variant="outline" onClick={() => router.back()} disabled={isPending}>
                     Cancel
                 </Button>

@@ -12,8 +12,8 @@ export default async function AdminLeaveTypesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Leave Types</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Configure the different types of leave available to employees.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">Leave Types</h1>
+        <p className="text-on-surface-variant">Configure the different types of leave available to employees.</p>
       </div>
 
       <LeaveTypesManager initialTypes={types || []} />

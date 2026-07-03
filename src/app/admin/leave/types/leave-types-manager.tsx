@@ -100,15 +100,15 @@ export function LeaveTypesManager({ initialTypes }: { initialTypes: LeaveType[] 
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <Button onClick={openCreate} size="sm" className="bg-sky-500 hover:bg-sky-600 text-white">
+                <Button onClick={openCreate} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground btn-morph">
                     <Plus className="w-4 h-4 mr-1" />
                     Add Leave Type
                 </Button>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-surface-container-lowest border border-outline-variant/50 rounded-xl overflow-hidden elevation-1">
                 <Table>
-                    <TableHeader className="bg-zinc-50 dark:bg-zinc-950">
+                    <TableHeader className="bg-surface-container-low">
                         <TableRow>
                             <TableHead className="font-semibold">Name</TableHead>
                             <TableHead className="font-semibold">Description</TableHead>
@@ -120,23 +120,23 @@ export function LeaveTypesManager({ initialTypes }: { initialTypes: LeaveType[] 
                     <TableBody>
                         {types.length > 0 ? (
                             types.map((type) => (
-                                <TableRow key={type.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                                    <TableCell className="font-medium text-zinc-900 dark:text-white">{type.name}</TableCell>
-                                    <TableCell className="text-zinc-500 text-sm max-w-[300px] truncate" title={type.description || ''}>{type.description || '-'}</TableCell>
+                                <TableRow key={type.id} className="hover:bg-surface-container-high">
+                                    <TableCell className="font-medium text-on-surface">{type.name}</TableCell>
+                                    <TableCell className="text-outline text-sm max-w-[300px] truncate" title={type.description || ''}>{type.description || '-'}</TableCell>
                                     <TableCell className="text-center">
                                         {type.is_paid ? (
-                                            <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-none">Paid</Badge>
+                                            <Badge className="bg-m3-success-subtle text-m3-success hover:bg-m3-success-subtle border-none">Paid</Badge>
                                         ) : (
-                                            <Badge variant="outline" className="text-zinc-500">Unpaid</Badge>
+                                            <Badge variant="outline" className="text-outline">Unpaid</Badge>
                                         )}
                                     </TableCell>
                                     <TableCell className="text-right font-medium">{type.default_days_per_year}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-1">
-                                            <Button variant="ghost" size="sm" onClick={() => openEdit(type)} className="h-8 w-8 p-0">
-                                                <Pencil className="w-4 h-4 text-zinc-500" />
+                                            <Button variant="ghost" size="sm" onClick={() => openEdit(type)} className="h-8 w-8 p-0 btn-morph">
+                                                <Pencil className="w-4 h-4 text-outline" />
                                             </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleDelete(type)} className="h-8 w-8 p-0 text-red-500 hover:text-red-600">
+                                            <Button variant="ghost" size="sm" onClick={() => handleDelete(type)} className="h-8 w-8 p-0 btn-morph text-m3-error hover:text-m3-error">
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -145,7 +145,7 @@ export function LeaveTypesManager({ initialTypes }: { initialTypes: LeaveType[] 
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-10 text-zinc-500">
+                                <TableCell colSpan={5} className="text-center py-10 text-outline">
                                     No leave types configured. Click "Add Leave Type" to create one.
                                 </TableCell>
                             </TableRow>
@@ -155,18 +155,18 @@ export function LeaveTypesManager({ initialTypes }: { initialTypes: LeaveType[] 
             </div>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="sm:max-w-md bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-800">
+                <DialogContent className="sm:max-w-md bg-surface-container-lowest text-on-surface border-outline-variant">
                     <DialogHeader>
                         <DialogTitle>{editing ? 'Edit Leave Type' : 'Add Leave Type'}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSave} className="space-y-4 pt-4">
                         <div className="space-y-2">
                             <Label>Name *</Label>
-                            <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sick Leave" required className="bg-zinc-50 dark:bg-zinc-900" />
+                            <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sick Leave" required className="bg-surface-container" />
                         </div>
                         <div className="space-y-2">
                             <Label>Description</Label>
-                            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description..." className="bg-zinc-50 dark:bg-zinc-900 resize-none" />
+                            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description..." className="bg-surface-container resize-none" />
                         </div>
                         <div className="flex items-center gap-2">
                             <Checkbox id="is_paid" checked={isPaid} onCheckedChange={(v) => setIsPaid(v === true)} />
@@ -174,7 +174,7 @@ export function LeaveTypesManager({ initialTypes }: { initialTypes: LeaveType[] 
                         </div>
                         <div className="space-y-2">
                             <Label>Default Days Per Year *</Label>
-                            <Input type="number" min="1" value={defaultDays} onChange={e => setDefaultDays(e.target.value)} required className="bg-zinc-50 dark:bg-zinc-900" />
+                            <Input type="number" min="1" value={defaultDays} onChange={e => setDefaultDays(e.target.value)} required className="bg-surface-container" />
                         </div>
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>

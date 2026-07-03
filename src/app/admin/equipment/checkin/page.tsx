@@ -36,18 +36,18 @@ export default async function CheckinEquipmentPage({ searchParams }: { searchPar
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">
       <div className="flex items-center gap-4">
-        <Link href="/admin/equipment" className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors -ml-2 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800">
+        <Link href="/admin/equipment" className="inline-flex items-center gap-2 text-sm text-outline hover:text-on-surface transition-colors -ml-2 px-2 py-1 rounded-md hover:bg-surface-container-high">
           <ArrowLeft className="w-4 h-4" />
           Back to Equipment
         </Link>
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Check In Equipment</h1>
-        <p className="text-sm text-zinc-500">Record returned gear and note its condition.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-on-surface">Check In Equipment</h1>
+        <p className="text-sm text-outline">Record returned gear and note its condition.</p>
       </div>
 
-      <div className="p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+      <div className="p-6 rounded-xl border border-outline-variant/50 bg-surface-container-lowest elevation-1 shape-large">
         <CheckinForm 
           activeCheckouts={checkouts || []} 
           initialCheckoutId={initialCheckoutId}

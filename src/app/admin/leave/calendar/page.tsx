@@ -58,8 +58,8 @@ export default async function AdminLeaveCalendarPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Leave Calendar</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Monthly view of employee leave and holidays.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">Leave Calendar</h1>
+        <p className="text-on-surface-variant">Monthly view of employee leave and holidays.</p>
       </div>
 
       <LeaveCalendar

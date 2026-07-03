@@ -2,45 +2,83 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { verifyAdminOrFounder } from '@/lib/auth-utils'
+import { z } from 'zod'
+import { UuidParamSchema } from '@/lib/validations'
+import { createNotification } from '@/lib/notifications'
 
 async function checkAdmin(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return null
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
+  if (!isAuthorized) return null
   return user
 }
+
+const ApproveLeaveSchema = z.object({
+  requestId: z.string().uuid(),
+  notes: z.string().optional(),
+});
 
 export async function approveLeave(requestId: string, notes?: string) {
   const supabase = await createClient()
   const user = await checkAdmin(supabase)
   if (!user) return { error: 'Unauthorized' }
 
+  const parsed = ApproveLeaveSchema.safeParse({ requestId, notes: notes || undefined });
+  if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message };
+
+  const { data: request } = await supabase
+    .from('leave_requests')
+    .select('user_id')
+    .eq('id', parsed.data.requestId)
+    .single()
+
+  if (!request) return { error: 'Request not found' }
+
   const { error } = await supabase
     .from('leave_requests')
     .update({
       status: 'approved',
       reviewed_by: user.id,
-      review_notes: notes || null
+      review_notes: parsed.data.notes || null
     })
-    .eq('id', requestId)
+    .eq('id', parsed.data.requestId)
 
   if (error) return { error: error.message }
+
+  // Notify the employee
+  await createNotification(
+    request.user_id,
+    'leave_approved',
+    'Leave Approved',
+    notes || 'Your leave request has been approved.',
+    '/employee/leave',
+    true,
+  )
 
   revalidatePath('/admin/leave')
   revalidatePath('/admin/leave/requests')
   return { success: true }
 }
 
+const RejectLeaveSchema = z.object({
+  requestId: z.string().uuid(),
+  notes: z.string().min(1, 'Rejection reason is required'),
+});
+
 export async function rejectLeave(requestId: string, notes: string) {
   const supabase = await createClient()
   const user = await checkAdmin(supabase)
   if (!user) return { error: 'Unauthorized' }
 
+  const parsed = RejectLeaveSchema.safeParse({ requestId, notes });
+  if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message };
+
   const { data: request } = await supabase
     .from('leave_requests')
     .select('*')
-    .eq('id', requestId)
+    .eq('id', parsed.data.requestId)
     .single()
 
   if (!request) return { error: 'Request not found' }
@@ -67,26 +105,46 @@ export async function rejectLeave(requestId: string, notes: string) {
     .update({
       status: 'rejected',
       reviewed_by: user.id,
-      review_notes: notes
+      review_notes: parsed.data.notes
     })
-    .eq('id', requestId)
+    .eq('id', parsed.data.requestId)
 
   if (error) return { error: error.message }
+
+  // Notify the employee
+  await createNotification(
+    request.user_id,
+    'leave_rejected',
+    'Leave Rejected',
+    notes,
+    '/employee/leave',
+    true,
+  )
 
   revalidatePath('/admin/leave')
   revalidatePath('/admin/leave/requests')
   return { success: true }
 }
 
+const AdjustBalanceSchema = z.object({
+  userId: z.string().uuid(),
+  leaveTypeId: z.string().uuid(),
+  newTotalDays: z.number().min(0),
+  year: z.number().int().min(2020).max(2100),
+});
+
 export async function adjustLeaveBalance(userId: string, leaveTypeId: string, newTotalDays: number, year: number) {
   const supabase = await createClient()
   const user = await checkAdmin(supabase)
   if (!user) return { error: 'Unauthorized' }
 
+  const parsed = AdjustBalanceSchema.safeParse({ userId, leaveTypeId, newTotalDays, year });
+  if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message };
+
   const { error } = await supabase
     .from('leave_balances')
-    .update({ total_days: newTotalDays })
-    .match({ user_id: userId, leave_type_id: leaveTypeId, year })
+    .update({ total_days: parsed.data.newTotalDays })
+    .match({ user_id: parsed.data.userId, leave_type_id: parsed.data.leaveTypeId, year: parsed.data.year })
 
   if (error) return { error: error.message }
 
@@ -99,16 +157,18 @@ export async function seedLeaveBalances(year: number) {
   const user = await checkAdmin(supabase)
   if (!user) return { error: 'Unauthorized' }
 
-  // Fetch all active employees
+  if (!Number.isInteger(year) || year < 2020 || year > 2100) {
+    return { error: 'Invalid year' };
+  }
+
   const { data: employees } = await supabase
     .from('profiles')
     .select('id')
     .eq('role', 'employee')
     .is('deleted_at', null)
 
-  if (!employees || employees.length === 0) return { error: 'No employees found' }
+  if (!employees || employees.length === 0) return { error: 'No active employees found' }
 
-  // Fetch all leave types
   const { data: leaveTypes } = await supabase
     .from('leave_types')
     .select('*')
@@ -118,7 +178,6 @@ export async function seedLeaveBalances(year: number) {
   let count = 0
   for (const emp of employees) {
     for (const type of leaveTypes) {
-      // Upsert: Try to fetch existing
       const { data: existing } = await supabase
         .from('leave_balances')
         .select('id')

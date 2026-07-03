@@ -3,15 +3,19 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { LoginSchema } from '@/lib/validations'
 
 export async function login(formData: FormData) {
-  let email = formData.get('email') as string
-  const password = formData.get('password') as string
+  const parsed = LoginSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
 
-  if (!email || !password) {
-    return { error: 'Email and password are required' }
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message }
   }
 
+  let email = parsed.data.email
   if (email && !email.includes('@')) {
     email = `${email}@e5chronicles.com`
   }
@@ -20,7 +24,7 @@ export async function login(formData: FormData) {
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
-    password,
+    password: parsed.data.password,
   })
 
   if (error) {

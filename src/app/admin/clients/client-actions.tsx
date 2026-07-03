@@ -60,7 +60,7 @@ export function ClientActions({ clientId, clientName, isArchived }: { clientId: 
                 <button
                     onClick={handleRestore}
                     disabled={loading}
-                    className="inline-flex items-center justify-center rounded-md w-9 h-9 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                    className="inline-flex items-center justify-center rounded-md w-9 h-9 btn-morph text-outline hover:text-m3-success hover:bg-m3-success-subtle transition-colors cursor-pointer"
                     title="Restore client"
                 >
                     <RefreshCw className="w-4 h-4" />
@@ -68,23 +68,23 @@ export function ClientActions({ clientId, clientName, isArchived }: { clientId: 
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                     <AlertDialogTrigger
                         disabled={loading}
-                        className="inline-flex items-center justify-center rounded-md w-9 h-9 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center rounded-md w-9 h-9 btn-morph text-outline hover:text-m3-error hover:bg-m3-error-subtle transition-colors cursor-pointer"
                         title="Permanently Delete client"
                     >
                         <Trash2 className="w-4 h-4" />
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+                    <AlertDialogContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
                         <AlertDialogHeader>
                             <AlertDialogTitle>Permanently Delete Client?</AlertDialogTitle>
-                            <AlertDialogDescription className="text-zinc-600 dark:text-zinc-400">
+                            <AlertDialogDescription className="text-on-surface-variant">
                                 Are you sure you want to permanently delete <strong>{clientName}</strong>? This action cannot be undone. All their projects and tasks will also be deleted.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800 hover:text-zinc-900 dark:text-white">Cancel</AlertDialogCancel>
+                            <AlertDialogCancel className="bg-surface-container-lowest border-outline-variant text-on-surface hover:bg-surface-container-high hover:text-on-surface">Cancel</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={handleDelete}
-                                className="bg-red-600 hover:bg-red-700 text-white border-none"
+                                className="bg-destructive hover:bg-destructive/90 text-white border-none"
                                 disabled={loading}
                             >
                                 {loading ? 'Deleting...' : 'Permanently Delete'}
@@ -98,21 +98,21 @@ export function ClientActions({ clientId, clientName, isArchived }: { clientId: 
 
     return (
         <AlertDialog>
-            <AlertDialogTrigger className="inline-flex items-center justify-center rounded-md w-9 h-9 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer" title="Archive client">
+            <AlertDialogTrigger className="inline-flex items-center justify-center rounded-md w-9 h-9 btn-morph text-outline hover:text-m3-error hover:bg-m3-error-subtle transition-colors cursor-pointer" title="Archive client">
                 <Archive className="w-4 h-4" />
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+            <AlertDialogContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
                 <AlertDialogHeader>
                     <AlertDialogTitle>Archive Client?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-zinc-600 dark:text-zinc-400">
+                    <AlertDialogDescription className="text-on-surface-variant">
                         Are you sure you want to archive <strong>{clientName}</strong>? All projects related to this client will also be archived. You can restore them later from the Archived section.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800 hover:text-zinc-900 dark:text-white">Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="bg-surface-container-lowest border-outline-variant text-on-surface hover:bg-surface-container-high hover:text-on-surface">Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleArchive}
-                        className="bg-red-600 hover:bg-red-700 text-white border-none"
+                        className="bg-destructive hover:bg-destructive/90 text-white border-none"
                         disabled={loading}
                     >
                         {loading ? 'Archiving...' : 'Archive'}

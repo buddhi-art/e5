@@ -49,15 +49,15 @@ export function RecordPaymentDialog({ invoice }: { invoice: any }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={
-        <Button variant="default" className="bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-sm print:hidden">
+        <Button variant="default" className="bg-m3-success hover:bg-m3-success/90 text-white border-none shadow-sm print:hidden">
           <CreditCard className="w-4 h-4 mr-2" />
           Record Payment
         </Button>
       } />
-      <DialogContent className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white sm:max-w-md">
+      <DialogContent className="bg-surface-container-low border-outline-variant text-on-surface sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Record Payment</DialogTitle>
-          <DialogDescription className="text-zinc-600 dark:text-zinc-400">
+          <DialogDescription className="text-on-surface-variant">
             Record a payment received for invoice {invoice.invoice_number}.
           </DialogDescription>
         </DialogHeader>
@@ -72,9 +72,9 @@ export function RecordPaymentDialog({ invoice }: { invoice: any }) {
               max={balanceDue.toString()}
               defaultValue={balanceDue}
               required
-              className="bg-white dark:bg-zinc-900"
+              className="bg-surface-container-lowest"
             />
-            <p className="text-xs text-zinc-500">Balance due: {Number(balanceDue).toLocaleString()}</p>
+            <p className="text-xs text-outline">Balance due: {Number(balanceDue).toLocaleString()}</p>
           </div>
 
           <div className="space-y-2">
@@ -84,14 +84,14 @@ export function RecordPaymentDialog({ invoice }: { invoice: any }) {
               type="date"
               required
               defaultValue={new Date().toISOString().split('T')[0]}
-              className="bg-white dark:bg-zinc-900 [color-scheme:light] dark:[color-scheme:dark]"
+              className="bg-surface-container-lowest [color-scheme:light] dark:[color-scheme:dark]"
             />
           </div>
 
           <div className="space-y-2">
             <Label>Payment Method</Label>
             <Select name="payment_method" required defaultValue="bank_transfer">
-              <SelectTrigger className="bg-white dark:bg-zinc-900">
+              <SelectTrigger className="bg-surface-container-lowest">
                 <SelectValue placeholder="Select method" />
               </SelectTrigger>
               <SelectContent>
@@ -108,17 +108,17 @@ export function RecordPaymentDialog({ invoice }: { invoice: any }) {
 
           <div className="space-y-2">
             <Label>Reference Number (Optional)</Label>
-            <Input name="reference_number" placeholder="Transaction ID, Cheque #, etc." className="bg-white dark:bg-zinc-900" />
+            <Input name="reference_number" placeholder="Transaction ID, Cheque #, etc." className="bg-surface-container-lowest" />
           </div>
 
           <div className="space-y-2">
             <Label>Notes (Optional)</Label>
-            <Textarea name="notes" placeholder="Any internal notes..." className="bg-white dark:bg-zinc-900 resize-none h-20" />
+            <Textarea name="notes" placeholder="Any internal notes..." className="bg-surface-container-lowest resize-none h-20" />
           </div>
 
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={loading} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+            <Button type="submit" disabled={loading} className="bg-m3-success hover:bg-m3-success/90 text-white">
               {loading ? 'Recording...' : 'Save Payment'}
             </Button>
           </DialogFooter>

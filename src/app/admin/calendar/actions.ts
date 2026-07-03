@@ -2,9 +2,15 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { QuickUpdateTaskDateSchema } from '@/lib/validations'
+import { verifyAdminOrFounder } from '@/lib/auth-utils'
 
 export async function getCalendarData(startDate: string, endDate: string) {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
     // Query 1: Tasks with deadline in range
     const { data: tasksByDeadline } = await supabase
@@ -80,20 +86,22 @@ export async function getCalendarData(startDate: string, endDate: string) {
 
 export async function quickUpdateTaskDate(taskId: string, startDate: string | null, deadline: string) {
     const supabase = await createClient()
-
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = QuickUpdateTaskDateSchema.safeParse({ taskId, startDate, deadline })
+    if (!parsed.success) return { error: parsed.error.issues[0].message }
 
     const { error } = await supabase
         .from('tasks')
         .update({
-            start_date: startDate || null,
-            deadline,
+            start_date: parsed.data.startDate || null,
+            deadline: parsed.data.deadline,
             updated_at: new Date().toISOString()
         })
-        .eq('id', taskId)
+        .eq('id', parsed.data.taskId)
 
     if (error) return { error: error.message }
 

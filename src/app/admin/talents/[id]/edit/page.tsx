@@ -22,8 +22,8 @@ export default async function EditTalentPage({ params }: { params: Promise<{ id:
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Edit Talent</h1>
-                <p className="text-sm text-zinc-500">Update information for {talent.full_name}.</p>
+                <h1 className="text-2xl font-bold tracking-tight text-on-surface">Edit Talent</h1>
+                <p className="text-sm text-outline">Update information for {talent.full_name}.</p>
             </div>
             <TalentForm initialData={talent} />
         </div>

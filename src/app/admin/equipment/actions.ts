@@ -2,10 +2,22 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+import { EquipmentSchema, MaintenanceSchema, UuidParamSchema, EquipmentCheckInSchema, MaintenanceStatusSchema } from '@/lib/validations'
+import { verifyAdminOrFounder } from '@/lib/auth-utils'
+import { validateFileUpload, generateStorageFilename, ALLOWED_IMAGE_TYPES } from '@/lib/supabase/storage'
+import { createNotification } from '@/lib/notifications'
 
 export async function addEquipmentCategory(name: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('equipment_categories').insert({ name })
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
+
+  if (!name || name.trim().length === 0) return { error: 'Category name is required' }
+
+  const { error } = await supabase.from('equipment_categories').insert({ name: name.trim() })
   if (error) return { error: error.message }
   return { success: true }
 }
@@ -14,28 +26,35 @@ export async function createEquipment(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = EquipmentSchema.safeParse({
+    name: formData.get('name'),
+    brand: formData.get('brand'),
+    model: formData.get('model'),
+    serial_number: formData.get('serial_number'),
+    category: formData.get('category'),
+    purchase_date: formData.get('purchase_date'),
+    purchase_price: formData.get('purchase_price') ? Number(formData.get('purchase_price')) : null,
+    current_value: formData.get('current_value') ? Number(formData.get('current_value')) : null,
+    location: formData.get('location'),
+    notes: formData.get('notes'),
+    vendor_name: formData.get('vendor_name'),
+    vendor_phone: formData.get('vendor_phone'),
+    vendor_location: formData.get('vendor_location'),
+  })
 
+  if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+  const data = parsed.data
 
-  const name = formData.get('name') as string
-  const brand = formData.get('brand') as string
-  const model = formData.get('model') as string
-  const serial_number = formData.get('serial_number') as string
-  const category = formData.get('category') as string
-  const purchase_date = formData.get('purchase_date') as string
-  const purchase_price = formData.get('purchase_price') ? Number(formData.get('purchase_price')) : null
-  const current_value = formData.get('current_value') ? Number(formData.get('current_value')) : null
-  const location = formData.get('location') as string
-  const notes = formData.get('notes') as string
-  const vendor_name = formData.get('vendor_name') as string
-  const vendor_phone = formData.get('vendor_phone') as string
-  const vendor_location = formData.get('vendor_location') as string
   const file = formData.get('photo') as File | null
-
   let image_url = null
   if (file && file.size > 0) {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}_${Math.random()}.${fileExt}`
+    // Validate file type and size
+    const validationError = validateFileUpload(file, ALLOWED_IMAGE_TYPES)
+    if (validationError) return { error: validationError }
+    const fileName = generateStorageFilename(file.name)
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('equipment-photos')
       .upload(fileName, file)
@@ -44,10 +63,10 @@ export async function createEquipment(formData: FormData) {
   }
 
   const { error } = await supabase.from('equipment').insert({
-    name, brand: brand || null, model: model || null, serial_number: serial_number || null,
-    category, purchase_date: purchase_date || null, purchase_price, current_value,
-    location: location || null, notes: notes || null,
-    vendor_name: vendor_name || null, vendor_phone: vendor_phone || null, vendor_location: vendor_location || null,
+    name: data.name, brand: data.brand || null, model: data.model || null, serial_number: data.serial_number || null,
+    category: data.category, purchase_date: data.purchase_date || null, purchase_price: data.purchase_price, current_value: data.current_value,
+    location: data.location || null, notes: data.notes || null,
+    vendor_name: data.vendor_name || null, vendor_phone: data.vendor_phone || null, vendor_location: data.vendor_location || null,
     image_url,
   })
 
@@ -60,35 +79,42 @@ export async function updateEquipment(id: string, formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = EquipmentSchema.safeParse({
+    name: formData.get('name'),
+    brand: formData.get('brand'),
+    model: formData.get('model'),
+    serial_number: formData.get('serial_number'),
+    category: formData.get('category'),
+    purchase_date: formData.get('purchase_date'),
+    purchase_price: formData.get('purchase_price') ? Number(formData.get('purchase_price')) : null,
+    current_value: formData.get('current_value') ? Number(formData.get('current_value')) : null,
+    location: formData.get('location'),
+    notes: formData.get('notes'),
+    vendor_name: formData.get('vendor_name'),
+    vendor_phone: formData.get('vendor_phone'),
+    vendor_location: formData.get('vendor_location'),
+  })
 
-
-  const name = formData.get('name') as string
-  const brand = formData.get('brand') as string
-  const model = formData.get('model') as string
-  const serial_number = formData.get('serial_number') as string
-  const category = formData.get('category') as string
-  const purchase_date = formData.get('purchase_date') as string
-  const purchase_price = formData.get('purchase_price') ? Number(formData.get('purchase_price')) : null
-  const current_value = formData.get('current_value') ? Number(formData.get('current_value')) : null
-  const location = formData.get('location') as string
-  const notes = formData.get('notes') as string
-  const vendor_name = formData.get('vendor_name') as string
-  const vendor_phone = formData.get('vendor_phone') as string
-  const vendor_location = formData.get('vendor_location') as string
-  const file = formData.get('photo') as File | null
+  if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+  const data = parsed.data
 
   const updates: any = {
-    name, brand: brand || null, model: model || null, serial_number: serial_number || null,
-    category, purchase_date: purchase_date || null, purchase_price, current_value,
-    location: location || null, notes: notes || null,
-    vendor_name: vendor_name || null, vendor_phone: vendor_phone || null, vendor_location: vendor_location || null,
+    name: data.name, brand: data.brand || null, model: data.model || null, serial_number: data.serial_number || null,
+    category: data.category, purchase_date: data.purchase_date || null, purchase_price: data.purchase_price, current_value: data.current_value,
+    location: data.location || null, notes: data.notes || null,
+    vendor_name: data.vendor_name || null, vendor_phone: data.vendor_phone || null, vendor_location: data.vendor_location || null,
     updated_at: new Date().toISOString(),
   }
 
+  const file = formData.get('photo') as File | null
   if (file && file.size > 0) {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}_${Math.random()}.${fileExt}`
+    // Validate file type and size
+    const validationError = validateFileUpload(file, ALLOWED_IMAGE_TYPES)
+    if (validationError) return { error: validationError }
+    const fileName = generateStorageFilename(file.name)
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('equipment-photos')
       .upload(fileName, file)
@@ -108,9 +134,13 @@ export async function deleteEquipment(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = UuidParamSchema.safeParse({ id });
+  if (!parsed.success) return { error: 'Invalid equipment ID' };
 
-  const { error } = await supabase.from('equipment').delete().eq('id', id)
+  const { error } = await supabase.from('equipment').delete().eq('id', parsed.data.id)
   if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')
@@ -121,9 +151,13 @@ export async function restoreEquipment(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = UuidParamSchema.safeParse({ id });
+  if (!parsed.success) return { error: 'Invalid equipment ID' };
 
-  const { error } = await supabase.from('equipment').update({ status: 'available', deleted_at: null }).eq('id', id)
+  const { error } = await supabase.from('equipment').update({ status: 'available', deleted_at: null }).eq('id', parsed.data.id)
   if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')
@@ -135,9 +169,13 @@ export async function archiveEquipment(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = UuidParamSchema.safeParse({ id });
+  if (!parsed.success) return { error: 'Invalid equipment ID' };
 
-  const { error } = await supabase.from('equipment').update({ status: 'retired', deleted_at: new Date().toISOString() }).eq('id', id)
+  const { error } = await supabase.from('equipment').update({ status: 'retired', deleted_at: new Date().toISOString() }).eq('id', parsed.data.id)
   if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')
@@ -145,45 +183,92 @@ export async function archiveEquipment(id: string) {
   return { success: true }
 }
 
+const EquipmentCheckoutDataSchema = z.object({
+  equipment_id: z.string().uuid(),
+  checked_out_by: z.string().uuid(),
+  expected_return_at: z.string().optional(),
+  project_id: z.string().uuid().optional(),
+  condition_at_checkout: z.string().optional(),
+  notes: z.string().optional(),
+});
+
 export async function checkOutEquipment(data: { equipment_id: string, checked_out_by: string, expected_return_at?: string, project_id?: string, condition_at_checkout?: string, notes?: string }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = EquipmentCheckoutDataSchema.safeParse(data);
+  if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message };
+
+  const validated = parsed.data;
 
   const { error } = await supabase.rpc('checkout_equipment', {
-    p_equipment_id: data.equipment_id,
-    p_checked_out_by: data.checked_out_by,
-    p_expected_return_at: data.expected_return_at || null,
-    p_project_id: data.project_id || null,
-    p_condition: data.condition_at_checkout || null,
-    p_notes: data.notes || null
+    p_equipment_id: validated.equipment_id,
+    p_checked_out_by: validated.checked_out_by,
+    p_expected_return_at: validated.expected_return_at || null,
+    p_project_id: validated.project_id || null,
+    p_condition: validated.condition_at_checkout || null,
+    p_notes: validated.notes || null
   })
 
   if (error) return { error: error.message }
+
+  // Notify the person the equipment was checked out to.
+  if (validated.checked_out_by && validated.checked_out_by !== user.id) {
+    const { data: equipment } = await supabase
+      .from('equipment')
+      .select('name')
+      .eq('id', validated.equipment_id)
+      .single()
+
+    const dueLabel = validated.expected_return_at
+      ? ` Please return it by ${new Date(validated.expected_return_at).toLocaleDateString()}.`
+      : ''
+    await createNotification(
+      validated.checked_out_by,
+      'equipment_checked_out',
+      `Equipment Checked Out: ${equipment?.name || 'Item'}`,
+      `${equipment?.name || 'A piece of equipment'} has been checked out to you.${dueLabel}`,
+      '/employee/equipment',
+      true,
+    )
+  }
 
   revalidatePath('/admin/equipment')
   revalidatePath(`/admin/equipment/${data.equipment_id}`)
   return { success: true }
 }
 
+const EquipmentCheckInDataSchema = z.object({
+  checkout_id: z.string().uuid(),
+  condition_at_checkin: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
 export async function checkInEquipment(data: { checkout_id: string, condition_at_checkin?: string, notes?: string }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = EquipmentCheckInDataSchema.safeParse(data);
+  if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message };
 
-  const { data: checkout } = await supabase.from('equipment_checkouts').select('*').eq('id', data.checkout_id).single()
-  if (!checkout) return { error: 'Checkout record not found' }
+  const validated = parsed.data;
 
-  await supabase.from('equipment_checkouts').update({
-    checked_in_at: new Date().toISOString(), condition_at_checkin: data.condition_at_checkin || null, notes: data.notes || null,
-  }).eq('id', data.checkout_id)
+  // Use RPC for atomic check-in (single DB operation)
+  const { error } = await supabase.rpc('checkin_equipment', {
+    p_checkout_id: validated.checkout_id,
+    p_condition: validated.condition_at_checkin || null,
+    p_notes: validated.notes || null,
+  })
 
-  await supabase.from('equipment').update({ status: 'available' }).eq('id', checkout.equipment_id)
+  if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')
-  revalidatePath(`/admin/equipment/${checkout.equipment_id}`)
   return { success: true }
 }
 
@@ -194,33 +279,78 @@ export async function scheduleMaintenance(data: {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = MaintenanceSchema.safeParse(data)
+  if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+  const mData = parsed.data
 
   const { error: insertError } = await supabase.from('equipment_maintenance').insert({
-    equipment_id: data.equipment_id, description: data.description, scheduled_date: data.scheduled_date,
-    vendor: data.vendor || null, vendor_phone: data.vendor_phone || null, vendor_location: data.vendor_location || null,
-    cost: data.cost || null, notes: data.notes || null, status: 'scheduled',
+    equipment_id: mData.equipment_id, description: mData.description, scheduled_date: mData.scheduled_date,
+    vendor: mData.vendor || null, vendor_phone: mData.vendor_phone || null, vendor_location: mData.vendor_location || null,
+    cost: mData.cost || null, notes: mData.notes || null, status: 'scheduled',
   })
 
   if (insertError) return { error: insertError.message }
 
   const today = new Date().toISOString().split('T')[0]
-  if (data.scheduled_date <= today) {
-    await supabase.from('equipment').update({ status: 'maintenance' }).eq('id', data.equipment_id)
+  if (mData.scheduled_date <= today) {
+    await supabase.from('equipment').update({ status: 'maintenance' }).eq('id', mData.equipment_id)
   }
 
   revalidatePath('/admin/equipment')
-  revalidatePath(`/admin/equipment/${data.equipment_id}`)
+  revalidatePath(`/admin/equipment/${mData.equipment_id}`)
   return { success: true }
+}
+
+export async function lookupByAssetId(assetId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
+
+  // Validate and sanitize input
+  if (!assetId || assetId.trim().length === 0) return { error: 'Asset ID is required' }
+  const sanitized = assetId.trim().slice(0, 256)
+
+  // Match on either column using fully parameterized .eq() queries — never build
+  // PostgREST filter strings by concatenation (that allows filter injection).
+  const columns = 'id, name, status, image_url, category'
+  const { data: bySerial } = await supabase
+    .from('equipment')
+    .select(columns)
+    .eq('serial_number', sanitized)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  let data = bySerial
+  if (!data) {
+    const { data: byManualId } = await supabase
+      .from('equipment')
+      .select(columns)
+      .eq('manual_asset_id', sanitized)
+      .is('deleted_at', null)
+      .maybeSingle()
+    data = byManualId
+  }
+
+  if (!data) return { error: 'Equipment not found with that asset ID' }
+  return { data }
 }
 
 export async function updateMaintenanceStatus(maintenanceId: string, status: 'scheduled' | 'in_progress' | 'completed', completed_date?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
+  const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+  if (!isAuthorized) return { error: 'Permission denied.' }
 
+  const parsed = UuidParamSchema.safeParse({ id: maintenanceId });
+  if (!parsed.success) return { error: 'Invalid maintenance ID' };
 
-  const { data: maintenance } = await supabase.from('equipment_maintenance').select('equipment_id').eq('id', maintenanceId).single()
+  const { data: maintenance } = await supabase.from('equipment_maintenance').select('equipment_id').eq('id', parsed.data.id).single()
   if (!maintenance) return { error: 'Not found' }
 
   await supabase.from('equipment_maintenance').update({

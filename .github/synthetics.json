@@ -1,0 +1,85 @@
+{
+    "tests": [
+        {
+            "id": "login-flow",
+            "type": "browser",
+            "name": "E5 Chronicles - Login & Redirect Flow",
+            "config": {
+                "url": "https://e5chronicles.com/login",
+                "checkSelectors": [
+                    {
+                        "selector": "input[type=\"email\"], input[name=\"email\"]",
+                        "timeoutMs": 10000
+                    }
+                ],
+                "assertions": [
+                    {
+                        "type": "statusCode",
+                        "target": 200
+                    },
+                    {
+                        "type": "bodyContains",
+                        "target": "E5 Chronicles"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "health-check",
+            "type": "api",
+            "name": "E5 Chronicles - Homepage Health Check",
+            "config": {
+                "url": "https://e5chronicles.com",
+                "method": "GET",
+                "assertions": [
+                    {
+                        "type": "statusCode",
+                        "target": 200
+                    },
+                    {
+                        "type": "responseTime",
+                        "target": 5000
+                    }
+                ]
+            }
+        },
+        {
+            "id": "admin-dashboard",
+            "type": "browser",
+            "name": "E5 Chronicles - Admin Dashboard Load",
+            "config": {
+                "url": "https://e5chronicles.com/admin",
+                "checkSelectors": [
+                    {
+                        "selector": "[data-testid=\"admin-dashboard\"], .admin-dashboard",
+                        "timeoutMs": 15000
+                    }
+                ],
+                "assertions": [
+                    {
+                        "type": "statusCode",
+                        "target": 200
+                    }
+                ]
+            }
+        },
+        {
+            "id": "api-cron",
+            "type": "api",
+            "name": "E5 Chronicles - Cron Endpoint (Auth Protected)",
+            "config": {
+                "url": "https://e5chronicles.com/api/cron/mark-overdue-invoices",
+                "method": "GET",
+                "assertions": [
+                    {
+                        "type": "statusCode",
+                        "target": 401
+                    }
+                ]
+            }
+        }
+    ],
+    "variables": {
+        "ENVIRONMENT": "production"
+    }
+}

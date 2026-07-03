@@ -24,15 +24,15 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">My Profile</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Manage your personal information.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">My Profile</h1>
+        <p className="text-on-surface-variant">Manage your personal information.</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Card className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+        <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1">
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-white">Profile Details</CardTitle>
-            <CardDescription className="text-zinc-600 dark:text-zinc-400">
+            <CardTitle className="text-on-surface">Profile Details</CardTitle>
+            <CardDescription className="text-on-surface-variant">
               Update your profile information below. Contact admin to change your login ID or phone number.
             </CardDescription>
           </CardHeader>

@@ -46,14 +46,14 @@ export function ProjectForm({ clients }: { clients: Client[] }) {
   return (
     <form id="project-form" action={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-zinc-700 dark:text-zinc-300">Client</Label>
+        <Label className="text-on-surface">Client</Label>
         <Select value={clientId} onValueChange={(val) => setClientId(val || '')}>
-          <SelectTrigger className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white">
+          <SelectTrigger className="bg-surface-container-high border-outline-variant text-on-surface">
             <SelectValue placeholder="Select a client">
               {clientId ? clients.find(c => c.id === clientId)?.company_name : null}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+          <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
             {clients.map(client => (
               <SelectItem key={client.id} value={client.id}>{client.company_name}</SelectItem>
             ))}
@@ -61,36 +61,36 @@ export function ProjectForm({ clients }: { clients: Client[] }) {
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="title" className="text-zinc-700 dark:text-zinc-300">Project Title</Label>
+        <Label htmlFor="title" className="text-on-surface">Project Title</Label>
         <Input
           id="title"
           name="title"
           required
           placeholder="e.g., Summer Campaign Video"
-          className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white"
+          className="bg-surface-container-high border-outline-variant text-on-surface"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="start_date" className="text-zinc-700 dark:text-zinc-300">From Date</Label>
+          <Label htmlFor="start_date" className="text-on-surface">From Date</Label>
           <Input
             id="start_date"
             name="start_date"
             type="date"
-            className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+            className="bg-surface-container-high border-outline-variant text-on-surface [color-scheme:light] dark:[color-scheme:dark]"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="end_date" className="text-zinc-700 dark:text-zinc-300">Due Date</Label>
+          <Label htmlFor="end_date" className="text-on-surface">Due Date</Label>
           <Input
             id="end_date"
             name="end_date"
             type="date"
-            className="bg-zinc-100 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+            className="bg-surface-container-high border-outline-variant text-on-surface [color-scheme:light] dark:[color-scheme:dark]"
           />
         </div>
       </div>
-      <Button type="submit" className="w-full bg-white text-black hover:bg-zinc-200" disabled={loading}>
+      <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 btn-morph" disabled={loading}>
         {loading ? 'Creating...' : 'Create Project'}
       </Button>
     </form>

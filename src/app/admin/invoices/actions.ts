@@ -2,51 +2,53 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { InvoiceSchema, InvoicePaymentSchema, UuidParamSchema } from '@/lib/validations'
+import { verifyAdminOrFounder } from '@/lib/auth-utils'
+import { createNotification } from '@/lib/notifications'
 
 export async function createInvoice(formData: FormData) {
     try {
         const supabase = await createClient()
 
-        const client_id = formData.get('client_id') as string
-        const project_id = formData.get('project_id') as string
-        const title = formData.get('title') as string
-        const description = formData.get('description') as string
-        const currency = formData.get('currency') as string
-        const issue_date = formData.get('issue_date') as string
-        const due_date = formData.get('due_date') as string
-        const tax_rate = parseFloat(formData.get('tax_rate') as string) || 0
-        const notes = formData.get('notes') as string
-        const itemsRaw = formData.get('items') as string
+        const parsed = InvoiceSchema.safeParse({
+            client_id: formData.get('client_id'),
+            project_id: formData.get('project_id'),
+            title: formData.get('title'),
+            description: formData.get('description'),
+            currency: formData.get('currency'),
+            issue_date: formData.get('issue_date'),
+            due_date: formData.get('due_date'),
+            tax_rate: parseFloat(formData.get('tax_rate') as string) || 0,
+            notes: formData.get('notes'),
+            advance_received: parseFloat(formData.get('advance_received') as string) || 0,
+            discount_type: formData.get('discount_type'),
+            discount_value: parseFloat(formData.get('discount_value') as string) || 0,
+            itemsRaw: formData.get('items'),
+        });
 
-        const advance_received = parseFloat(formData.get('advance_received') as string) || 0
-        const discount_type = (formData.get('discount_type') as string) || 'fixed'
-        const discount_value = parseFloat(formData.get('discount_value') as string) || 0
-
-        if (!client_id || !title || !due_date) {
-            return { error: 'Client, Title, and Due Date are required.' }
+        if (!parsed.success) {
+            return { error: 'Validation failed: ' + parsed.error.issues[0].message };
         }
 
-        let items: { description: string; quantity: number; unit_price: number }[] = []
-        try {
-            items = JSON.parse(itemsRaw)
-        } catch {
-            return { error: 'Invalid items data.' }
+        const data = parsed.data;
+        if (!data.items || data.items.length === 0) {
+            return { error: 'At least one line item is required.' };
         }
-        if (items.length === 0) {
-            return { error: 'At least one line item is required.' }
-        }
-
-        const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
-        const discount_amount = discount_type === 'percentage'
-            ? (subtotal * discount_value) / 100
-            : discount_value
-        const amount_after_discount = subtotal - discount_amount
-        const tax_amount = (amount_after_discount * tax_rate) / 100
-        const grand_total = amount_after_discount + tax_amount
-        const balance_due = grand_total - advance_received
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
+        if (!isAuthorized) return { error: 'Permission denied. Only admins or founders can create invoices.' };
+
+        const subtotal = data.items.reduce((sum: number, item: any) => sum + item.quantity * item.unit_price, 0)
+        const discount_amount = data.discount_type === 'percentage'
+            ? (subtotal * data.discount_value) / 100
+            : data.discount_value
+        const amount_after_discount = subtotal - discount_amount
+        const tax_amount = (amount_after_discount * data.tax_rate) / 100
+        const grand_total = amount_after_discount + tax_amount
+        const balance_due = grand_total - data.advance_received
 
         const year = new Date().getFullYear().toString()
         const { data: invoice_number_res, error: seqError } = await supabase.rpc('generate_invoice_number', { p_year: year })
@@ -57,23 +59,23 @@ export async function createInvoice(formData: FormData) {
             .from('invoices')
             .insert({
                 invoice_number,
-                client_id,
-                project_id: project_id || null,
-                title,
-                description: description || null,
+                client_id: data.client_id,
+                project_id: data.project_id || null,
+                title: data.title,
+                description: data.description || null,
                 amount: subtotal,
-                discount_type,
-                discount_value,
+                discount_type: data.discount_type,
+                discount_value: data.discount_value,
                 discount_amount,
-                advance_received,
-                tax_rate,
+                advance_received: data.advance_received,
+                tax_rate: data.tax_rate,
                 tax_amount,
                 grand_total,
                 balance_due,
-                currency: currency || 'NPR',
-                issue_date: issue_date || new Date().toISOString().split('T')[0],
-                due_date,
-                notes: notes || null,
+                currency: data.currency || 'NPR',
+                issue_date: data.issue_date || new Date().toISOString().split('T')[0],
+                due_date: data.due_date,
+                notes: data.notes || null,
                 created_by: user?.id || null,
             })
             .select()
@@ -81,7 +83,7 @@ export async function createInvoice(formData: FormData) {
 
         if (invError) return { error: invError.message }
 
-        const itemInserts = items.map(item => ({
+        const itemInserts = data.items.map((item: any) => ({
             invoice_id: invoice.id,
             description: item.description,
             quantity: item.quantity,
@@ -109,8 +111,14 @@ export async function createInvoice(formData: FormData) {
 export async function updateInvoiceStatus(invoiceId: string, status: string) {
     try {
         const supabase = await createClient()
+        const parsed = UuidParamSchema.safeParse({ id: invoiceId });
+        if (!parsed.success) return { error: 'Invalid invoice ID' };
+
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
+        if (!isAuthorized) return { error: 'Permission denied.' };
 
         const { error } = await supabase
             .from('invoices')
@@ -130,28 +138,35 @@ export async function updateInvoiceStatus(invoiceId: string, status: string) {
 export async function recordPayment(formData: FormData) {
     try {
         const supabase = await createClient()
-        const invoice_id = formData.get('invoice_id') as string
-        const amount = parseFloat(formData.get('amount') as string) || 0
-        const payment_date = formData.get('payment_date') as string
-        const payment_method = formData.get('payment_method') as string
-        const reference_number = formData.get('reference_number') as string
-        const notes = formData.get('notes') as string
+        const parsed = InvoicePaymentSchema.safeParse({
+            invoice_id: formData.get('invoice_id'),
+            amount: parseFloat(formData.get('amount') as string) || 0,
+            payment_date: formData.get('payment_date') || new Date().toISOString().split('T')[0],
+            payment_method: formData.get('payment_method'),
+            reference_number: formData.get('reference_number'),
+            notes: formData.get('notes'),
+        });
 
-        if (!invoice_id || !amount || !payment_method) {
-            return { error: 'Invoice, Amount, and Payment Method are required.' }
+        if (!parsed.success) {
+            return { error: 'Validation failed: ' + parsed.error.issues[0].message };
         }
+        const data = parsed.data;
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
 
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
+        if (!isAuthorized) return { error: 'Permission denied.' };
+
         const { error: payError } = await supabase
             .from('payments')
             .insert({
-                invoice_id, amount,
-                payment_date: payment_date || new Date().toISOString().split('T')[0],
-                payment_method,
-                reference_number: reference_number || null,
-                notes: notes || null,
+                invoice_id: data.invoice_id,
+                amount: data.amount,
+                payment_date: data.payment_date,
+                payment_method: data.payment_method,
+                reference_number: data.reference_number || null,
+                notes: data.notes || null,
                 received_by: user?.id || null,
             })
 
@@ -160,23 +175,23 @@ export async function recordPayment(formData: FormData) {
         const { data: invoice } = await supabase
             .from('invoices')
             .select('paid_amount, grand_total')
-            .eq('id', invoice_id)
+            .eq('id', data.invoice_id)
             .single()
 
         if (invoice) {
-            const new_paid = (invoice.paid_amount || 0) + amount
+            const new_paid = (invoice.paid_amount || 0) + data.amount
             let new_status = 'partially_paid'
             if (new_paid >= invoice.grand_total) new_status = 'paid'
 
             const { error: updateError } = await supabase
                 .from('invoices')
                 .update({ paid_amount: new_paid, status: new_status, updated_at: new Date().toISOString() })
-                .eq('id', invoice_id)
+                .eq('id', data.invoice_id)
             if (updateError) return { error: updateError.message }
         }
 
         revalidatePath('/admin/invoices')
-        revalidatePath(`/admin/invoices/${invoice_id}`)
+        revalidatePath(`/admin/invoices/${data.invoice_id}`)
         return { success: true }
     } catch (err: any) {
         console.error('Error in recordPayment:', err)
@@ -187,13 +202,19 @@ export async function recordPayment(formData: FormData) {
 export async function sendInvoice(invoiceId: string) {
     try {
         const supabase = await createClient()
+        const parsed = UuidParamSchema.safeParse({ id: invoiceId });
+        if (!parsed.success) return { error: 'Invalid invoice ID' };
+
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
+        if (!isAuthorized) return { error: 'Permission denied.' };
 
         const { error } = await supabase
             .from('invoices')
             .update({ status: 'sent', updated_at: new Date().toISOString() })
-            .eq('id', invoiceId)
+            .eq('id', parsed.data.id)
             .eq('status', 'draft')
 
         if (error) return { error: error.message }
@@ -209,13 +230,19 @@ export async function sendInvoice(invoiceId: string) {
 export async function deleteInvoice(invoiceId: string) {
     try {
         const supabase = await createClient()
+        const parsed = UuidParamSchema.safeParse({ id: invoiceId });
+        if (!parsed.success) return { error: 'Invalid invoice ID' };
+
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
+        if (!isAuthorized) return { error: 'Permission denied.' };
 
         const { error } = await supabase
             .from('invoices')
             .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-            .eq('id', invoiceId)
+            .eq('id', parsed.data.id)
 
         if (error) return { error: error.message }
         revalidatePath('/admin/invoices')
@@ -229,44 +256,46 @@ export async function deleteInvoice(invoiceId: string) {
 export async function updateInvoice(invoiceId: string, formData: FormData) {
     try {
         const supabase = await createClient()
-        const client_id = formData.get('client_id') as string
-        const project_id = formData.get('project_id') as string
-        const title = formData.get('title') as string
-        const description = formData.get('description') as string
-        const currency = formData.get('currency') as string
-        const issue_date = formData.get('issue_date') as string
-        const due_date = formData.get('due_date') as string
-        const tax_rate = parseFloat(formData.get('tax_rate') as string) || 0
-        const notes = formData.get('notes') as string
-        const itemsRaw = formData.get('items') as string
+        const idParsed = UuidParamSchema.safeParse({ id: invoiceId });
+        if (!idParsed.success) return { error: 'Invalid invoice ID' };
 
-        const advance_received = parseFloat(formData.get('advance_received') as string) || 0
-        const discount_type = (formData.get('discount_type') as string) || 'fixed'
-        const discount_value = parseFloat(formData.get('discount_value') as string) || 0
+        const parsed = InvoiceSchema.safeParse({
+            client_id: formData.get('client_id'),
+            project_id: formData.get('project_id'),
+            title: formData.get('title'),
+            description: formData.get('description'),
+            currency: formData.get('currency'),
+            issue_date: formData.get('issue_date'),
+            due_date: formData.get('due_date'),
+            tax_rate: parseFloat(formData.get('tax_rate') as string) || 0,
+            notes: formData.get('notes'),
+            advance_received: parseFloat(formData.get('advance_received') as string) || 0,
+            discount_type: formData.get('discount_type'),
+            discount_value: parseFloat(formData.get('discount_value') as string) || 0,
+            itemsRaw: formData.get('items'),
+        });
 
-        if (!client_id || !title || !due_date) {
-            return { error: 'Client, Title, and Due Date are required.' }
+        if (!parsed.success) {
+            return { error: 'Validation failed: ' + parsed.error.issues[0].message };
         }
 
-        let items: { description: string; quantity: number; unit_price: number }[] = []
-        try {
-            items = JSON.parse(itemsRaw)
-        } catch {
-            return { error: 'Invalid items data.' }
-        }
-        if (items.length === 0) return { error: 'At least one line item is required.' }
-
-        const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
-        const discount_amount = discount_type === 'percentage'
-            ? (subtotal * discount_value) / 100
-            : discount_value
-        const amount_after_discount = subtotal - discount_amount
-        const tax_amount = (amount_after_discount * tax_rate) / 100
-        const grand_total = amount_after_discount + tax_amount
-        const balance_due = grand_total - advance_received
+        const data = parsed.data;
+        if (!data.items || data.items.length === 0) return { error: 'At least one line item is required.' }
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
+        if (!isAuthorized) return { error: 'Permission denied.' };
+
+        const subtotal = data.items.reduce((sum: number, item: any) => sum + item.quantity * item.unit_price, 0)
+        const discount_amount = data.discount_type === 'percentage'
+            ? (subtotal * data.discount_value) / 100
+            : data.discount_value
+        const amount_after_discount = subtotal - discount_amount
+        const tax_amount = (amount_after_discount * data.tax_rate) / 100
+        const grand_total = amount_after_discount + tax_amount
+        const balance_due = grand_total - data.advance_received
 
         const { data: currentInvoice } = await supabase.from('invoices').select('status').eq('id', invoiceId).single()
         if (currentInvoice?.status !== 'draft') return { error: 'Only draft invoices can be edited.' }
@@ -274,13 +303,23 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
         const { error: invError } = await supabase
             .from('invoices')
             .update({
-                client_id, project_id: project_id || null, title,
-                description: description || null, amount: subtotal,
-                discount_type, discount_value, discount_amount, advance_received,
-                tax_rate, tax_amount, grand_total, balance_due,
-                currency: currency || 'NPR',
-                issue_date: issue_date || new Date().toISOString().split('T')[0],
-                due_date, notes: notes || null,
+                client_id: data.client_id,
+                project_id: data.project_id || null,
+                title: data.title,
+                description: data.description || null,
+                amount: subtotal,
+                discount_type: data.discount_type,
+                discount_value: data.discount_value,
+                discount_amount,
+                advance_received: data.advance_received,
+                tax_rate: data.tax_rate,
+                tax_amount,
+                grand_total,
+                balance_due,
+                currency: data.currency || 'NPR',
+                issue_date: data.issue_date || new Date().toISOString().split('T')[0],
+                due_date: data.due_date,
+                notes: data.notes || null,
                 updated_at: new Date().toISOString(),
             })
             .eq('id', invoiceId)
@@ -289,7 +328,7 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
 
         await supabase.from('invoice_items').delete().eq('invoice_id', invoiceId)
 
-        const itemInserts = items.map(item => ({
+        const itemInserts = data.items.map((item: any) => ({
             invoice_id: invoiceId,
             description: item.description,
             quantity: item.quantity,
@@ -315,6 +354,11 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
 export async function getProjectDates(projectId: string) {
     try {
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+        if (!isAuthorized) return { error: 'Permission denied.' }
+
         const { data } = await supabase
             .from('projects')
             .select('start_date, end_date')
@@ -329,7 +373,22 @@ export async function getProjectDates(projectId: string) {
 export async function updateOverdueInvoices() {
     try {
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
+        if (!isAuthorized) return { error: 'Permission denied.' };
+
         const today = new Date().toISOString().split('T')[0]
+
+        // Get overdue invoices before updating so we can notify
+        const { data: overdueInvoices } = await supabase
+            .from('invoices')
+            .select('id, invoice_number, title, clients(company_name)')
+            .lt('due_date', today)
+            .in('status', ['sent', 'partially_paid'])
+            .is('deleted_at', null)
+
         const { error } = await supabase
             .from('invoices')
             .update({ status: 'overdue', updated_at: new Date().toISOString() })
@@ -340,6 +399,31 @@ export async function updateOverdueInvoices() {
         if (error) {
             console.error('Error updating overdue invoices:', error)
             return { error: error.message }
+        }
+
+        // Notify admins about newly overdue invoices
+        if (overdueInvoices && overdueInvoices.length > 0) {
+            const { data: adminUsers } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('role', 'admin')
+                .is('deleted_at', null)
+
+            for (const inv of overdueInvoices) {
+                const companyName = typeof inv.clients === 'object' && inv.clients !== null
+                    ? (inv.clients as any)?.company_name
+                    : 'Unknown'
+                for (const admin of adminUsers || []) {
+                    await createNotification(
+                        admin.id,
+                        'overdue_invoice',
+                        `Overdue Invoice: ${inv.invoice_number}`,
+                        `${companyName} - ${inv.title || 'No title'}`,
+                        `/admin/invoices/${inv.id}`,
+                        false,
+                    )
+                }
+            }
         }
 
         revalidatePath('/admin/invoices')

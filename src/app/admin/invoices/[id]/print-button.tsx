@@ -49,7 +49,7 @@ export function PrintButton() {
       <Button 
         onClick={generatePDF} 
         disabled={isGenerating}
-        className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+        className="bg-inverse-surface text-inverse-on-surface hover:bg-inverse-surface/90"
       >
         <Download className="w-4 h-4 mr-2" />
         {isGenerating ? 'Generating...' : 'Download PDF'}

@@ -63,7 +63,7 @@ export function EmployeeActions({ employeeId, employeeName, isArchived }: { empl
         <button
           onClick={handleRestore}
           disabled={loading}
-          className="inline-flex items-center justify-center rounded-md w-9 h-9 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center rounded-md w-9 h-9 btn-morph text-outline hover:text-m3-success hover:bg-m3-success-subtle transition-colors cursor-pointer"
           title="Restore employee"
         >
           <RefreshCw className="w-4 h-4" />
@@ -71,23 +71,23 @@ export function EmployeeActions({ employeeId, employeeName, isArchived }: { empl
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogTrigger
             disabled={loading}
-            className="inline-flex items-center justify-center rounded-md w-9 h-9 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md w-9 h-9 btn-morph text-outline hover:text-m3-error hover:bg-m3-error-subtle transition-colors cursor-pointer"
             title="Permanently Delete employee"
           >
             <Trash2 className="w-4 h-4" />
           </AlertDialogTrigger>
-          <AlertDialogContent className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+          <AlertDialogContent className="bg-surface-container-low border-outline-variant text-on-surface">
             <AlertDialogHeader>
               <AlertDialogTitle>Permanently Delete Employee?</AlertDialogTitle>
-              <AlertDialogDescription className="text-zinc-600 dark:text-zinc-400">
+              <AlertDialogDescription className="text-on-surface-variant">
                 Are you sure you want to permanently delete <strong>{employeeName}</strong>? This action cannot be undone. All their personal data, comments, and attendance records will be removed.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800 hover:text-zinc-900 dark:text-white">Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="bg-surface-container-lowest border-outline-variant text-on-surface hover:bg-surface-container-high hover:text-on-surface">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 text-white border-none"
+                className="bg-destructive hover:bg-destructive/90 text-white border-none"
                 disabled={loading}
               >
                 {loading ? 'Deleting...' : 'Permanently Delete'}
@@ -101,21 +101,21 @@ export function EmployeeActions({ employeeId, employeeName, isArchived }: { empl
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger className="inline-flex items-center justify-center rounded-md w-9 h-9 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer" title="Archive employee">
+      <AlertDialogTrigger className="inline-flex items-center justify-center rounded-md w-9 h-9 btn-morph text-outline hover:text-m3-error hover:bg-m3-error-subtle transition-colors cursor-pointer" title="Archive employee">
         <Archive className="w-4 h-4" />
       </AlertDialogTrigger>
-      <AlertDialogContent className="bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white">
+      <AlertDialogContent className="bg-surface-container-low border-outline-variant text-on-surface">
         <AlertDialogHeader>
           <AlertDialogTitle>Archive Employee?</AlertDialogTitle>
-          <AlertDialogDescription className="text-zinc-600 dark:text-zinc-400">
+          <AlertDialogDescription className="text-on-surface-variant">
             Are you sure you want to archive <strong>{employeeName}</strong>? Their profile will be hidden from active lists but can be restored later from the Archived section. Tasks assigned to them will be kept.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:bg-zinc-800 hover:text-zinc-900 dark:text-white">Cancel</AlertDialogCancel>
+          <AlertDialogCancel className="bg-surface-container-lowest border-outline-variant text-on-surface hover:bg-surface-container-high hover:text-on-surface">Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleArchive}
-            className="bg-red-600 hover:bg-red-700 text-white border-none"
+            className="bg-destructive hover:bg-destructive/90 text-white border-none"
             disabled={loading}
           >
             {loading ? 'Archiving...' : 'Archive'}

@@ -2,23 +2,31 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { AssignTaskSchema, UpdateTaskSchema, UuidParamSchema } from '@/lib/validations'
+import { verifyAdminOrFounder } from '@/lib/auth-utils'
+import { createNotification } from '@/lib/notifications'
 
 export async function assignTask(formData: FormData) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
-    const project_id = formData.get('project_id') as string
-    const phase = formData.get('phase') as string
-    const assigned_to = formData.get('assigned_to') as string
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const start_date = formData.get('start_date') as string
-    const deadline = formData.get('deadline') as string
-    const subtasksRaw = formData.get('subtasks') as string
+    const parsed = AssignTaskSchema.safeParse({
+      project_id: formData.get('project_id'),
+      phase: formData.get('phase'),
+      assigned_to: formData.get('assigned_to'),
+      title: formData.get('title'),
+      description: formData.get('description'),
+      start_date: formData.get('start_date'),
+      deadline: formData.get('deadline'),
+      subtasksRaw: formData.get('subtasks'),
+    })
 
-    if (!project_id || !phase || !assigned_to || !title) {
-      return { error: 'Project, Phase, Employee, and Title are required.' }
-    }
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const data = parsed.data
 
     // Get current task count to determine task number
     const { count } = await supabase
@@ -27,29 +35,43 @@ export async function assignTask(formData: FormData) {
 
     const taskNumber = (count || 0) + 1
     const basePrefix = `E5_Task_${taskNumber}`
-    const finalTitle = `${basePrefix} - ${title}`
+    const finalTitle = `${basePrefix} - ${data.title}`
 
     // Insert main task
     const { data: task, error: taskError } = await supabase
       .from('tasks')
       .insert({
-        project_id,
-        phase,
-        assigned_to,
+        project_id: data.project_id,
+        phase: data.phase,
+        assigned_to: data.assigned_to,
         title: finalTitle,
-        description,
-        start_date: start_date ? new Date(start_date).toISOString() : null,
-        deadline: deadline ? new Date(deadline).toISOString() : null,
+        description: data.description,
+        start_date: data.start_date ? new Date(data.start_date).toISOString() : null,
+        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
       })
       .select()
       .single()
 
     if (taskError) return { error: taskError.message }
 
+    // Notify the assignee that a task was assigned to them.
+    if (data.assigned_to && data.assigned_to !== user.id) {
+      await createNotification(
+        data.assigned_to,
+        'task_assigned',
+        `New Task Assigned: ${finalTitle}`,
+        data.deadline
+          ? `You have been assigned a task, due ${new Date(data.deadline).toLocaleDateString()}.`
+          : 'You have been assigned a new task.',
+        '/employee',
+        true,
+      )
+    }
+
     // Insert subtasks
-    if (subtasksRaw) {
+    if (data.subtasksRaw) {
       try {
-        const subtasks = JSON.parse(subtasksRaw)
+        const subtasks = JSON.parse(data.subtasksRaw)
         if (subtasks.length > 0) {
           let subtaskIndex = 1
           for (const st of subtasks) {
@@ -101,35 +123,72 @@ export async function assignTask(formData: FormData) {
 export async function updateTask(id: string, formData: FormData) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
 
-    const project_id = formData.get('project_id') as string
-    const phase = formData.get('phase') as string
-    const assigned_to = formData.get('assigned_to') as string
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const start_date = formData.get('start_date') as string
-    const deadline = formData.get('deadline') as string
-    const status = formData.get('status') as string
+    const parsed = UpdateTaskSchema.safeParse({
+      project_id: formData.get('project_id'),
+      phase: formData.get('phase'),
+      assigned_to: formData.get('assigned_to'),
+      title: formData.get('title'),
+      description: formData.get('description'),
+      start_date: formData.get('start_date'),
+      deadline: formData.get('deadline'),
+      status: formData.get('status'),
+    })
 
-    if (!project_id || !phase || !assigned_to || !title) {
-      return { error: 'Project, Phase, Employee, and Title are required.' }
+    if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+    const data = parsed.data
+
+    // If status is being set to completed, also set completed_at
+    const extraUpdate: Record<string, any> = {}
+    if (data.status === 'completed') {
+      extraUpdate.completed_at = new Date().toISOString()
     }
+
+    // Capture the previous assignee so we only notify on a genuine reassignment.
+    const { data: prevTask } = await supabase
+      .from('tasks')
+      .select('assigned_to')
+      .eq('id', id)
+      .single()
 
     const { error: taskError } = await supabase
       .from('tasks')
       .update({
-        project_id,
-        phase,
-        assigned_to,
-        title,
-        description,
-        status,
-        start_date: start_date ? new Date(start_date).toISOString() : null,
-        deadline: deadline ? new Date(deadline).toISOString() : null,
+        project_id: data.project_id,
+        phase: data.phase,
+        assigned_to: data.assigned_to,
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        start_date: data.start_date ? new Date(data.start_date).toISOString() : null,
+        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+        ...extraUpdate,
       })
       .eq('id', id)
 
     if (taskError) return { error: taskError.message }
+
+    // Notify the new assignee if the task was reassigned to someone else.
+    if (
+      data.assigned_to &&
+      data.assigned_to !== prevTask?.assigned_to &&
+      data.assigned_to !== user.id
+    ) {
+      await createNotification(
+        data.assigned_to,
+        'task_assigned',
+        `Task Assigned: ${data.title}`,
+        data.deadline
+          ? `A task has been assigned to you, due ${new Date(data.deadline).toLocaleDateString()}.`
+          : 'A task has been assigned to you.',
+        '/employee',
+        true,
+      )
+    }
 
     revalidatePath('/admin/tasks')
     revalidatePath('/admin/calendar')
@@ -143,6 +202,13 @@ export async function updateTask(id: string, formData: FormData) {
 export async function deleteTask(id: string) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const parsed = UuidParamSchema.safeParse({ id });
+    if (!parsed.success) return { error: 'Invalid task ID' };
 
     // Subtasks are set to ON DELETE CASCADE in db schema
     const { error } = await supabase

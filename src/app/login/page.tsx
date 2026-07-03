@@ -35,10 +35,10 @@ export default function LoginPage() {
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-secondary/15 rounded-full blur-[120px] mix-blend-plus-lighter pointer-events-none transition-all duration-1000" />
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center rounded-xl shadow-[0_0_20px_rgba(255,107,53,0.3)]">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center rounded-xl elevation-2">
             <Film className="w-6 h-6" />
           </div>
-          <span className="text-2xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-[var(--md-sys-color-outline)]">E5 CHRONICLES</span>
+          <span className="text-2xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-outline">E5 CHRONICLES</span>
         </div>
 
         <div className="relative z-10 max-w-xl">
@@ -68,7 +68,7 @@ export default function LoginPage() {
           className="w-full max-w-md"
         >
           <div className="mb-10 text-center lg:hidden">
-            <div className="w-12 h-12 bg-primary text-primary-foreground mx-auto mb-4 flex items-center justify-center rounded-xl shadow-sm">
+            <div className="w-12 h-12 bg-primary text-primary-foreground mx-auto mb-4 flex items-center justify-center rounded-xl elevation-1">
               <Film className="w-7 h-7" />
             </div>
             <h2 className="text-2xl font-bold text-foreground">E5 CHRONICLES</h2>
@@ -116,7 +116,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full h-14 bg-primary text-primary-foreground hover:bg-primary/90 text-base font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all group border-none btn-morph"
+              className="w-full h-14 bg-primary text-primary-foreground hover:bg-primary/90 text-base font-semibold rounded-xl elevation-3 hover:elevation-4 transition-all group border-none btn-morph"
               disabled={loading}
             >
               {loading ? 'Authenticating...' : (

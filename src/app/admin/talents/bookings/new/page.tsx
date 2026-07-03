@@ -26,8 +26,8 @@ export default async function NewBookingPage({ searchParams }: { searchParams: P
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">New Booking</h1>
-                <p className="text-sm text-zinc-500">Book a talent for a project.</p>
+                <h1 className="text-2xl font-bold tracking-tight text-on-surface">New Booking</h1>
+                <p className="text-sm text-outline">Book a talent for a project.</p>
             </div>
             <BookingForm
                 talents={talents || []}

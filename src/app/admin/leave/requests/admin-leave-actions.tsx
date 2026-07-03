@@ -16,7 +16,7 @@ export function AdminLeaveActions({ request }: { request: any }) {
 
   if (request.status !== 'pending') {
     return (
-      <span className="text-xs text-zinc-500">
+      <span className="text-xs text-outline">
         Processed
       </span>
     )
@@ -54,11 +54,11 @@ export function AdminLeaveActions({ request }: { request: any }) {
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleApprove} disabled={loading} className="text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50 dark:focus:bg-emerald-950/50">
+          <DropdownMenuItem onClick={handleApprove} disabled={loading} className="text-m3-success focus:text-m3-success focus:bg-m3-success-subtle">
             <Check className="w-4 h-4 mr-2" />
             Approve
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setRejectOpen(true)} disabled={loading} className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50">
+          <DropdownMenuItem onClick={() => setRejectOpen(true)} disabled={loading} className="text-m3-error focus:text-m3-error focus:bg-m3-error-subtle">
             <X className="w-4 h-4 mr-2" />
             Reject
           </DropdownMenuItem>
@@ -66,24 +66,24 @@ export function AdminLeaveActions({ request }: { request: any }) {
       </DropdownMenu>
 
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-800">
+        <DialogContent className="sm:max-w-md bg-surface-container-lowest text-on-surface border-outline-variant">
           <DialogHeader>
             <DialogTitle>Reject Leave Request</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleReject} className="space-y-4 pt-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Rejection Reason</label>
-              <Textarea 
-                value={rejectNotes} 
-                onChange={e => setRejectNotes(e.target.value)} 
+              <label className="text-sm font-medium text-on-surface-variant">Rejection Reason</label>
+              <Textarea
+                value={rejectNotes}
+                onChange={e => setRejectNotes(e.target.value)}
                 placeholder="Explain why this request is being rejected..."
                 required
-                className="bg-zinc-50 dark:bg-zinc-900 resize-none h-24"
+                className="bg-surface-container resize-none h-24"
               />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setRejectOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={loading} className="bg-red-500 hover:bg-red-600 text-white">
+              <Button type="submit" disabled={loading} className="btn-morph bg-destructive hover:bg-destructive/90 text-white">
                 Confirm Rejection
               </Button>
             </DialogFooter>

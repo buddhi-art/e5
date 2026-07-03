@@ -33,7 +33,7 @@ export function EquipmentList({ initialEquipment }: { initialEquipment: Equipmen
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-outline" />
           <Input
             placeholder="Search equipment, brand, serial..."
             value={search}
@@ -43,7 +43,7 @@ export function EquipmentList({ initialEquipment }: { initialEquipment: Equipmen
         </div>
         <div className="flex gap-2">
           <Select value={categoryFilter} onValueChange={(v: string | null) => setCategoryFilter(v || 'all')}>
-            <SelectTrigger className="w-[140px] bg-white dark:bg-zinc-900">
+            <SelectTrigger className="w-[140px] bg-surface-container-lowest">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -54,7 +54,7 @@ export function EquipmentList({ initialEquipment }: { initialEquipment: Equipmen
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={(v: string | null) => setStatusFilter(v || 'all')}>
-            <SelectTrigger className="w-[140px] bg-white dark:bg-zinc-900">
+            <SelectTrigger className="w-[140px] bg-surface-container-lowest">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -69,30 +69,30 @@ export function EquipmentList({ initialEquipment }: { initialEquipment: Equipmen
       </div>
 
       {filteredEquipment.length === 0 ? (
-        <div className="text-center py-12 border border-dashed rounded-lg border-zinc-200 dark:border-zinc-800">
-          <p className="text-zinc-500">No equipment found matching your filters.</p>
+        <div className="text-center py-12 border border-dashed shape-medium border-outline-variant/50">
+          <p className="text-outline">No equipment found matching your filters.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredEquipment.map((eq) => (
             <Link key={eq.id} href={`/admin/equipment/${eq.id}`} className="block group">
-              <div className="flex items-start gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-sky-500 dark:hover:border-sky-500 transition-colors">
-                <div className="w-20 h-20 rounded-md bg-zinc-100 dark:bg-zinc-800 overflow-hidden flex-shrink-0 flex items-center justify-center">
+              <div className="flex items-start gap-4 p-4 rounded-xl border border-outline-variant/50 bg-surface-container-lowest card-morph hover:border-primary transition-colors">
+                <div className="w-20 h-20 rounded-md bg-surface-container-high overflow-hidden flex-shrink-0 flex items-center justify-center">
                   {eq.image_url ? (
                     <StorageImage
                       bucket="equipment-photos"
                       filePath={eq.image_url}
                       alt={eq.name}
                       className="w-full h-full object-cover"
-                      fallback={<ImageIcon className="w-6 h-6 text-zinc-400" />}
+                      fallback={<ImageIcon className="w-6 h-6 text-outline" />}
                     />
                   ) : (
-                    <ImageIcon className="w-6 h-6 text-zinc-400" />
+                    <ImageIcon className="w-6 h-6 text-outline" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start gap-2 mb-1">
-                    <h3 className="font-medium text-zinc-900 dark:text-zinc-100 truncate group-hover:text-sky-500 transition-colors">
+                    <h3 className="font-medium text-on-surface truncate group-hover:text-primary transition-colors">
                       {eq.name}
                     </h3>
                     <Badge variant={
@@ -103,7 +103,7 @@ export function EquipmentList({ initialEquipment }: { initialEquipment: Equipmen
                       {eq.status.replace('_', ' ')}
                     </Badge>
                   </div>
-                  <div className="text-xs text-zinc-500 space-y-1">
+                  <div className="text-xs text-on-surface-variant space-y-1">
                     <p className="truncate">{eq.brand} {eq.model}</p>
                     <p className="truncate">S/N: {eq.serial_number || 'N/A'}</p>
                     <p className="truncate">Location: {eq.location || 'Unassigned'}</p>

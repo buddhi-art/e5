@@ -31,8 +31,8 @@ export default async function MaintenancePage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Maintenance Log</h1>
-          <p className="text-sm text-zinc-500">Track equipment repairs and servicing.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Maintenance Log</h1>
+          <p className="text-sm text-outline">Track equipment repairs and servicing.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button render={<Link href="/admin/equipment" />} variant="outline" nativeButton={false}>

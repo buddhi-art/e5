@@ -54,7 +54,7 @@
    --radius-3xl: calc(var(--radius) * 2.2);
    --radius-4xl: calc(var(--radius) * 2.6);
 
-   /* ---- M3 Color Roles (Surface Containers, Containers) ---- */
+   /* ---- M3 Color Roles ---- */
    --color-surface-container-lowest: var(--md-sys-color-surface-container-lowest);
    --color-surface-container-low: var(--md-sys-color-surface-container-low);
    --color-surface-container: var(--md-sys-color-surface-container);
@@ -75,6 +75,9 @@
    --color-inverse-primary: var(--md-sys-color-inverse-primary);
    --color-surface-variant: var(--md-sys-color-surface-variant);
    --color-on-surface-variant: var(--md-sys-color-on-surface-variant);
+   --color-on-surface: var(--md-sys-color-on-surface);
+   --color-tertiary: var(--md-sys-color-tertiary);
+   --color-on-tertiary: var(--md-sys-color-on-tertiary);
 
    /* ---- M3 Elevation Box Shadows ---- */
    --elevation-0: 0 0 0 0 transparent;
@@ -152,6 +155,8 @@
    --md-sys-color-on-primary-container: oklch(0.20 0.06 40);
    --md-sys-color-secondary-container: oklch(0.90 0.02 240);
    --md-sys-color-on-secondary-container: oklch(0.10 0.02 240);
+   --md-sys-color-tertiary: oklch(0.56 0.18 300);
+   --md-sys-color-on-tertiary: oklch(0.96 0.005 300);
    --md-sys-color-tertiary-container: oklch(0.88 0.06 300);
    --md-sys-color-on-tertiary-container: oklch(0.15 0.04 300);
    --md-sys-color-error-container: oklch(0.92 0.06 25);
@@ -163,6 +168,7 @@
    --md-sys-color-inverse-primary: oklch(0.85 0.10 40);
    --md-sys-color-surface-variant: oklch(0.935 0.01 45);
    --md-sys-color-on-surface-variant: oklch(0.50 0.015 45);
+   --md-sys-color-on-surface: oklch(0.145 0.015 45);
 }
 
 /* ══════════════════════════════════════
@@ -214,6 +220,8 @@
    --md-sys-color-on-primary-container: oklch(0.88 0.08 40);
    --md-sys-color-secondary-container: oklch(0.20 0.04 240);
    --md-sys-color-on-secondary-container: oklch(0.88 0.03 240);
+   --md-sys-color-tertiary: oklch(0.72 0.14 300);
+   --md-sys-color-on-tertiary: oklch(0.15 0.04 300);
    --md-sys-color-tertiary-container: oklch(0.25 0.06 300);
    --md-sys-color-on-tertiary-container: oklch(0.88 0.06 300);
    --md-sys-color-error-container: oklch(0.30 0.08 25);
@@ -225,6 +233,7 @@
    --md-sys-color-inverse-primary: oklch(0.62 0.22 40);
    --md-sys-color-surface-variant: oklch(0.25 0.01 45);
    --md-sys-color-on-surface-variant: oklch(0.70 0.01 45);
+   --md-sys-color-on-surface: oklch(0.93 0.005 45);
 }
 
 /* ══════════════════════════════════════
@@ -398,6 +407,10 @@
       color: var(--md-sys-color-outline-variant);
    }
 
+   .text-on-surface {
+      color: var(--md-sys-color-on-surface);
+   }
+
    /* ---- M3 Border Colors ---- */
    .border-outline {
       border-color: var(--md-sys-color-outline);
@@ -453,65 +466,6 @@
       animation: morph-slide-up 350ms cubic-bezier(0.4, 0, 0.2, 1) both;
    }
 
-   /* Card morph — hover lift + shadow morph */
-   .card-morph {
-      transition:
-         transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
-         box-shadow 400ms cubic-bezier(0.4, 0, 0.2, 1),
-         background-color 250ms cubic-bezier(0.4, 0, 0.2, 1),
-         border-color 250ms cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: transform, box-shadow;
-   }
-
-   .card-morph:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--elevation-3);
-   }
-
-   .card-morph:active {
-      transform: translateY(0) scale(0.99);
-      transition-duration: 100ms;
-   }
-
-   /* Nav link morph */
-   .nav-morph {
-      transition:
-         background-color 250ms cubic-bezier(0.4, 0, 0.2, 1),
-         color 250ms cubic-bezier(0.4, 0, 0.2, 1),
-         transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: transform;
-   }
-
-   .nav-morph:hover {
-      transform: translateX(2px);
-   }
-
-   .nav-morph:active {
-      transform: scale(0.98);
-   }
-
-   /* Button morph */
-   .btn-morph {
-      transition:
-         transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
-         background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: transform;
-   }
-
-   .btn-morph:active {
-      transform: scale(0.96);
-   }
-
-   /* Icon morph — subtle rotation on hover */
-   .icon-morph {
-      transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-   }
-
-   .group:hover .icon-morph {
-      transform: scale(1.1) rotate(-3deg);
-   }
-
-   /* Delay utilities for staggered entries */
    .morph-delay-1 {
       animation-delay: 0ms;
    }
@@ -544,7 +498,156 @@
       animation-delay: 560ms;
    }
 
-   /* -- Legacy color normalization across all pages -- */
+   /* Card morph — hover lift + shadow morph */
+   .card-morph {
+      transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 400ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform, box-shadow;
+   }
+
+   .card-morph:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--elevation-3);
+   }
+
+   .card-morph:active {
+      transform: translateY(0) scale(0.99);
+      transition-duration: 100ms;
+   }
+
+   .nav-morph {
+      transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), color 250ms cubic-bezier(0.4, 0, 0.2, 1), transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+   }
+
+   .nav-morph:hover {
+      transform: translateX(2px);
+   }
+
+   .nav-morph:active {
+      transform: scale(0.98);
+   }
+
+   .btn-morph {
+      transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+   }
+
+   .btn-morph:active {
+      transform: scale(0.96);
+   }
+
+   .icon-morph {
+      transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+   }
+
+   .group:hover .icon-morph {
+      transform: scale(1.1) rotate(-3deg);
+   }
+
+   /* ---- M3 Token Utility Classes ---- */
+   .text-tertiary {
+      color: var(--md-sys-color-tertiary);
+   }
+
+   .bg-tertiary {
+      background-color: var(--md-sys-color-tertiary);
+   }
+
+   .border-tertiary {
+      border-color: var(--md-sys-color-tertiary);
+   }
+
+   .text-on-tertiary {
+      color: var(--md-sys-color-on-tertiary);
+   }
+
+   .bg-on-tertiary {
+      background-color: var(--md-sys-color-on-tertiary);
+   }
+
+   /* ---- Status indicator utility classes (semantic, M3-aligned) ---- */
+   .text-m3-success {
+      color: var(--md-sys-color-tertiary);
+   }
+
+   .bg-m3-success {
+      background-color: var(--md-sys-color-tertiary-container);
+   }
+
+   .border-m3-success {
+      border-color: var(--md-sys-color-tertiary);
+   }
+
+   .bg-m3-success-subtle {
+      background-color: color-mix(in srgb, var(--md-sys-color-tertiary-container) 40%, transparent);
+   }
+
+   .text-m3-warning {
+      color: var(--md-sys-color-primary);
+   }
+
+   .bg-m3-warning {
+      background-color: var(--md-sys-color-primary-container);
+   }
+
+   .border-m3-warning {
+      border-color: var(--md-sys-color-primary);
+   }
+
+   .bg-m3-warning-subtle {
+      background-color: color-mix(in srgb, var(--md-sys-color-primary-container) 40%, transparent);
+   }
+
+   .text-m3-error {
+      color: var(--md-sys-color-on-error-container);
+   }
+
+   .bg-m3-error {
+      background-color: var(--md-sys-color-error-container);
+   }
+
+   .border-m3-error {
+      border-color: var(--md-sys-color-on-error-container);
+   }
+
+   .bg-m3-error-subtle {
+      background-color: color-mix(in srgb, var(--md-sys-color-error-container) 40%, transparent);
+   }
+
+   .text-m3-info {
+      color: var(--md-sys-color-secondary);
+   }
+
+   .bg-m3-info {
+      background-color: var(--md-sys-color-secondary-container);
+   }
+
+   .border-m3-info {
+      border-color: var(--md-sys-color-secondary);
+   }
+
+   .bg-m3-info-subtle {
+      background-color: color-mix(in srgb, var(--md-sys-color-secondary-container) 40%, transparent);
+   }
+
+   /* ---- Stroke utility (SVG circle tracks) ---- */
+   .stroke-tertiary {
+      stroke: var(--md-sys-color-tertiary);
+   }
+
+   .stroke-primary {
+      stroke: var(--md-sys-color-primary);
+   }
+
+   .stroke-destructive {
+      stroke: var(--md-sys-color-on-error-container);
+   }
+
+   .stroke-error {
+      stroke: var(--md-sys-color-on-error-container);
+   }
+
+   /* -- Legacy raw color normalization across all pages -- */
    .bg-white,
    .dark .dark\:bg-zinc-950,
    .dark .dark\:bg-zinc-900 {
@@ -583,6 +686,195 @@
    .selection\:bg-zinc-100,
    .dark .dark\:selection\:bg-zinc-800 {
       background-color: var(--md-sys-color-primary-container) !important;
+   }
+
+   .text-zinc-700,
+   .dark .dark\:text-zinc-300 {
+      color: var(--md-sys-color-on-surface) !important;
+   }
+
+   .bg-zinc-50,
+   .dark .dark\:bg-zinc-950 {
+      background-color: var(--md-sys-color-surface-container-low) !important;
+   }
+
+   .bg-zinc-100,
+   .dark .dark\:bg-zinc-800\/50,
+   .dark .dark\:bg-zinc-800\/40 {
+      background-color: var(--md-sys-color-surface-container-high) !important;
+   }
+
+   .hover\:bg-zinc-100,
+   .dark .hover\:dark\:bg-zinc-800\/50 {
+      background-color: var(--md-sys-color-surface-container-high) !important;
+   }
+
+   .border-zinc-200,
+   .dark .dark\:border-zinc-700 {
+      border-color: var(--md-sys-color-outline-variant) !important;
+   }
+
+   /* -- Status color normalization (semantic → M3) -- */
+   .text-amber-500,
+   .dark .dark\:text-amber-400 {
+      color: var(--md-sys-color-primary) !important;
+   }
+
+   .text-amber-600,
+   .dark .dark\:text-amber-400 {
+      color: var(--md-sys-color-primary) !important;
+   }
+
+   .text-amber-700,
+   .dark .dark\:text-amber-200,
+   .dark .dark\:text-amber-300 {
+      color: var(--md-sys-color-on-primary-container) !important;
+   }
+
+   .bg-amber-50,
+   .dark .dark\:bg-amber-950\/30,
+   .dark .dark\:bg-amber-950\/20,
+   .dark .dark\:bg-amber-900\/30 {
+      background-color: var(--md-sys-color-primary-container) !important;
+   }
+
+   .bg-amber-100,
+   .dark .dark\:bg-amber-900\/30 {
+      background-color: var(--md-sys-color-primary-container) !important;
+   }
+
+   .bg-amber-500,
+   .bg-amber-500\/10 {
+      background-color: var(--md-sys-color-primary) !important;
+   }
+
+   .border-amber-200,
+   .dark .dark\:border-amber-800 {
+      border-color: var(--md-sys-color-primary-container) !important;
+   }
+
+   .border-amber-500,
+   .border-amber-500\/20,
+   .border-amber-500\/30 {
+      border-color: var(--md-sys-color-primary) !important;
+   }
+
+   .hover\:bg-amber-100,
+   .dark .hover\:dark\:bg-amber-950\/30 {
+      background-color: var(--md-sys-color-primary-container) !important;
+   }
+
+   .text-emerald-500,
+   .dark .dark\:text-emerald-400,
+   .text-emerald-600,
+   .dark .dark\:text-emerald-400 {
+      color: var(--md-sys-color-tertiary) !important;
+   }
+
+   .text-emerald-700,
+   .dark .dark\:text-emerald-400 {
+      color: var(--md-sys-color-on-tertiary-container) !important;
+   }
+
+   .bg-emerald-50,
+   .dark .dark\:bg-emerald-950\/30,
+   .dark .dark\:bg-emerald-950\/30 {
+      background-color: var(--md-sys-color-tertiary-container) !important;
+   }
+
+   .bg-emerald-500,
+   .bg-emerald-500\/10 {
+      background-color: var(--md-sys-color-tertiary) !important;
+   }
+
+   .border-emerald-200,
+   .border-emerald-500\/30,
+   .dark .dark\:border-emerald-900 {
+      border-color: var(--md-sys-color-tertiary) !important;
+   }
+
+   .hover\:bg-emerald-50,
+   .dark .hover\:dark\:bg-emerald-950\/30 {
+      background-color: var(--md-sys-color-tertiary-container) !important;
+   }
+
+   .hover\:bg-emerald-600 {
+      background-color: var(--md-sys-color-tertiary) !important;
+   }
+
+   .text-red-500,
+   .text-red-600,
+   .text-red-800,
+   .dark .dark\:text-red-300,
+   .dark .dark\:text-red-500 {
+      color: var(--md-sys-color-on-error-container) !important;
+   }
+
+   .bg-red-50,
+   .dark .dark\:bg-red-950\/30 {
+      background-color: var(--md-sys-color-error-container) !important;
+   }
+
+   .border-red-200,
+   .dark .dark\:border-red-800,
+   .border-red-500\/30 {
+      border-color: var(--md-sys-color-error-container) !important;
+   }
+
+   .hover\:bg-red-50,
+   .dark .hover\:dark\:bg-red-950\/30 {
+      background-color: var(--md-sys-color-error-container) !important;
+   }
+
+   .text-sky-500,
+   .dark .dark\:text-sky-400 {
+      color: var(--md-sys-color-primary) !important;
+   }
+
+   .bg-sky-500,
+   .bg-sky-500\/10 {
+      background-color: var(--md-sys-color-primary) !important;
+   }
+
+   .hover\:bg-sky-600 {
+      background-color: var(--md-sys-color-primary) !important;
+   }
+
+   .text-orange-500,
+   .dark .dark\:text-orange-400 {
+      color: var(--md-sys-color-primary) !important;
+   }
+
+   .bg-orange-50,
+   .dark .dark\:bg-orange-950\/30 {
+      background-color: var(--md-sys-color-primary-container) !important;
+   }
+
+   .text-blue-500,
+   .dark .dark\:text-blue-400 {
+      color: var(--md-sys-color-secondary) !important;
+   }
+
+   .bg-blue-50,
+   .dark .dark\:bg-blue-950\/30 {
+      background-color: var(--md-sys-color-secondary-container) !important;
+   }
+
+   /* SVG stroke normalization */
+   .stroke-emerald-500 {
+      stroke: var(--md-sys-color-tertiary) !important;
+   }
+
+   .stroke-amber-500 {
+      stroke: var(--md-sys-color-primary) !important;
+   }
+
+   .stroke-orange-500 {
+      stroke: var(--md-sys-color-primary) !important;
+   }
+
+   .stroke-red-500 {
+      stroke: var(--md-sys-color-on-error-container) !important;
    }
 }
 

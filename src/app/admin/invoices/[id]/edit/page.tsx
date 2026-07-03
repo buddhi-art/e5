@@ -41,9 +41,9 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">Edit Invoice</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Update draft invoice {invoice.invoice_number}.</p>
+      <div className="morph-fade-in">
+        <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">Edit Invoice</h1>
+        <p className="text-on-surface-variant">Update draft invoice {invoice.invoice_number}.</p>
       </div>
 
       <InvoiceForm

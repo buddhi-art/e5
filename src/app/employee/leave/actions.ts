@@ -2,20 +2,25 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { LeaveRequestSchema } from '@/lib/validations'
 
 export async function requestLeave(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const leave_type_id = formData.get('leave_type_id') as string
-  const start_date = formData.get('start_date') as string
-  const end_date = formData.get('end_date') as string
-  const reason = formData.get('reason') as string
+  const parsed = LeaveRequestSchema.safeParse({
+    leave_type_id: formData.get('leave_type_id'),
+    start_date: formData.get('start_date'),
+    end_date: formData.get('end_date'),
+    reason: formData.get('reason'),
+  });
 
-  if (!leave_type_id || !start_date || !end_date || !reason) {
-    return { error: 'Missing required fields' }
+  if (!parsed.success) {
+    return { error: 'Validation failed: ' + parsed.error.issues[0].message };
   }
+
+  const { leave_type_id, start_date, end_date, reason } = parsed.data;
 
   // Calculate working days
   const start = new Date(start_date)
