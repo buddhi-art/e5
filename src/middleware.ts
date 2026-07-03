@@ -2,20 +2,28 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Skip middleware for static files, API routes that don't need auth,
+  // and login/register pages to avoid auth-fetch loops
+  const url = request.nextUrl.clone()
+  const { pathname } = url
+
+  // Always allow login page and static assets through without auth checks
+  if (
+    pathname === '/login' ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api/cron') ||
+    pathname === '/favicon.ico'
+  ) {
+    return NextResponse.next()
+  }
+
   try {
     return await updateSession(request)
   } catch (error: any) {
-    // If the refresh token is invalid/stale (e.g. DB was reset), redirect to login
-    // instead of crashing with an unhandled server error
-    if (error?.__isAuthError || error?.code === 'refresh_token_not_found') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
-    // For any other unexpected error, still redirect to login gracefully
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    // Any auth/network failure: redirect to login safely
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    return NextResponse.redirect(loginUrl)
   }
 }
 

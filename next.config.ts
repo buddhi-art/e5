@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
         "*.app.github.dev"
       ]
     }
+  },
+  turbopack: {
+    root: "/Users/buddhirajgautam/Documents/E5 prop/e5-chronicles"
   }
 };
 

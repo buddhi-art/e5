@@ -134,7 +134,7 @@ BEGIN
   IF v_attendance_count > 0 THEN
     v_attendance_score := 50.0 * (v_attendance_weighted_sum / v_attendance_count);
   ELSE
-    v_attendance_score := 50.0 * 0.7; -- neutral fallback
+    v_attendance_score := 0; -- no data yet
   END IF;
 
   -- ── Task completion sub-score (30 pts) ──
@@ -150,7 +150,7 @@ BEGIN
   IF v_total_tasks > 0 THEN
     v_task_completion_score := 30.0 * (v_completed_tasks::numeric / v_total_tasks);
   ELSE
-    v_task_completion_score := 30.0 * 0.7; -- neutral fallback
+    v_task_completion_score := 0; -- no data yet
   END IF;
 
   -- ── Punctuality sub-score (20 pts) ──
@@ -168,7 +168,7 @@ BEGIN
   IF v_completed_with_deadline > 0 THEN
     v_punctuality_score := 20.0 * (v_on_time_completed::numeric / v_completed_with_deadline);
   ELSE
-    v_punctuality_score := 20.0 * 0.7; -- neutral fallback
+    v_punctuality_score := 0; -- no data yet
   END IF;
 
   -- ── Final score ──
@@ -230,8 +230,8 @@ BEGIN
     v_attendance_raw_pct := round((v_attendance_weighted_sum / v_attendance_count) * 100, 1);
     v_attendance_score := 50.0 * (v_attendance_weighted_sum / v_attendance_count);
   ELSE
-    v_attendance_raw_pct := 70.0;
-    v_attendance_score := 50.0 * 0.7;
+    v_attendance_raw_pct := 0;
+    v_attendance_score := 0;
   END IF;
 
   -- Task completion
@@ -243,7 +243,7 @@ BEGIN
   IF v_total_tasks > 0 THEN
     v_task_completion_score := 30.0 * (v_completed_tasks::numeric / v_total_tasks);
   ELSE
-    v_task_completion_score := 30.0 * 0.7;
+    v_task_completion_score := 0;
   END IF;
 
   -- Punctuality
@@ -256,7 +256,7 @@ BEGIN
   IF v_completed_with_deadline > 0 THEN
     v_punctuality_score := 20.0 * (v_on_time_completed::numeric / v_completed_with_deadline);
   ELSE
-    v_punctuality_score := 20.0 * 0.7;
+    v_punctuality_score := 0;
   END IF;
 
   v_total_score := round(v_attendance_score + v_task_completion_score + v_punctuality_score, 2);
