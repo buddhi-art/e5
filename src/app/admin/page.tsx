@@ -89,9 +89,9 @@ async function fetchDashboardData(): Promise<DashboardData> {
     // Employees
     supabase.from('profiles').select('id, created_at', { count: 'exact', head: true }).eq('role', 'employee').is('deleted_at', null),
     // Clients
-    supabase.from('clients').select('id', { count: 'exact', head: true }),
+    supabase.from('clients').select('id', { count: 'exact', head: true }).is('deleted_at', null),
     // Active projects
-    supabase.from('projects').select('id', { count: 'exact', head: true }).neq('status', 'completed'),
+    supabase.from('projects').select('id', { count: 'exact', head: true }).neq('status', 'completed').is('deleted_at', null),
     // Tasks — recent 5 + counts
     supabase.from('tasks')
       .select(`
@@ -109,18 +109,22 @@ async function fetchDashboardData(): Promise<DashboardData> {
           .select('id, created_at, user_id, status')
           .eq('date', todayStr)
           .not('status', 'in', '("absent","on_leave")')
+          .is('deleted_at', null)
           .order('created_at', { ascending: false }),
         supabase.from('attendance')
           .select('status')
-          .eq('date', todayStr),
+          .eq('date', todayStr)
+          .is('deleted_at', null),
         supabase.from('attendance')
           .select('date, status')
           .gte('date', thirtyDaysAgo)
-          .lte('date', todayStr),
+          .lte('date', todayStr)
+          .is('deleted_at', null),
         supabase.from('attendance')
           .select('id', { count: 'exact', head: true })
           .eq('date', yesterday)
-          .in('status', ['present', 'late']),
+          .in('status', ['present', 'late'])
+          .is('deleted_at', null),
       ])
       return { todayAtt, allToday, last30, yesterdayCount: yesterdayAtt.count ?? 0 }
     })(),
@@ -164,13 +168,14 @@ async function fetchDashboardData(): Promise<DashboardData> {
       return { pending: pending.count ?? 0, total: total.count ?? 0, todayLeave: todayLeave.data ?? [] }
     })(),
     // Meetings
-    supabase.from('client_meetings').select('id, meeting_date', { count: 'exact', head: true }),
+    supabase.from('client_meetings').select('id, meeting_date', { count: 'exact', head: true }).is('deleted_at', null),
     // Active clients (projects that aren't completed or on hold)
     supabase.from('projects')
       .select('client_id')
-      .not('status', 'in', '("completed","on_hold")'),
+      .not('status', 'in', '("completed","on_hold")')
+      .is('deleted_at', null),
     // Project statuses
-    supabase.from('projects').select('status'),
+    supabase.from('projects').select('status').is('deleted_at', null),
   ])
 
   // ─── Safely extract all values with defaults ───

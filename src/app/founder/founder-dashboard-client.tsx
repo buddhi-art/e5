@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import {
  Users, FolderKanban, DollarSign, Camera, TrendingUp, TrendingDown,
  CalendarCheck, Clock, CalendarOff, Timer, Receipt, Wallet, FileText,
@@ -118,13 +119,13 @@ function HealthScore({ score }: { score: number }) {
 }
 
 /* ──────────────────────────────────────
- Stat Card (no href — founder reads only)
+ Stat Card (optional href — founder reads only)
  ────────────────────────────────────── */
 interface StatCardProps {
  label: string; value: number; icon: any
  color: 'primary' | 'tertiary' | 'secondary' | 'error' | 'emerald' | 'amber'
  trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
- suffix?: string; decimals?: number; subtitle?: string; delay?: number
+ suffix?: string; decimals?: number; subtitle?: string; delay?: number; href?: string
 }
 
 const colorMap = {
@@ -136,13 +137,13 @@ const colorMap = {
  amber: { bg: 'bg-m3-warning-subtle', text: 'text-m3-warning', badge: 'bg-m3-warning/10 text-m3-warning' },
 }
 
-function StatCard({ label, value, icon: Icon, color, trend, suffix = '', decimals = 0, subtitle, delay = 0 }: StatCardProps) {
+function StatCard({ label, value, icon: Icon, color, trend, suffix = '', decimals = 0, subtitle, delay = 0, href }: StatCardProps) {
  const c = colorMap[color]
- return (
- <div className="block morph-fade-in" style={{ animationDelay: `${delay}ms` }}>
+ const content = (
  <div className={cn(
  'relative overflow-hidden rounded-2xl bg-surface-container-lowest p-4 card-morph',
- 'ring-1 ring-outline-variant/40'
+ 'ring-1 ring-outline-variant/40',
+ href && 'cursor-pointer transition-shadow hover:ring-primary/50'
  )}>
  <div className="flex items-start justify-between mb-2">
  <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', c.bg)}>
@@ -163,6 +164,19 @@ function StatCard({ label, value, icon: Icon, color, trend, suffix = '', decimal
  <div className="text-xs text-on-surface-variant mt-0.5 font-medium truncate">{label}</div>
  {subtitle && <div className="text-[10px] text-outline mt-0.5">{subtitle}</div>}
  </div>
+ )
+
+ if (href) {
+ return (
+ <Link href={href} className="block morph-fade-in" style={{ animationDelay: `${delay}ms` }}>
+ {content}
+ </Link>
+ )
+ }
+
+ return (
+ <div className="block morph-fade-in" style={{ animationDelay: `${delay}ms` }}>
+ {content}
  </div>
  )
 }
@@ -306,7 +320,7 @@ export function FounderDashboardClient({ data }: { data: FounderData }) {
  subtitle={`${checkedInToday} checked in today · ${attendanceRate}% attendance rate`}
  />
  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
- <StatCard label="Total Employees" value={totalEmployees} icon={Users} color="primary" delay={40} />
+ <StatCard label="Total Employees" value={totalEmployees} icon={Users} color="primary" href="/founder/employees" delay={40} />
  <StatCard label="Checked In" value={checkedInToday} icon={CalendarCheck} color="emerald" suffix={`/${totalEmployees}`} delay={80} />
  <StatCard label="On Leave" value={onLeaveToday} icon={CalendarOff} color="amber" delay={120} />
  <StatCard label="Late" value={lateToday} icon={Clock} color={lateToday > 1 ? 'error' : 'secondary'} delay={160} />

@@ -286,18 +286,21 @@ export async function scheduleMaintenance(data: {
   if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
   const mData = parsed.data
 
-  const { error: insertError } = await supabase.from('equipment_maintenance').insert({
-    equipment_id: mData.equipment_id, description: mData.description, scheduled_date: mData.scheduled_date,
-    vendor: mData.vendor || null, vendor_phone: mData.vendor_phone || null, vendor_location: mData.vendor_location || null,
-    cost: mData.cost || null, notes: mData.notes || null, status: 'scheduled',
+  // Atomic RPC: inserts the maintenance record and only flips equipment status
+  // to 'maintenance' if it's currently 'available' (never overwrites checked-out
+  // equipment), all under a single row lock.
+  const { error } = await supabase.rpc('schedule_equipment_maintenance', {
+    p_equipment_id: mData.equipment_id,
+    p_description: mData.description,
+    p_scheduled_date: mData.scheduled_date,
+    p_vendor: mData.vendor || null,
+    p_vendor_phone: mData.vendor_phone || null,
+    p_vendor_location: mData.vendor_location || null,
+    p_cost: mData.cost || null,
+    p_notes: mData.notes || null,
   })
 
-  if (insertError) return { error: insertError.message }
-
-  const today = new Date().toISOString().split('T')[0]
-  if (mData.scheduled_date <= today) {
-    await supabase.from('equipment').update({ status: 'maintenance' }).eq('id', mData.equipment_id)
-  }
+  if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')
   revalidatePath(`/admin/equipment/${mData.equipment_id}`)
@@ -353,15 +356,15 @@ export async function updateMaintenanceStatus(maintenanceId: string, status: 'sc
   const { data: maintenance } = await supabase.from('equipment_maintenance').select('equipment_id').eq('id', parsed.data.id).single()
   if (!maintenance) return { error: 'Not found' }
 
-  await supabase.from('equipment_maintenance').update({
-    status, completed_date: status === 'completed' ? (completed_date || new Date().toISOString().split('T')[0]) : null,
-  }).eq('id', maintenanceId)
+  // Atomic RPC: locks the maintenance row and updates both tables in one
+  // transaction, so a crash mid-way can't leave equipment stuck in the wrong status.
+  const { error } = await supabase.rpc('update_equipment_maintenance_status', {
+    p_maintenance_id: parsed.data.id,
+    p_status: status,
+    p_completed_date: completed_date || null,
+  })
 
-  if (status === 'completed') {
-    await supabase.from('equipment').update({ status: 'available' }).eq('id', maintenance.equipment_id)
-  } else if (status === 'in_progress') {
-    await supabase.from('equipment').update({ status: 'maintenance' }).eq('id', maintenance.equipment_id)
-  }
+  if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')
   revalidatePath(`/admin/equipment/${maintenance.equipment_id}`)

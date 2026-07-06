@@ -111,9 +111,9 @@ async function sendViaSendGrid(payload: EmailPayload): Promise<EmailResult> {
 }
 
 async function sendViaSmtp(payload: EmailPayload): Promise<EmailResult> {
-    // SMTP support requires the `nodemailer` package.
-    // This is a stub that guides the user to install it if they need SMTP.
+    // SMTP support requires the `nodemailer` package, which is not installed.
+    // Report failure so callers don't believe an email was sent.
     console.warn('SMTP email provider requires `npm install nodemailer` and SMTP_* env vars.')
-    console.log('[Email SMTP] Would send:', { to: payload.to, subject: payload.subject })
-    return { success: true }
+    console.log('[Email SMTP] Not sent (stub):', { to: payload.to, subject: payload.subject })
+    return { success: false, error: 'SMTP provider not implemented — install nodemailer and configure SMTP_* env vars, or set EMAIL_PROVIDER to resend/sendgrid' }
 }

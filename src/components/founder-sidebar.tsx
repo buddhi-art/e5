@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Film, LayoutDashboard, FolderKanban, DollarSign, Camera, Shield } from 'lucide-react'
+import { Film, LayoutDashboard, FolderKanban, DollarSign, Camera, Shield, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './theme-toggle'
 
 const founderLinks = [
  { name: 'Dashboard', href: '/founder', icon: LayoutDashboard },
+ { name: 'Employees', href: '/founder/employees', icon: Users },
  { name: 'Projects', href: '/founder/projects', icon: FolderKanban },
  { name: 'Finances', href: '/founder/finances', icon: DollarSign },
  { name: 'Resources', href: '/founder/resources', icon: Camera },
