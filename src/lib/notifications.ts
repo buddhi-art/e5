@@ -3,15 +3,40 @@ import { createClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 
 /**
- * Escape user-controlled strings for safe HTML rendering in email bodies.
+ * Escape a string for safe interpolation into HTML text/attribute contexts.
  */
-function escapeHtml(s: string): string {
-    return s
+function escapeHtml(value: string): string {
+    return value
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
+}
+
+/**
+ * Build a simple HTML email body. Values may originate from database-stored
+ * user input (names, task titles, company names), so every interpolated value
+ * is HTML-escaped to prevent injection into the rendered email.
+ */
+function buildEmailHtml(title: string, description: string, url: string): string {
+    const safeTitle = escapeHtml(title)
+    const safeDescription = escapeHtml(description)
+    // Only allow http(s) links; anything else (javascript:, data:) is dropped.
+    const safeUrl = /^https?:\/\//i.test(url) ? escapeHtml(url) : ''
+    return [
+        '<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">',
+        '  <h2 style="color: #1a1a1a;">' + safeTitle + '</h2>',
+        safeDescription ? '  <p style="color: #555;">' + safeDescription + '</p>' : '',
+        safeUrl
+            ? '  <p><a href="' +
+            safeUrl +
+            '" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 8px;">View Details</a></p>'
+            : '',
+        '</div>',
+    ]
+        .filter(Boolean)
+        .join('\n')
 }
 
 /**
@@ -60,21 +85,15 @@ export async function createNotification(
 
             const emailAddr = profile?.contact_email || profile?.email
             if (emailAddr) {
-                const safeTitle = escapeHtml(title)
-                const safeDescription = description ? escapeHtml(description) : ''
-                const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-                const safeUrl = href ? baseUrl + href : ''
+                const baseUrl =
+                    process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+                const url = href ? baseUrl + href : ''
+                const desc = description || ''
 
                 const result = await sendEmail({
                     to: [emailAddr],
-                    subject: safeTitle,
-                    html: [
-                        '<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">',
-                        '  <h2 style="color: #1a1a1a;">' + safeTitle + '</h2>',
-                        safeDescription ? '  <p style="color: #555;">' + safeDescription + '</p>' : '',
-                        safeUrl ? '  <p><a href="' + safeUrl + '" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 8px;">View Details</a></p>' : '',
-                        '</div>',
-                    ].filter(Boolean).join('\n'),
+                    subject: title,
+                    html: buildEmailHtml(title, desc, url),
                 })
 
                 if (result.success) {
@@ -99,10 +118,16 @@ export async function createNotification(
 export async function markNotificationRead(notificationId: string): Promise<void> {
     try {
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Scope the update to the current user's own notifications so a user
+        // cannot mark another user's notification as read.
         await supabase
             .from('notifications')
             .update({ read_at: new Date().toISOString() })
             .eq('id', notificationId)
+            .eq('user_id', user.id)
     } catch (err) {
         console.error('markNotificationRead error:', err)
     }

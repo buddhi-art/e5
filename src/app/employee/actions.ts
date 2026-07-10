@@ -13,6 +13,17 @@ export async function toggleSubtask(subtaskId: string, isCompleted: boolean) {
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const data = parsed.data;
 
+  // Defense-in-depth: verify the subtask's parent task is assigned to this
+  // user before mutating, in addition to the RLS policy.
+  const { data: ownedSubtask } = await supabase
+    .from('subtasks')
+    .select('id, tasks!inner(assigned_to)')
+    .eq('id', data.subtaskId)
+    .eq('tasks.assigned_to', user.id)
+    .maybeSingle()
+
+  if (!ownedSubtask) return { error: 'Unauthorized' }
+
   // RLS will ensure they can only update if assigned
   const { error } = await supabase
     .from('subtasks')
@@ -55,6 +66,17 @@ export async function toggleSubSubtask(subSubtaskId: string, isCompleted: boolea
   const parsed = SubtaskToggleSchema.safeParse({ subtaskId: subSubtaskId, isCompleted });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const data = parsed.data;
+
+  // Defense-in-depth: verify the sub-subtask chains up to a task assigned to
+  // this user (sub_subtask → subtask → task.assigned_to), in addition to RLS.
+  const { data: ownedSubSubtask } = await supabase
+    .from('sub_subtasks')
+    .select('id, subtasks!inner(tasks!inner(assigned_to))')
+    .eq('id', data.subtaskId)
+    .eq('subtasks.tasks.assigned_to', user.id)
+    .maybeSingle()
+
+  if (!ownedSubSubtask) return { error: 'Unauthorized' }
 
   const { error } = await supabase
     .from('sub_subtasks')

@@ -32,6 +32,9 @@ export async function addSubtaskComment(subtaskId: string, content: string) {
 
 export async function getSubtaskComments(subtaskId: string) {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { error: 'Not authenticated', comments: [] }
 
     const { data, error } = await supabase
         .from('subtask_comments')

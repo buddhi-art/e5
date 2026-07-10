@@ -113,7 +113,7 @@ export async function getNotifications(): Promise<NotificationItem[]> {
             .limit(5)
 
         for (const task of myTasks || []) {
-            const isOverdue = task.deadline && task.deadline < todayStr
+            const isOverdue = !!task.deadline && new Date(task.deadline) < new Date(todayStr)
             notifications.push({
                 id: `etask-${task.id}`,
                 type: 'overdue_task',
@@ -150,8 +150,13 @@ export async function getNotifications(): Promise<NotificationItem[]> {
         }
     }
 
-    // Sort: newest first
-    notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    // Sort: newest first. Treat missing/invalid dates as oldest (timestamp 0)
+    // so a NaN never corrupts the comparator.
+    const toTime = (value: string): number => {
+        const t = new Date(value).getTime()
+        return Number.isNaN(t) ? 0 : t
+    }
+    notifications.sort((a, b) => toTime(b.createdAt) - toTime(a.createdAt))
 
     return notifications
 }

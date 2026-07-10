@@ -98,7 +98,7 @@ async function createAdmin() {
   console.log('   ✅ ADMIN ACCOUNT READY!')
   console.log('========================================')
   console.log(`   Email:    ${email}`)
-  console.log(`   Password: ${password}`)
+  console.log(`   Password: ${'*'.repeat(password.length)}`)
   console.log('========================================')
   console.log('\nYou can now log in at http://localhost:3000\n')
 }

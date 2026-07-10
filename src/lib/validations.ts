@@ -278,6 +278,10 @@ export const LoginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+export const ChangePasscodeSchema = z.object({
+  newPasscode: z.string().min(8, "Passcode must be at least 8 characters"),
+});
+
 // ── Generic shared validators (used across all server actions) ──
 export const UuidParamSchema = z.object({
   id: z.string().uuid("Invalid UUID"),

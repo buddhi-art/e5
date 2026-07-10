@@ -10,7 +10,7 @@ export async function getStorageSignedUrl(bucket: string, filePath: string): Pro
             .from(bucket)
             .createSignedUrl(filePath, 3600)
         if (error || !data) {
-            console.error(`Signed URL error for ${bucket}/${filePath}:`, error)
+            console.error(`Signed URL error for bucket "${bucket}":`, error?.message)
             // Fallback to public URL
             const { data: publicData } = supabase.storage
                 .from(bucket)
@@ -19,7 +19,7 @@ export async function getStorageSignedUrl(bucket: string, filePath: string): Pro
         }
         return data.signedUrl
     } catch (err) {
-        console.error(`getSignedUrl error:`, err)
+        console.error('getSignedUrl error:', err instanceof Error ? err.message : err)
         return null
     }
 }

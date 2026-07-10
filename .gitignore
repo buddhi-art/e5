@@ -46,3 +46,11 @@ node_modules/
 .env.local
 .env.development.local
 .env.production.local
+
+# ⚠️ WARNING: A duplicate supabase/ directory exists at the repository root
+#   (/supabase/) with older migrations. The canonical migrations live in
+#   e5-chronicles/supabase/. The root copy may be safe to remove — verify no
+#   tooling (Supabase CLI, CI) references it before deleting.
+
+# IDE settings
+.vscode/settings.json
