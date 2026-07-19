@@ -40,7 +40,7 @@ export async function requestLeave(formData: FormData) {
   const holidayDates = new Set(holidays?.map(h => h.date) || [])
 
   let workingDays = 0
-  let current = new Date(start)
+  const current = new Date(start)
   while (current <= end) {
     const day = current.getDay()
     const dateString = current.toISOString().split('T')[0]

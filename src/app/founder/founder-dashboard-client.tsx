@@ -303,7 +303,7 @@ export function FounderDashboardClient({ data }: { data: FounderData }) {
  <div className="max-w-3xl">
  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight flex items-center gap-3">
  <LayoutDashboard className="w-8 h-8 text-m3-warning" />
- Founder's Overview
+ Founder&apos;s Overview
  </h1>
  <p className="text-base text-on-surface-variant mt-2">
  {month} — Full company snapshot: {totalEmployees} employees, {activeProjects} active projects, {clientCount} clients.

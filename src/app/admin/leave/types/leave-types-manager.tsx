@@ -146,7 +146,7 @@ export function LeaveTypesManager({ initialTypes }: { initialTypes: LeaveType[] 
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={5} className="text-center py-10 text-outline">
-                                    No leave types configured. Click "Add Leave Type" to create one.
+                                    No leave types configured. Click Add Leave Type to create one.
                                 </TableCell>
                             </TableRow>
                         )}

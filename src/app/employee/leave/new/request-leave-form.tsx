@@ -40,7 +40,7 @@ export function RequestLeaveForm({ availableTypes }: { availableTypes: any[] }) 
  const s = new Date(startDate)
  const e = new Date(endDate)
  if (s <= e) {
- let current = new Date(s)
+ const current = new Date(s)
  while (current <= e) {
  if (current.getDay() !== 0 && current.getDay() !== 6) {
  predictedDays++

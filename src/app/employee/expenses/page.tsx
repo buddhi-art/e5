@@ -77,7 +77,7 @@ export default async function EmployeeExpensesPage() {
  ) : (
  <TableRow>
  <TableCell colSpan={6} className="text-center py-10 text-outline">
- You haven't submitted any expenses yet.
+ You have not submitted any expenses yet.
  </TableCell>
  </TableRow>
  )}
