@@ -1,6 +1,29 @@
 import { z } from 'zod';
 
-export const InvoiceSchema = z.object({
+/**
+ * Wraps an object shape so it can safely validate data built from
+ * `FormData.get()`. `FormData.get()` returns `null` for any absent field, but
+ * Zod's `.optional()` (and `.default()`) only accept `undefined`, not `null` —
+ * so a missing optional form field would fail with "expected string, received
+ * null". This helper preprocesses the input, converting top-level `null` values
+ * to `undefined` before the object schema runs. Use it for every schema whose
+ * input comes from a form submission.
+ */
+export function formObject<T extends z.ZodRawShape>(shape: T) {
+  return z.preprocess((val) => {
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      const obj = val as Record<string, unknown>;
+      const cleaned: Record<string, unknown> = {};
+      for (const key in obj) {
+        cleaned[key] = obj[key] === null ? undefined : obj[key];
+      }
+      return cleaned;
+    }
+    return val;
+  }, z.object(shape));
+}
+
+export const InvoiceSchema = formObject({
   client_id: z.string().uuid("Invalid client ID"),
   project_id: z.string().uuid("Invalid project ID").optional().or(z.literal('')),
   title: z.string().min(1, "Title is required"),
@@ -30,7 +53,7 @@ export const InvoiceSchema = z.object({
   return data;
 });
 
-export const InvoicePaymentSchema = z.object({
+export const InvoicePaymentSchema = formObject({
   invoice_id: z.string().uuid(),
   amount: z.number().positive(),
   payment_date: z.string(),
@@ -65,7 +88,7 @@ export const CheckOutSchema = z.object({
 });
 
 
-export const EmployeeProfileSchema = z.object({
+export const EmployeeProfileSchema = formObject({
   location: z.string().optional().nullable(),
   dob: z.string().optional().nullable(),
   cvUrl: z.string().optional().nullable(),
@@ -85,7 +108,7 @@ export const SubtaskToggleSchema = z.object({
   isCompleted: z.boolean()
 });
 
-export const ClientRecordSchema = z.object({
+export const ClientRecordSchema = formObject({
   companyName: z.string().min(1, "Company name is required"),
   natureOfCompany: z.string().optional(),
   newNatureOfCompany: z.string().optional(),
@@ -105,7 +128,7 @@ export const ClientRecordSchema = z.object({
   threads: z.string().optional(),
 });
 
-export const ClientMeetingSchema = z.object({
+export const ClientMeetingSchema = formObject({
   client_id: z.string().uuid("Invalid client ID"),
   title: z.string().min(1, "Title is required"),
   meeting_date: z.string().min(1, "Date is required"),
@@ -115,7 +138,7 @@ export const ClientMeetingSchema = z.object({
 });
 
 // ── Employee (Admin) ──
-export const CreateEmployeeSchema = z.object({
+export const CreateEmployeeSchema = formObject({
   loginId: z.string().min(1, "Login ID is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   fullName: z.string().min(1, "Full name is required"),
@@ -149,7 +172,7 @@ export const UpdateEmployeeSchema = z.object({
 });
 
 // ── Expense ──
-export const CreateExpenseSchema = z.object({
+export const CreateExpenseSchema = formObject({
   project_id: z.string().optional(),
   client_id: z.string().optional(),
   category: z.string().min(1, "Category is required"),
@@ -166,7 +189,7 @@ export const ExpenseStatusSchema = z.object({
 });
 
 // ── Task (Admin) ──
-export const AssignTaskSchema = z.object({
+export const AssignTaskSchema = formObject({
   project_id: z.string().uuid("Project is required"),
   phase: z.string().min(1, "Phase is required"),
   assigned_to: z.string().uuid("Employee is required"),
@@ -177,7 +200,7 @@ export const AssignTaskSchema = z.object({
   subtasksRaw: z.string().optional(),
 });
 
-export const UpdateTaskSchema = z.object({
+export const UpdateTaskSchema = formObject({
   project_id: z.string().uuid("Project is required"),
   phase: z.string().min(1, "Phase is required"),
   assigned_to: z.string().uuid("Employee is required"),
@@ -189,7 +212,7 @@ export const UpdateTaskSchema = z.object({
 });
 
 // ── Project ──
-export const CreateProjectSchema = z.object({
+export const CreateProjectSchema = formObject({
   client_id: z.string().uuid("Client is required"),
   title: z.string().min(1, "Project title is required"),
   start_date: z.string().optional(),
@@ -208,7 +231,7 @@ export const ProjectStatusSchema = z.object({
 });
 
 // ── Equipment ──
-export const EquipmentSchema = z.object({
+export const EquipmentSchema = formObject({
   name: z.string().min(1, "Name is required"),
   brand: z.string().optional(),
   model: z.string().optional(),
@@ -236,7 +259,7 @@ export const MaintenanceSchema = z.object({
 });
 
 // ── Talent ──
-export const TalentSchema = z.object({
+export const TalentSchema = formObject({
   full_name: z.string().min(1, "Full name is required"),
   stage_name: z.string().optional(),
   talent_type: z.string().min(1, "Talent type is required"),
@@ -253,7 +276,7 @@ export const TalentSchema = z.object({
   notes: z.string().optional(),
 });
 
-export const TalentBookingSchema = z.object({
+export const TalentBookingSchema = formObject({
   talent_id: z.string().uuid("Talent is required"),
   project_id: z.string().optional(),
   booking_date: z.string().min(1, "Booking date is required"),
