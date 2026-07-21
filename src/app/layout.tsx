@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
-import AgentCopilot from "@/components/AgentCopilot";
-import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,18 +19,11 @@ export const metadata: Metadata = {
   description: "Management Portal",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Only expose the AI-driven page automation copilot to authenticated users.
-  // The root layout wraps every route (including /login), so gate it here.
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   return (
     <html
       lang="en"
@@ -48,7 +39,6 @@ export default async function RootLayout({
         >
           {children}
           <Toaster />
-          {user && <AgentCopilot />}
         </ThemeProvider>
       </body>
     </html>

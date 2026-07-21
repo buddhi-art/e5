@@ -16,6 +16,7 @@ export async function createProject(formData: FormData) {
     const parsed = CreateProjectSchema.safeParse({
       client_id: formData.get('client_id'),
       title: formData.get('title'),
+      package: formData.get('package'),
       start_date: formData.get('start_date'),
       end_date: formData.get('end_date'),
     })
@@ -27,6 +28,7 @@ export async function createProject(formData: FormData) {
       client_id: data.client_id,
       title: data.title,
       status: 'not_started',
+      package: data.package || null,
       start_date: data.start_date || null,
       end_date: data.end_date || null,
     })
@@ -56,6 +58,7 @@ export async function updateProject(projectId: string, formData: FormData) {
     const parsed = CreateProjectSchema.safeParse({
       client_id: formData.get('client_id'),
       title: formData.get('title'),
+      package: formData.get('package'),
       start_date: formData.get('start_date'),
       end_date: formData.get('end_date'),
     })
@@ -68,6 +71,7 @@ export async function updateProject(projectId: string, formData: FormData) {
       .update({
         title: data.title,
         client_id: data.client_id,
+        package: data.package || null,
         start_date: data.start_date || null,
         end_date: data.end_date || null,
       })

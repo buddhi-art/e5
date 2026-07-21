@@ -28,6 +28,9 @@ export async function createClientRecord(formData: FormData) {
       status: formData.get('status'),
       panNumber: formData.get('panNumber'),
       vatId: formData.get('vatId'),
+      clientType: formData.get('clientType'),
+      frequentContactPerson: formData.get('frequentContactPerson'),
+      frequentContactNumber: formData.get('frequentContactNumber'),
       tiktok: formData.get('tiktok'),
       facebook: formData.get('facebook'),
       instagram: formData.get('instagram'),
@@ -56,14 +59,19 @@ export async function createClientRecord(formData: FormData) {
       threads: data.threads || '',
     }
 
+    const isCompany = data.clientType === 'company'
+
     const { error } = await supabase
       .from('clients')
       .insert({
+        client_type: data.clientType,
         company_name: data.companyName,
-        nature_of_company,
-        contact_person: data.owner || null,
+        nature_of_company: isCompany ? nature_of_company : null,
+        contact_person: isCompany ? (data.owner || null) : null,
         contact_email: data.contactEmail || null,
         phone_number: data.phone || null,
+        frequent_contact_person: isCompany ? (data.frequentContactPerson || null) : null,
+        frequent_contact_number: isCompany ? (data.frequentContactNumber || null) : null,
         logo_url: data.logoUrl || null,
         location: data.location || null,
         status: data.status || null,
@@ -108,6 +116,9 @@ export async function updateClientRecord(clientId: string, formData: FormData) {
       status: formData.get('status'),
       panNumber: formData.get('panNumber'),
       vatId: formData.get('vatId'),
+      clientType: formData.get('clientType'),
+      frequentContactPerson: formData.get('frequentContactPerson'),
+      frequentContactNumber: formData.get('frequentContactNumber'),
       tiktok: formData.get('tiktok'),
       facebook: formData.get('facebook'),
       instagram: formData.get('instagram'),
@@ -136,14 +147,19 @@ export async function updateClientRecord(clientId: string, formData: FormData) {
       threads: data.threads || '',
     }
 
+    const isCompany = data.clientType === 'company'
+
     const { error } = await supabase
       .from('clients')
       .update({
+        client_type: data.clientType,
         company_name: data.companyName,
-        nature_of_company,
-        contact_person: data.owner || null,
+        nature_of_company: isCompany ? nature_of_company : null,
+        contact_person: isCompany ? (data.owner || null) : null,
         contact_email: data.contactEmail || null,
         phone_number: data.phone || null,
+        frequent_contact_person: isCompany ? (data.frequentContactPerson || null) : null,
+        frequent_contact_number: isCompany ? (data.frequentContactNumber || null) : null,
         logo_url: data.logoUrl || null,
         location: data.location || null,
         status: data.status || null,

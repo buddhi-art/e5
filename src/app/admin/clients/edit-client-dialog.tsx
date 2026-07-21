@@ -24,11 +24,14 @@ import { Pencil, Globe, Camera, Music2, MessageCircle } from 'lucide-react'
 
 type Client = {
  id: string
+ client_type: string | null
  company_name: string
  nature_of_company: string | null
  contact_person: string | null
  contact_email: string | null
  phone_number: string | null
+ frequent_contact_person: string | null
+ frequent_contact_number: string | null
  logo_url: string | null
  location: string | null
  status: string | null
@@ -49,8 +52,12 @@ export function EditClientDialog({ client, companyNatures = [], referralSources 
  const [loading, setLoading] = useState(false)
  const [nature, setNature] = useState<string>(client.nature_of_company || '')
  const [referral, setReferral] = useState<string>(client.referral_source || '')
+ const [clientType, setClientType] = useState<'personal' | 'company'>(client.client_type === 'personal' ? 'personal' : 'company')
+
+ const isCompany = clientType === 'company'
 
  async function handleSubmit(formData: FormData) {
+ formData.set('clientType', clientType)
  setLoading(true)
  const result = await updateClientRecord(client.id, formData)
  if (result?.error) {
@@ -74,11 +81,24 @@ export function EditClientDialog({ client, companyNatures = [], referralSources 
  <DialogTitle>Edit Client</DialogTitle>
  </DialogHeader>
  <form action={handleSubmit} className="space-y-6 mt-4">
+ <div className="space-y-2">
+ <Label htmlFor="clientType" className="text-on-surface text-xs uppercase tracking-wider font-medium">Client Type *</Label>
+ <Select value={clientType} onValueChange={(val) => setClientType((val as 'personal' | 'company') || 'company')}>
+ <SelectTrigger className="bg-surface-container-high border-outline-variant text-on-surface">
+ <SelectValue placeholder="Select client type" />
+ </SelectTrigger>
+ <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
+ <SelectItem value="personal">Personal</SelectItem>
+ <SelectItem value="company">Company</SelectItem>
+ </SelectContent>
+ </Select>
+ </div>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div className="space-y-2">
- <Label htmlFor="companyName" className="text-on-surface text-xs uppercase tracking-wider font-medium">Company Name *</Label>
+ <Label htmlFor="companyName" className="text-on-surface text-xs uppercase tracking-wider font-medium">{isCompany ? 'Company Name *' : 'Name *'}</Label>
  <Input id="companyName" name="companyName" defaultValue={client.company_name} required className="bg-surface-container-high border-outline-variant text-on-surface" />
  </div>
+ {isCompany && (
  <div className="space-y-2">
  <Label htmlFor="natureOfCompany" className="text-on-surface text-xs uppercase tracking-wider font-medium">Nature of Company</Label>
  <Select name="natureOfCompany" value={nature} onValueChange={(val) => setNature(val || '')}>
@@ -99,10 +119,13 @@ export function EditClientDialog({ client, companyNatures = [], referralSources 
  <Input name="newNatureOfCompany" placeholder="Enter new nature of company" className="mt-2 bg-surface-container-high border-outline-variant text-on-surface" autoFocus />
  )}
  </div>
+ )}
+ {isCompany && (
  <div className="space-y-2">
- <Label htmlFor="owner" className="text-on-surface text-xs uppercase tracking-wider font-medium">Owner</Label>
- <Input id="owner" name="owner" defaultValue={client.contact_person || ''} className="bg-surface-container-high border-outline-variant text-on-surface" />
+ <Label htmlFor="owner" className="text-on-surface text-xs uppercase tracking-wider font-medium">Owner Details</Label>
+ <Input id="owner" name="owner" defaultValue={client.contact_person || ''} placeholder="Owner name" className="bg-surface-container-high border-outline-variant text-on-surface" />
  </div>
+ )}
  <div className="space-y-2">
  <Label htmlFor="contactEmail" className="text-on-surface text-xs uppercase tracking-wider font-medium">Contact Email</Label>
  <Input id="contactEmail" name="contactEmail" type="email" defaultValue={client.contact_email || ''} className="bg-surface-container-high border-outline-variant text-on-surface" />
@@ -111,6 +134,18 @@ export function EditClientDialog({ client, companyNatures = [], referralSources 
  <Label htmlFor="phone" className="text-on-surface text-xs uppercase tracking-wider font-medium">Phone Number</Label>
  <Input id="phone" name="phone" type="tel" defaultValue={client.phone_number || ''} className="bg-surface-container-high border-outline-variant text-on-surface" />
  </div>
+ {isCompany && (
+ <div className="space-y-2">
+ <Label htmlFor="frequentContactPerson" className="text-on-surface text-xs uppercase tracking-wider font-medium">Frequent Contact Person *</Label>
+ <Input id="frequentContactPerson" name="frequentContactPerson" defaultValue={client.frequent_contact_person || ''} required={isCompany} className="bg-surface-container-high border-outline-variant text-on-surface" />
+ </div>
+ )}
+ {isCompany && (
+ <div className="space-y-2">
+ <Label htmlFor="frequentContactNumber" className="text-on-surface text-xs uppercase tracking-wider font-medium">Frequent Contact Number *</Label>
+ <Input id="frequentContactNumber" name="frequentContactNumber" type="tel" defaultValue={client.frequent_contact_number || ''} required={isCompany} className="bg-surface-container-high border-outline-variant text-on-surface" />
+ </div>
+ )}
  <div className="space-y-2">
  <Label htmlFor="location" className="text-on-surface text-xs uppercase tracking-wider font-medium">Location</Label>
  <Input id="location" name="location" defaultValue={client.location || ''} className="bg-surface-container-high border-outline-variant text-on-surface" />

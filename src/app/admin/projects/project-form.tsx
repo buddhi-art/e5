@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { PackageSelect } from '@/components/ui/package-select'
 import { toast } from 'sonner'
 
 type Client = {
@@ -22,6 +23,7 @@ type Client = {
 export function ProjectForm({ clients }: { clients: Client[] }) {
   const [loading, setLoading] = useState(false)
   const [clientId, setClientId] = useState('')
+  const [pkg, setPkg] = useState<string | null>(null)
 
   async function handleSubmit(formData: FormData) {
     if (!clientId) {
@@ -29,6 +31,7 @@ export function ProjectForm({ clients }: { clients: Client[] }) {
       return
     }
     formData.set('client_id', clientId)
+    formData.set('package', pkg || '')
     setLoading(true)
     const result = await createProject(formData)
 
@@ -39,6 +42,7 @@ export function ProjectForm({ clients }: { clients: Client[] }) {
       const form = document.getElementById('project-form') as HTMLFormElement
       form.reset()
       setClientId('')
+      setPkg(null)
     }
     setLoading(false)
   }
@@ -68,6 +72,13 @@ export function ProjectForm({ clients }: { clients: Client[] }) {
           required
           placeholder="e.g., Summer Campaign Video"
           className="bg-surface-container-high border-outline-variant text-on-surface"
+        />
+      </div>
+      <div>
+        <PackageSelect
+          name="package"
+          value={pkg || undefined}
+          onChange={(val) => setPkg(val)}
         />
       </div>
       <div className="grid grid-cols-2 gap-4">

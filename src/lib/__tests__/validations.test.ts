@@ -237,16 +237,47 @@ describe('TaskStatusUpdateSchema', () => {
 // ClientRecordSchema
 // ──────────────────────────────────────────────
 describe('ClientRecordSchema', () => {
-    it('accepts valid client', () => {
+    it('accepts valid company client with frequent contact', () => {
         const result = ClientRecordSchema.safeParse({
+            clientType: 'company',
             companyName: 'Acme Corp',
             contactEmail: 'acme@example.com',
+            frequentContactPerson: 'Jane Doe',
+            frequentContactNumber: '9800000000',
         })
         expect(result.success).toBe(true)
     })
 
+    it('accepts a personal client without company fields', () => {
+        const result = ClientRecordSchema.safeParse({
+            clientType: 'personal',
+            companyName: 'John Smith',
+            contactEmail: 'john@example.com',
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it('rejects a company client missing frequent contact person', () => {
+        const result = ClientRecordSchema.safeParse({
+            clientType: 'company',
+            companyName: 'Acme Corp',
+            frequentContactNumber: '9800000000',
+        })
+        expect(result.success).toBe(false)
+    })
+
+    it('rejects a company client missing frequent contact number', () => {
+        const result = ClientRecordSchema.safeParse({
+            clientType: 'company',
+            companyName: 'Acme Corp',
+            frequentContactPerson: 'Jane Doe',
+        })
+        expect(result.success).toBe(false)
+    })
+
     it('rejects invalid email', () => {
         const result = ClientRecordSchema.safeParse({
+            clientType: 'personal',
             companyName: 'Acme Corp',
             contactEmail: 'not-an-email',
         })
@@ -255,6 +286,7 @@ describe('ClientRecordSchema', () => {
 
     it('allows empty email', () => {
         const result = ClientRecordSchema.safeParse({
+            clientType: 'personal',
             companyName: 'Acme Corp',
             contactEmail: '',
         })
@@ -437,6 +469,33 @@ describe('CreateProjectSchema', () => {
         const result = CreateProjectSchema.safeParse({
             client_id: 'd9c5c7c0-6bb1-4f96-9a67-3f0c5b3f1e2a',
             title: '',
+        })
+        expect(result.success).toBe(false)
+    })
+
+    it('accepts a valid package tier', () => {
+        const result = CreateProjectSchema.safeParse({
+            client_id: 'd9c5c7c0-6bb1-4f96-9a67-3f0c5b3f1e2a',
+            title: 'Website redesign',
+            package: 'pro',
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it('accepts an empty package (optional)', () => {
+        const result = CreateProjectSchema.safeParse({
+            client_id: 'd9c5c7c0-6bb1-4f96-9a67-3f0c5b3f1e2a',
+            title: 'Website redesign',
+            package: '',
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it('rejects an unknown package tier', () => {
+        const result = CreateProjectSchema.safeParse({
+            client_id: 'd9c5c7c0-6bb1-4f96-9a67-3f0c5b3f1e2a',
+            title: 'Website redesign',
+            package: 'enterprise',
         })
         expect(result.success).toBe(false)
     })

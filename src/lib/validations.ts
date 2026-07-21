@@ -109,7 +109,9 @@ export const SubtaskToggleSchema = z.object({
 });
 
 export const ClientRecordSchema = formObject({
-  companyName: z.string().min(1, "Company name is required"),
+  clientType: z.enum(['personal', 'company']).default('company'),
+  // For a Company this is the Company Name; for a Personal client this is the individual's Name.
+  companyName: z.string().min(1, "Name is required"),
   natureOfCompany: z.string().optional(),
   newNatureOfCompany: z.string().optional(),
   referralSource: z.string().optional(),
@@ -122,10 +124,30 @@ export const ClientRecordSchema = formObject({
   status: z.string().optional(),
   panNumber: z.string().optional(),
   vatId: z.string().optional(),
+  // Company-only frequent contact person (mandatory when clientType === 'company').
+  frequentContactPerson: z.string().optional(),
+  frequentContactNumber: z.string().optional(),
   tiktok: z.string().optional(),
   facebook: z.string().optional(),
   instagram: z.string().optional(),
   threads: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.clientType === 'company') {
+    if (!data.frequentContactPerson || data.frequentContactPerson.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Frequent contact person is required for company clients',
+        path: ['frequentContactPerson'],
+      });
+    }
+    if (!data.frequentContactNumber || data.frequentContactNumber.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Frequent contact number is required for company clients',
+        path: ['frequentContactNumber'],
+      });
+    }
+  }
 });
 
 export const ClientMeetingSchema = formObject({
@@ -215,6 +237,7 @@ export const UpdateTaskSchema = formObject({
 export const CreateProjectSchema = formObject({
   client_id: z.string().uuid("Client is required"),
   title: z.string().min(1, "Project title is required"),
+  package: z.string().max(100).optional().or(z.literal('')),
   start_date: z.string().optional(),
   end_date: z.string().optional(),
 });

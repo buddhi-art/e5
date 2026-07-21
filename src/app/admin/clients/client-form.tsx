@@ -24,8 +24,13 @@ export function ClientForm({ companyNatures = [], referralSources = [] }: Client
  const [loading, setLoading] = useState(false)
  const [nature, setNature] = useState<string>('')
  const [referral, setReferral] = useState<string>('')
+ const [clientType, setClientType] = useState<'personal' | 'company'>('company')
+
+ const isCompany = clientType === 'company'
 
  async function handleSubmit(formData: FormData) {
+ // The Select for clientType is controlled; make sure its value is submitted.
+ formData.set('clientType', clientType)
  setLoading(true)
  const result = await createClientRecord(formData)
 
@@ -37,18 +42,33 @@ export function ClientForm({ companyNatures = [], referralSources = [] }: Client
  form.reset()
  setNature('')
  setReferral('')
+ setClientType('company')
  }
  setLoading(false)
  }
 
  return (
  <form id="client-form" action={handleSubmit} className="space-y-6">
+ <div className="space-y-2">
+ <Label htmlFor="clientType" className="text-on-surface text-xs uppercase tracking-wider font-medium">Client Type *</Label>
+ <Select value={clientType} onValueChange={(val) => setClientType((val as 'personal' | 'company') || 'company')}>
+ <SelectTrigger className="bg-surface-container-high border-outline-variant text-on-surface">
+ <SelectValue placeholder="Select client type" />
+ </SelectTrigger>
+ <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
+ <SelectItem value="personal">Personal</SelectItem>
+ <SelectItem value="company">Company</SelectItem>
+ </SelectContent>
+ </Select>
+ </div>
+
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div className="space-y-2">
- <Label htmlFor="companyName" className="text-on-surface text-xs uppercase tracking-wider font-medium">Company Name *</Label>
+ <Label htmlFor="companyName" className="text-on-surface text-xs uppercase tracking-wider font-medium">{isCompany ? 'Company Name *' : 'Name *'}</Label>
  <Input id="companyName" name="companyName" required className="bg-surface-container-high border-outline-variant text-on-surface" />
  </div>
 
+ {isCompany && (
  <div className="space-y-2">
  <Label htmlFor="natureOfCompany" className="text-on-surface text-xs uppercase tracking-wider font-medium">Nature of Company</Label>
  <Select name="natureOfCompany" value={nature} onValueChange={(val) => setNature(val || '')}>
@@ -66,11 +86,14 @@ export function ClientForm({ companyNatures = [], referralSources = [] }: Client
  <Input name="newNatureOfCompany" placeholder="Enter new nature of company" className="mt-2 bg-surface-container-high border-outline-variant text-on-surface" autoFocus />
  )}
  </div>
+ )}
 
+ {isCompany && (
  <div className="space-y-2">
- <Label htmlFor="owner" className="text-on-surface text-xs uppercase tracking-wider font-medium">Owner</Label>
- <Input id="owner" name="owner" className="bg-surface-container-high border-outline-variant text-on-surface" />
+ <Label htmlFor="owner" className="text-on-surface text-xs uppercase tracking-wider font-medium">Owner Details</Label>
+ <Input id="owner" name="owner" placeholder="Owner name" className="bg-surface-container-high border-outline-variant text-on-surface" />
  </div>
+ )}
 
  <div className="space-y-2">
  <Label htmlFor="contactEmail" className="text-on-surface text-xs uppercase tracking-wider font-medium">Contact Email</Label>
@@ -81,6 +104,20 @@ export function ClientForm({ companyNatures = [], referralSources = [] }: Client
  <Label htmlFor="phone" className="text-on-surface text-xs uppercase tracking-wider font-medium">Phone Number</Label>
  <Input id="phone" name="phone" type="tel" className="bg-surface-container-high border-outline-variant text-on-surface" />
  </div>
+
+ {isCompany && (
+ <div className="space-y-2">
+ <Label htmlFor="frequentContactPerson" className="text-on-surface text-xs uppercase tracking-wider font-medium">Frequent Contact Person *</Label>
+ <Input id="frequentContactPerson" name="frequentContactPerson" required={isCompany} className="bg-surface-container-high border-outline-variant text-on-surface" />
+ </div>
+ )}
+
+ {isCompany && (
+ <div className="space-y-2">
+ <Label htmlFor="frequentContactNumber" className="text-on-surface text-xs uppercase tracking-wider font-medium">Frequent Contact Number *</Label>
+ <Input id="frequentContactNumber" name="frequentContactNumber" type="tel" required={isCompany} className="bg-surface-container-high border-outline-variant text-on-surface" />
+ </div>
+ )}
 
  <div className="space-y-2">
  <Label htmlFor="location" className="text-on-surface text-xs uppercase tracking-wider font-medium">Location</Label>
