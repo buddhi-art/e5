@@ -204,7 +204,7 @@ export function PackageSelect({
                     <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
                         {packages.length === 0 ? (
                             <div className="px-2 py-3 text-sm text-outline-variant">
-                                No packages available. Click "Add" to create one.
+                                No packages available. Click &quot;Add&quot; to create one.
                             </div>
                         ) : (
                             <>

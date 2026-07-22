@@ -12,6 +12,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Track mock calls for assertion
 const mockCalls: { role: string; method: string; table: string }[] = []
 
+// Founders are identified by designation = 'Founder', not by a role value —
+// the user_role enum is only ('admin', 'employee'). The 'founder' case here
+// models an employee-role profile whose designation elevates it to admin access.
 function createMockClient(role: 'admin' | 'employee' | 'founder') {
     const isAdmin = role === 'admin' || role === 'founder'
 

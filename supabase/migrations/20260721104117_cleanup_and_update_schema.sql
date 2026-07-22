@@ -1,0 +1,11 @@
+-- Neutralized: this file was committed containing template/scaffolding SQL that
+-- referenced placeholder objects (target_table, duplicate_table_name, old_table_v1,
+-- unique_column_name) which do not exist in this schema. As written it would have
+-- errored on `DELETE FROM target_table` / `INSERT INTO target_table` and blocked the
+-- entire migration chain.
+--
+-- There was no real schema change intended here (the prior migrations 030/031 already
+-- cover client_type and project_packages). Left as an intentional no-op so migration
+-- history/version tracking stays intact. If a genuine cleanup is needed later, add a
+-- new, properly-numbered migration rather than editing this one.
+SELECT 1;

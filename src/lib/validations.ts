@@ -36,7 +36,7 @@ export const InvoiceSchema = formObject({
   advance_received: z.number().min(0).default(0),
   discount_type: z.enum(['fixed', 'percentage']).default('fixed'),
   discount_value: z.number().min(0).default(0),
-  itemsRaw: z.string().optional(), // Used to parse the JSON string from FormData
+  itemsRaw: z.string().optional(),
   items: z.array(z.object({
     description: z.string().min(1, "Description is required"),
     quantity: z.number().min(1, "Quantity must be at least 1"),
@@ -46,7 +46,7 @@ export const InvoiceSchema = formObject({
   if (data.itemsRaw && !data.items) {
     try {
       data.items = JSON.parse(data.itemsRaw);
-    } catch (e) {
+    } catch {
       data.items = [];
     }
   }
@@ -87,7 +87,6 @@ export const CheckOutSchema = z.object({
   }),
 });
 
-
 export const EmployeeProfileSchema = formObject({
   location: z.string().optional().nullable(),
   dob: z.string().optional().nullable(),
@@ -110,7 +109,6 @@ export const SubtaskToggleSchema = z.object({
 
 export const ClientRecordSchema = formObject({
   clientType: z.enum(['personal', 'company']).default('company'),
-  // For a Company this is the Company Name; for a Personal client this is the individual's Name.
   companyName: z.string().min(1, "Name is required"),
   natureOfCompany: z.string().optional(),
   newNatureOfCompany: z.string().optional(),
@@ -124,7 +122,6 @@ export const ClientRecordSchema = formObject({
   status: z.string().optional(),
   panNumber: z.string().optional(),
   vatId: z.string().optional(),
-  // Company-only frequent contact person (mandatory when clientType === 'company').
   frequentContactPerson: z.string().optional(),
   frequentContactNumber: z.string().optional(),
   tiktok: z.string().optional(),
@@ -159,7 +156,6 @@ export const ClientMeetingSchema = formObject({
   notes: z.string().optional().nullable(),
 });
 
-// ── Employee (Admin) ──
 export const CreateEmployeeSchema = formObject({
   loginId: z.string().min(1, "Login ID is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -193,10 +189,9 @@ export const UpdateEmployeeSchema = z.object({
   social_urls: z.record(z.string(), z.string()).nullable().optional(),
 });
 
-// ── Expense ──
 export const CreateExpenseSchema = formObject({
-  project_id: z.string().optional(),
-  client_id: z.string().optional(),
+  project_id: z.string().uuid().optional().or(z.literal('')),
+  client_id: z.string().uuid().optional().or(z.literal('')),
   category: z.string().min(1, "Category is required"),
   amount: z.number().positive("Amount must be greater than zero"),
   description: z.string().min(1, "Description is required"),
@@ -210,7 +205,6 @@ export const ExpenseStatusSchema = z.object({
   status: z.enum(['pending', 'approved', 'rejected', 'reimbursed']),
 });
 
-// ── Task (Admin) ──
 export const AssignTaskSchema = formObject({
   project_id: z.string().uuid("Project is required"),
   phase: z.string().min(1, "Phase is required"),
@@ -233,7 +227,6 @@ export const UpdateTaskSchema = formObject({
   status: z.string().optional(),
 });
 
-// ── Project ──
 export const CreateProjectSchema = formObject({
   client_id: z.string().uuid("Client is required"),
   title: z.string().min(1, "Project title is required"),
@@ -250,10 +243,9 @@ export const ProjectBudgetSchema = z.object({
 
 export const ProjectStatusSchema = z.object({
   projectId: z.string().uuid(),
-  status: z.string().min(1),
+  status: z.enum(['not_started', 'in_progress', 'on_hold', 'completed', 'cancelled']),
 });
 
-// ── Equipment ──
 export const EquipmentSchema = formObject({
   name: z.string().min(1, "Name is required"),
   brand: z.string().optional(),
@@ -281,7 +273,6 @@ export const MaintenanceSchema = z.object({
   notes: z.string().optional(),
 });
 
-// ── Talent ──
 export const TalentSchema = formObject({
   full_name: z.string().min(1, "Full name is required"),
   stage_name: z.string().optional(),
@@ -301,7 +292,7 @@ export const TalentSchema = formObject({
 
 export const TalentBookingSchema = formObject({
   talent_id: z.string().uuid("Talent is required"),
-  project_id: z.string().optional(),
+  project_id: z.string().uuid().optional().or(z.literal('')),
   booking_date: z.string().min(1, "Booking date is required"),
   end_date: z.string().optional(),
   rate_type: z.string().min(1, "Rate type is required"),
@@ -311,14 +302,12 @@ export const TalentBookingSchema = formObject({
   notes: z.string().optional(),
 });
 
-// ── Calendar (Admin) ──
 export const QuickUpdateTaskDateSchema = z.object({
   taskId: z.string().uuid(),
   startDate: z.string().nullable().optional(),
   deadline: z.string().min(1, "Deadline is required"),
 });
 
-// ── Login ──
 export const LoginSchema = z.object({
   email: z.string().min(1, "Email or login ID is required"),
   password: z.string().min(1, "Password is required"),
@@ -328,7 +317,6 @@ export const ChangePasscodeSchema = z.object({
   newPasscode: z.string().min(8, "Passcode must be at least 8 characters"),
 });
 
-// ── Generic shared validators (used across all server actions) ──
 export const UuidParamSchema = z.object({
   id: z.string().uuid("Invalid UUID"),
 });
@@ -343,4 +331,14 @@ export const MaintenanceStatusSchema = z.object({
   maintenanceId: z.string().uuid(),
   status: z.enum(['scheduled', 'in_progress', 'completed']),
   completed_date: z.string().optional().nullable(),
+});
+
+export const InvoiceStatusUpdateSchema = z.object({
+  invoiceId: z.string().uuid(),
+  status: z.enum(['draft', 'sent', 'viewed', 'paid', 'partially_paid', 'overdue', 'cancelled']),
+});
+
+export const BookingStatusUpdateSchema = z.object({
+  bookingId: z.string().uuid(),
+  status: z.enum(['proposed', 'confirmed', 'completed', 'cancelled']),
 });

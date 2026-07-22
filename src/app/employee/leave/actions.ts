@@ -25,7 +25,7 @@ export async function requestLeave(formData: FormData) {
   // Calculate working days
   const start = new Date(start_date)
   const end = new Date(end_date)
-  
+
   if (start > end) {
     return { error: 'Start date must be before end date' }
   }
@@ -36,7 +36,7 @@ export async function requestLeave(formData: FormData) {
     .select('date')
     .gte('date', start_date)
     .lte('date', end_date)
-    
+
   const holidayDates = new Set(holidays?.map(h => h.date) || [])
 
   let workingDays = 0
@@ -127,9 +127,11 @@ export async function cancelLeave(requestId: string) {
     .single()
 
   if (balance) {
+    // FIX: Ensure used_days never goes negative
+    const newUsedDays = Math.max(0, Number(balance.used_days) - Number(request.total_days))
     await supabase
       .from('leave_balances')
-      .update({ used_days: Number(balance.used_days) - Number(request.total_days) })
+      .update({ used_days: newUsedDays })
       .eq('id', balance.id)
   }
 

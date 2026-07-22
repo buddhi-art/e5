@@ -18,14 +18,16 @@ export async function getNotifications(): Promise<NotificationItem[]> {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, designation')
         .eq('id', user.id)
         .single()
 
-    const isAdmin = profile?.role === 'admin'
+    // Founders (designation = 'Founder') see the same notifications as admins.
+    // There is no 'founder' role value — the user_role enum is ('admin', 'employee').
+    const isAdminOrFounder = profile?.role === 'admin' || profile?.designation === 'Founder'
     const notifications: NotificationItem[] = []
 
-    if (isAdmin) {
+    if (isAdminOrFounder) {
         // Pending leave requests
         const { data: pendingLeaves } = await supabase
             .from('leave_requests')
@@ -77,11 +79,11 @@ export async function getNotifications(): Promise<NotificationItem[]> {
             })
         }
 
-        // Overdue invoices
+        // Overdue invoices - FIXED: Removed 'draft' from status filter
         const { data: overdueInvoices } = await supabase
             .from('invoices')
             .select('id, invoice_number, due_date, clients(company_name)')
-            .in('status', ['sent', 'partially_paid', 'draft'])
+            .in('status', ['sent', 'partially_paid'])
             .lt('due_date', todayStr)
             .is('deleted_at', null)
             .order('due_date', { ascending: true })

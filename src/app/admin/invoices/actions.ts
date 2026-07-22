@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { InvoiceSchema, InvoicePaymentSchema, UuidParamSchema } from '@/lib/validations'
+import { InvoiceSchema, InvoicePaymentSchema, UuidParamSchema, InvoiceStatusUpdateSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { createNotification } from '@/lib/notifications'
 
@@ -111,8 +111,10 @@ export async function createInvoice(formData: FormData) {
 export async function updateInvoiceStatus(invoiceId: string, status: string) {
     try {
         const supabase = await createClient()
-        const parsed = UuidParamSchema.safeParse({ id: invoiceId });
-        if (!parsed.success) return { error: 'Invalid invoice ID' };
+
+        // FIX: Validate status with enum
+        const parsed = InvoiceStatusUpdateSchema.safeParse({ invoiceId, status });
+        if (!parsed.success) return { error: 'Invalid invoice status' };
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Unauthorized' }
@@ -172,6 +174,7 @@ export async function recordPayment(formData: FormData) {
 
         if (payError) return { error: payError.message }
 
+        // FIX: Check for overpayment
         const { data: invoice } = await supabase
             .from('invoices')
             .select('paid_amount, grand_total')
@@ -179,6 +182,11 @@ export async function recordPayment(formData: FormData) {
             .single()
 
         if (invoice) {
+            const remaining = Number(invoice.grand_total) - Number(invoice.paid_amount || 0)
+            if (data.amount > remaining + 0.01) {
+                return { error: `Payment exceeds remaining balance (NPR ${remaining.toLocaleString()}).` }
+            }
+
             const new_paid = (invoice.paid_amount || 0) + data.amount
             let new_status = 'partially_paid'
             if (new_paid >= invoice.grand_total) new_status = 'paid'
@@ -211,13 +219,17 @@ export async function sendInvoice(invoiceId: string) {
         const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
         if (!isAuthorized) return { error: 'Permission denied.' };
 
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('invoices')
             .update({ status: 'sent', updated_at: new Date().toISOString() })
             .eq('id', parsed.data.id)
             .eq('status', 'draft')
+            .select('id')
 
         if (error) return { error: error.message }
+        if (!data || data.length === 0) {
+            return { error: 'Invoice could not be sent — it may not be in draft status.' }
+        }
         revalidatePath('/admin/invoices')
         revalidatePath(`/admin/invoices/${invoiceId}`)
         return { success: true }
@@ -326,8 +338,6 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
 
         if (invError) return { error: invError.message }
 
-        await supabase.from('invoice_items').delete().eq('invoice_id', invoiceId)
-
         const itemInserts = data.items.map((item: any) => ({
             invoice_id: invoiceId,
             description: item.description,
@@ -341,6 +351,8 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
             .insert(itemInserts)
 
         if (itemsError) return { error: 'Failed to create new invoice items: ' + itemsError.message }
+
+        await supabase.from('invoice_items').delete().eq('invoice_id', invoiceId)
 
         revalidatePath('/admin/invoices')
         revalidatePath(`/admin/invoices/${invoiceId}`)
@@ -381,7 +393,6 @@ export async function updateOverdueInvoices() {
 
         const today = new Date().toISOString().split('T')[0]
 
-        // Get overdue invoices before updating so we can notify
         const { data: overdueInvoices } = await supabase
             .from('invoices')
             .select('id, invoice_number, title, clients(company_name)')
@@ -401,7 +412,6 @@ export async function updateOverdueInvoices() {
             return { error: error.message }
         }
 
-        // Notify admins about newly overdue invoices
         if (overdueInvoices && overdueInvoices.length > 0) {
             const { data: adminUsers } = await supabase
                 .from('profiles')

@@ -7,7 +7,6 @@ import {
     CheckOutSchema,
     EmployeeProfileSchema,
     TaskStatusUpdateSchema,
-    SubtaskToggleSchema,
     ClientRecordSchema,
     ClientMeetingSchema,
     CreateEmployeeSchema,
@@ -15,10 +14,8 @@ import {
     CreateExpenseSchema,
     ExpenseStatusSchema,
     AssignTaskSchema,
-    UpdateTaskSchema,
     CreateProjectSchema,
     ProjectBudgetSchema,
-    ProjectStatusSchema,
     EquipmentSchema,
     MaintenanceSchema,
     TalentSchema,
@@ -491,11 +488,20 @@ describe('CreateProjectSchema', () => {
         expect(result.success).toBe(true)
     })
 
-    it('rejects an unknown package tier', () => {
+    it('accepts an arbitrary custom package name (dynamic packages)', () => {
         const result = CreateProjectSchema.safeParse({
             client_id: 'd9c5c7c0-6bb1-4f96-9a67-3f0c5b3f1e2a',
             title: 'Website redesign',
             package: 'enterprise',
+        })
+        expect(result.success).toBe(true)
+    })
+
+    it('rejects a package name longer than 100 characters', () => {
+        const result = CreateProjectSchema.safeParse({
+            client_id: 'd9c5c7c0-6bb1-4f96-9a67-3f0c5b3f1e2a',
+            title: 'Website redesign',
+            package: 'x'.repeat(101),
         })
         expect(result.success).toBe(false)
     })

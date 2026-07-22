@@ -130,6 +130,9 @@ export async function updateEquipment(id: string, formData: FormData) {
   return { success: true }
 }
 
+// Permanent, irreversible removal. The UI exposes this only for already-archived
+// equipment behind a "Permanently Delete" confirmation; use archiveEquipment for
+// the reversible soft-delete path.
 export async function deleteEquipment(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -147,6 +150,7 @@ export async function deleteEquipment(id: string) {
   return { success: true }
 }
 
+// Reverse an archive: clear the soft-delete marker and return the item to service.
 export async function restoreEquipment(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -157,11 +161,14 @@ export async function restoreEquipment(id: string) {
   const parsed = UuidParamSchema.safeParse({ id });
   if (!parsed.success) return { error: 'Invalid equipment ID' };
 
-  const { error } = await supabase.from('equipment').update({ status: 'available', deleted_at: null }).eq('id', parsed.data.id)
+  const { error } = await supabase
+    .from('equipment')
+    .update({ deleted_at: null, status: 'available' })
+    .eq('id', parsed.data.id)
   if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')
-  revalidatePath(`/admin/equipment/${id}`)
+  revalidatePath(`/admin/equipment/${parsed.data.id}`)
   return { success: true }
 }
 

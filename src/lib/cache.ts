@@ -28,7 +28,10 @@ const globalCache = {
   get: async (key: string) => {
     if (redis) {
       try {
-        return await redis.get(key)
+        const val = await redis.get(key)
+        if (val === null) return null
+        // FIX: Handle both string and object responses from Redis
+        try { return JSON.parse(val as string) } catch { return val }
       } catch (e) {
         console.warn('Redis get failed, falling back to node-cache', e)
       }
@@ -36,9 +39,11 @@ const globalCache = {
     return nodeCache.get(key)
   },
   set: async (key: string, value: any, ttlSeconds: number = DEFAULT_TTL) => {
+    // FIX: Serialize objects before storing in Redis
+    const serialized = typeof value === 'string' ? value : JSON.stringify(value)
     if (redis) {
       try {
-        await redis.set(key, value, { ex: ttlSeconds })
+        await redis.set(key, serialized, { ex: ttlSeconds })
         return true
       } catch (e) {
         console.warn('Redis set failed, falling back to node-cache', e)

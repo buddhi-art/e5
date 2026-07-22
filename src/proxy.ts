@@ -19,7 +19,7 @@ export async function proxy(request: NextRequest) {
 
     try {
         return await updateSession(request)
-    } catch (error: any) {
+    } catch {
         // Any auth/network failure: redirect to login safely
         const loginUrl = request.nextUrl.clone()
         loginUrl.pathname = '/login'

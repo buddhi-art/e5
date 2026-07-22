@@ -17,13 +17,23 @@ const hasRedisEnv = !!(
 
 const redis: Redis | null = hasRedisEnv
   ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    })
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  })
   : null
 
 // In-memory fallback (single-process only)
 const memoryStore = new Map<string, { count: number; resetAt: number }>()
+
+// FIX: Clean up expired entries every 5 minutes to prevent memory leak
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, entry] of memoryStore.entries()) {
+    if (now > entry.resetAt) {
+      memoryStore.delete(key)
+    }
+  }
+}, 5 * 60 * 1000)
 
 export interface RateLimitResult {
   success: boolean
