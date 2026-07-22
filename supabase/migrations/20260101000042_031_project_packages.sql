@@ -18,8 +18,9 @@ alter table projects
 --    (the project forms need to list options). Mirrors verifyAdminOrFounder().
 alter table project_packages enable row level security;
 
--- Drop existing policy if exists to prevent duplicate policy errors
+-- Drop existing policies if exists to prevent duplicate policy errors
 drop policy if exists "Admins and founders manage project packages" on project_packages;
+drop policy if exists "Authenticated users view project packages" on project_packages;
 
 create policy "Admins and founders manage project packages" on project_packages for all
   using (auth.uid() in (
