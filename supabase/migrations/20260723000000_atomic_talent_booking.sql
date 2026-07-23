@@ -71,6 +71,7 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- Simplified exclusion constraint that doesn't use COALESCE in the index expression
 -- This handles date ranges (multi-day bookings)
+ALTER TABLE talent_bookings DROP CONSTRAINT IF EXISTS no_overlapping_date_range_bookings;
 ALTER TABLE talent_bookings ADD CONSTRAINT no_overlapping_date_range_bookings
 EXCLUDE USING gist (
     talent_id WITH =,
@@ -79,6 +80,7 @@ EXCLUDE USING gist (
 WHERE (status IN ('proposed', 'confirmed') AND end_date IS NOT NULL);
 
 -- Add a separate constraint for single-day bookings
+ALTER TABLE talent_bookings DROP CONSTRAINT IF EXISTS no_overlapping_single_day_bookings;
 ALTER TABLE talent_bookings ADD CONSTRAINT no_overlapping_single_day_bookings
 EXCLUDE USING gist (
     talent_id WITH =,
