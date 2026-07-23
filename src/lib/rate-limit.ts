@@ -26,7 +26,7 @@ const redis: Redis | null = hasRedisEnv
 const memoryStore = new Map<string, { count: number; resetAt: number }>()
 
 // FIX: Clean up expired entries every 5 minutes to prevent memory leak
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now()
   for (const [key, entry] of memoryStore.entries()) {
     if (now > entry.resetAt) {
@@ -34,6 +34,10 @@ setInterval(() => {
     }
   }
 }, 5 * 60 * 1000)
+
+if (cleanupInterval.unref) {
+  cleanupInterval.unref()
+}
 
 export interface RateLimitResult {
   success: boolean

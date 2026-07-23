@@ -19,9 +19,9 @@ export async function recomputeKpisAction() {
 
         revalidatePath('/admin/employees')
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in recomputeKpisAction:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -42,9 +42,9 @@ export async function getEmployeeKpiBreakdown(employeeId: string) {
         }
 
         return { data }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in getEmployeeKpiBreakdown:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -65,8 +65,8 @@ export async function getEmployeeKpiScore(employeeId: string) {
         }
 
         return { data: Number(data) }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in getEmployeeKpiScore:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }

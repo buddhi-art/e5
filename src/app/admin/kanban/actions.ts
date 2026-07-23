@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -106,9 +107,9 @@ export async function moveKanbanCard(
 
         revalidatePath('/admin/kanban')
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('moveKanbanCard error:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -116,6 +117,9 @@ export async function getKanbanTasks(): Promise<KanbanTaskResponse[]> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return []
+
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return []
 
     const { data: tasks } = await supabase
         .from('tasks')

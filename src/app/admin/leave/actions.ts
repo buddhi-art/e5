@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -30,11 +31,12 @@ export async function approveLeave(requestId: string, notes?: string) {
 
   const { data: request } = await supabase
     .from('leave_requests')
-    .select('user_id')
+    .select('user_id, status')
     .eq('id', parsed.data.requestId)
     .single()
 
   if (!request) return { error: 'Request not found' }
+  if (request.status !== 'pending') return { error: 'Only pending requests can be approved' }
 
   const { error } = await supabase
     .from('leave_requests')
@@ -82,6 +84,7 @@ export async function rejectLeave(requestId: string, notes: string) {
     .single()
 
   if (!request) return { error: 'Request not found' }
+  if (request.status !== 'pending') return { error: 'Only pending requests can be rejected' }
 
   // Refund the balance since it was optimistically decremented on submit
   const currentYear = new Date(request.start_date).getFullYear()

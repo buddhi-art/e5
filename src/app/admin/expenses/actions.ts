@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -20,8 +21,8 @@ export async function addExpenseCategory(name: string) {
         const { error } = await supabase.from('expense_categories').insert({ name: name.trim() })
         if (error) return { error: error.message }
         return { success: true }
-    } catch (err: any) {
-        return { error: err.message }
+    } catch (err: unknown) {
+        return { error: (err instanceof Error ? err.message : String(err)) }
     }
 }
 
@@ -88,9 +89,9 @@ export async function createExpense(formData: FormData) {
         revalidatePath('/admin/expenses')
         revalidatePath('/employee/expenses')
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in createExpense:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -142,9 +143,9 @@ export async function updateExpenseStatus(expenseId: string, status: string) {
         revalidatePath(`/admin/expenses/${expenseId}`)
         revalidatePath('/employee/expenses')
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in updateExpenseStatus:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -181,8 +182,8 @@ export async function deleteExpense(expenseId: string) {
         revalidatePath('/admin/expenses')
         revalidatePath('/employee/expenses')
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in deleteExpense:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }

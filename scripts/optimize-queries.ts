@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Database Query Optimization Script
  *

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -102,9 +103,9 @@ export async function createInvoice(formData: FormData) {
 
         revalidatePath('/admin/invoices')
         return { success: true, invoiceId: invoice.id }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in createInvoice:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -131,9 +132,9 @@ export async function updateInvoiceStatus(invoiceId: string, status: string) {
         revalidatePath('/admin/invoices')
         revalidatePath(`/admin/invoices/${invoiceId}`)
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in updateInvoiceStatus:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -201,9 +202,9 @@ export async function recordPayment(formData: FormData) {
         revalidatePath('/admin/invoices')
         revalidatePath(`/admin/invoices/${data.invoice_id}`)
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in recordPayment:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -233,9 +234,9 @@ export async function sendInvoice(invoiceId: string) {
         revalidatePath('/admin/invoices')
         revalidatePath(`/admin/invoices/${invoiceId}`)
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in sendInvoice:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -259,9 +260,9 @@ export async function deleteInvoice(invoiceId: string) {
         if (error) return { error: error.message }
         revalidatePath('/admin/invoices')
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in deleteInvoice:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -346,20 +347,21 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
             amount: item.quantity * item.unit_price,
         }))
 
+        const { error: deleteError } = await supabase.from('invoice_items').delete().eq('invoice_id', invoiceId)
+        if (deleteError) return { error: 'Failed to remove old invoice items: ' + deleteError.message }
+
         const { error: itemsError } = await supabase
             .from('invoice_items')
             .insert(itemInserts)
 
         if (itemsError) return { error: 'Failed to create new invoice items: ' + itemsError.message }
 
-        await supabase.from('invoice_items').delete().eq('invoice_id', invoiceId)
-
         revalidatePath('/admin/invoices')
         revalidatePath(`/admin/invoices/${invoiceId}`)
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error in updateInvoice:', err)
-        return { error: err.message || 'An unexpected error occurred' }
+        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
     }
 }
 
@@ -377,8 +379,8 @@ export async function getProjectDates(projectId: string) {
             .eq('id', projectId)
             .single()
         return { data }
-    } catch (err: any) {
-        return { error: err.message }
+    } catch (err: unknown) {
+        return { error: (err instanceof Error ? err.message : String(err)) }
     }
 }
 
@@ -439,8 +441,8 @@ export async function updateOverdueInvoices() {
         revalidatePath('/admin/invoices')
         revalidatePath('/admin')
         return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Exception in updateOverdueInvoices:', err)
-        return { error: err.message }
+        return { error: (err instanceof Error ? err.message : String(err)) }
     }
 }

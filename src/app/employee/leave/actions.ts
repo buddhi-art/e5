@@ -22,9 +22,9 @@ export async function requestLeave(formData: FormData) {
 
   const { leave_type_id, start_date, end_date, reason } = parsed.data;
 
-  // Calculate working days
-  const start = new Date(start_date)
-  const end = new Date(end_date)
+  // Calculate working days using UTC to avoid timezone shifts
+  const start = new Date(`${start_date}T00:00:00Z`)
+  const end = new Date(`${end_date}T00:00:00Z`)
 
   if (start > end) {
     return { error: 'Start date must be before end date' }
@@ -42,20 +42,20 @@ export async function requestLeave(formData: FormData) {
   let workingDays = 0
   const current = new Date(start)
   while (current <= end) {
-    const day = current.getDay()
+    const day = current.getUTCDay()
     const dateString = current.toISOString().split('T')[0]
     // Exclude Sat (6) and Sun (0), and holidays
     if (day !== 0 && day !== 6 && !holidayDates.has(dateString)) {
       workingDays++
     }
-    current.setDate(current.getDate() + 1)
+    current.setUTCDate(current.getUTCDate() + 1)
   }
 
   if (workingDays === 0) {
     return { error: 'Request does not contain any working days' }
   }
 
-  const currentYear = new Date().getFullYear()
+  const currentYear = start.getUTCFullYear()
 
   // Fetch leave balance
   const { data: balance, error: balanceError } = await supabase
@@ -117,7 +117,7 @@ export async function cancelLeave(requestId: string) {
   if (request.status !== 'pending') return { error: 'Only pending requests can be cancelled' }
 
   // Refund balance
-  const currentYear = new Date(request.start_date).getFullYear()
+  const currentYear = new Date(`${request.start_date}T00:00:00Z`).getUTCFullYear()
   const { data: balance } = await supabase
     .from('leave_balances')
     .select('*')

@@ -6,6 +6,9 @@ export async function getStorageSignedUrl(bucket: string, filePath: string): Pro
     if (!filePath) return null
     try {
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return null
+
         const { data, error } = await supabase.storage
             .from(bucket)
             .createSignedUrl(filePath, 3600)

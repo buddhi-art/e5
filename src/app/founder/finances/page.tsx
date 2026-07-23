@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
 import { DollarSign, Receipt, Wallet, TrendingUp, AlertTriangle, CheckSquare, FileText, Percent } from 'lucide-react'

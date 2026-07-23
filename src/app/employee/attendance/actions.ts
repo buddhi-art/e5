@@ -5,9 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { CheckOutSchema } from '@/lib/validations'
 
 function getNepalDate() {
-  const d = new Date()
-  d.setMinutes(d.getMinutes() + 345) // UTC+5:45
-  return d.toISOString().split('T')[0]
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kathmandu' })
 }
 
 export async function checkIn() {
@@ -35,8 +33,8 @@ export async function checkIn() {
 
     revalidatePath('/employee/attendance')
     return { success: true, checkInTime: now }
-  } catch (err: any) {
-    return { error: err.message }
+  } catch (err: unknown) {
+    return { error: (err instanceof Error ? err.message : String(err)) }
   }
 }
 
@@ -81,7 +79,7 @@ export async function checkOut(daySummary: string) {
 
     revalidatePath('/employee/attendance')
     return { success: true, checkOutTime: now }
-  } catch (err: any) {
-    return { error: err.message }
+  } catch (err: unknown) {
+    return { error: (err instanceof Error ? err.message : String(err)) }
   }
 }

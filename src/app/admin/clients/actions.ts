@@ -87,9 +87,9 @@ export async function createClientRecord(formData: FormData) {
 
     revalidatePath('/admin/clients')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in createClientRecord:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -177,9 +177,9 @@ export async function updateClientRecord(clientId: string, formData: FormData) {
     revalidatePath('/admin/clients')
     revalidatePath(`/admin/clients/${clientId}`)
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in updateClientRecord:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -212,9 +212,9 @@ export async function archiveClient(clientId: string) {
     revalidatePath('/admin/clients')
     revalidatePath('/admin/projects')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in archiveClient:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -253,8 +253,8 @@ export async function createClientMeeting(formData: FormData) {
     revalidatePath(`/admin/clients/${data.client_id}`)
     revalidatePath('/admin/calendar')
     return { success: true }
-  } catch (err: any) {
-    return { error: err.message }
+  } catch (err: unknown) {
+    return { error: (err instanceof Error ? err.message : String(err)) }
   }
 }
 
@@ -279,9 +279,9 @@ export async function deleteClient(clientId: string) {
     revalidatePath('/admin/clients')
     revalidatePath('/admin/projects')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in deleteClient:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -306,8 +306,8 @@ export async function restoreClient(clientId: string) {
     revalidatePath('/admin/clients')
     revalidatePath('/admin/projects')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in restoreClient:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }

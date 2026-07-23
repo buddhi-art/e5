@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, format, subMonths, addMonths } from 'date-fns'

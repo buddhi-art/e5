@@ -41,9 +41,9 @@ export async function createProject(formData: FormData) {
     revalidatePath('/founder/projects')
     revalidatePath(`/admin/clients/${data.client_id}`)
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in createProject:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -84,9 +84,9 @@ export async function updateProject(projectId: string, formData: FormData) {
     revalidatePath('/admin/projects')
     revalidatePath('/founder/projects')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in updateProject:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -113,9 +113,9 @@ export async function archiveProject(projectId: string) {
     revalidatePath('/admin/projects')
     revalidatePath('/founder/projects')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in archiveProject:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -142,9 +142,9 @@ export async function deleteProject(projectId: string) {
     revalidatePath('/admin/projects')
     revalidatePath('/founder/projects')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in deleteProject:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -171,9 +171,9 @@ export async function restoreProject(projectId: string) {
     revalidatePath('/admin/projects')
     revalidatePath('/founder/projects')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in restoreProject:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -209,9 +209,9 @@ export async function setProjectBudget(projectId: string, formData: FormData) {
     revalidatePath(`/admin/projects/${projectId}/budget`)
     revalidatePath(`/admin/projects`)
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in setProjectBudget:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -262,9 +262,9 @@ export async function getProjectFinancials(projectId: string) {
       profit,
       margin,
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in getProjectFinancials:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -291,9 +291,9 @@ export async function updateProjectStatus(projectId: string, status: string) {
     revalidatePath('/admin/projects')
     revalidatePath('/founder/projects')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in updateProjectStatus:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -303,13 +303,16 @@ export async function getProjectDates(projectId: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
     const { data } = await supabase
       .from('projects')
       .select('start_date, end_date')
       .eq('id', projectId)
       .single()
     return { data }
-  } catch (err: any) {
-    return { error: err.message }
+  } catch (err: unknown) {
+    return { error: (err instanceof Error ? err.message : String(err)) }
   }
 }

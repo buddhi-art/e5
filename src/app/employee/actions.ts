@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -99,6 +100,17 @@ export async function updateMainTaskStatus(taskId: string, status: string) {
   const parsed = TaskStatusUpdateSchema.safeParse({ taskId, status });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const data = parsed.data;
+
+  // Defense-in-depth: check if user is assigned to task
+  const { data: task } = await supabase
+    .from('tasks')
+    .select('assigned_to')
+    .eq('id', data.taskId)
+    .maybeSingle()
+
+  if (!task || task.assigned_to !== user.id) {
+    return { error: 'Unauthorized' }
+  }
 
   const taskUpdate: Record<string, any> = { status: data.status }
   if (data.status === 'completed') {

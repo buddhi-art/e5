@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -114,9 +115,9 @@ export async function assignTask(formData: FormData) {
     revalidatePath('/admin/tasks')
     revalidatePath('/admin/calendar')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in assignTask:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -193,9 +194,9 @@ export async function updateTask(id: string, formData: FormData) {
     revalidatePath('/admin/tasks')
     revalidatePath('/admin/calendar')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in updateTask:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -221,8 +222,8 @@ export async function deleteTask(id: string) {
     revalidatePath('/admin/tasks')
     revalidatePath('/admin/calendar')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in deleteTask:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }

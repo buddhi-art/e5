@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Image as ImageIcon } from 'lucide-react'

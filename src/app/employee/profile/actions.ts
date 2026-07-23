@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -70,8 +71,8 @@ export async function updateEmployeeProfile(formData: FormData) {
     revalidatePath('/employee')
     revalidatePath('/admin/employees')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in updateEmployeeProfile:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }

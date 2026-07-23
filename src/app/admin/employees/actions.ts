@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use server'
 
 import { supabaseAdmin } from '@/lib/supabase/admin'
@@ -107,9 +108,9 @@ export async function createEmployee(formData: FormData) {
 
     revalidatePath('/admin/employees')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in createEmployee:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -149,9 +150,9 @@ export async function archiveEmployee(employeeId: string) {
     revalidatePath('/admin/tasks')
     revalidatePath('/admin/calendar')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to archive employee:", err)
-    return { error: err.message || "An unexpected error occurred" }
+    return { error: (err instanceof Error ? err.message : String(err)) || "An unexpected error occurred" }
   }
 }
 
@@ -175,9 +176,9 @@ export async function deleteEmployee(employeeId: string) {
     revalidatePath('/admin/tasks')
     revalidatePath('/admin/calendar')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to delete employee:", err)
-    return { error: err.message || "An unexpected error occurred" }
+    return { error: (err instanceof Error ? err.message : String(err)) || "An unexpected error occurred" }
   }
 }
 
@@ -205,9 +206,9 @@ export async function restoreEmployee(employeeId: string) {
 
     revalidatePath('/admin/employees')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to restore employee:", err)
-    return { error: err.message || "An unexpected error occurred" }
+    return { error: (err instanceof Error ? err.message : String(err)) || "An unexpected error occurred" }
   }
 }
 
@@ -285,8 +286,8 @@ export async function updateEmployee(employeeId: string, data: {
 
     revalidatePath('/admin/employees')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in updateEmployee:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }

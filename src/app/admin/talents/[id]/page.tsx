@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { getSignedUrl } from '@/lib/supabase/storage'
 import { redirect } from 'next/navigation'

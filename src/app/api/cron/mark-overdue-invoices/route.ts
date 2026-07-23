@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({ updated: data })
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('CRON handler error:', err)
-        return NextResponse.json({ error: err.message }, { status: 500 })
+        return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)) }, { status: 500 })
     }
 }

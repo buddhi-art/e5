@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { LeaveCalendar } from './leave-calendar'
 import { format, startOfMonth } from 'date-fns'

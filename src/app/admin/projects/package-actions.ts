@@ -21,9 +21,9 @@ export async function listPackages(): Promise<{ data: ProjectPackage[]; error?: 
 
     if (error) return { data: [], error: error.message }
     return { data: (data || []) as ProjectPackage[] }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in listPackages:', err)
-    return { data: [], error: err.message || 'An unexpected error occurred' }
+    return { data: [], error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -52,9 +52,9 @@ export async function createPackage(name: string): Promise<{ data?: ProjectPacka
     }
 
     return { data: data as ProjectPackage }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in createPackage:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }
 
@@ -76,8 +76,8 @@ export async function deletePackage(id: string): Promise<{ success?: boolean; er
 
     if (error) return { error: error.message }
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in deletePackage:', err)
-    return { error: err.message || 'An unexpected error occurred' }
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
   }
 }

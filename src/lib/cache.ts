@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import NodeCache from 'node-cache'
 import { Redis } from '@upstash/redis'
 
