@@ -84,62 +84,75 @@ interface CalendarMeeting {
  clients: { company_name: string } | null
 }
 
+interface CalendarPackageShoot {
+  id: string
+  shoot_date: string
+  location_address: string | null
+  package_id: string
+  package_title: string
+  package_number: string
+  client_id: string | null
+  client_name: string | null
+}
+
 interface EmployeeInfo {
- id: string
- full_name: string
+  id: string
+  full_name: string
 }
 
 interface ProjectInfo {
- id: string
- title: string
- client_name: string | null
- start_date: string | null
- end_date: string | null
+  id: string
+  title: string
+  client_name: string | null
+  start_date: string | null
+  end_date: string | null
 }
 
 interface ClientInfo {
- id: string
- company_name: string
+  id: string
+  company_name: string
 }
 
 type ViewMode = 'month' | 'week'
 
 export function CalendarMonthGrid({
- currentDate,
- tasks,
- leaves,
- holidays,
- meetings,
- projects,
- allEmployees,
- allProjects,
- allClients,
- projectFilter,
- employeeFilter,
- clientFilter,
- viewMode,
- onNavigatePrev,
- onNavigateNext,
- onToday,
- onViewModeChange,
+  currentDate,
+  tasks,
+  leaves,
+  holidays,
+  meetings,
+  shoots = [],
+  projects,
+  allEmployees,
+  allProjects,
+  allClients,
+  projectFilter,
+  employeeFilter,
+  clientFilter,
+  viewMode,
+  onNavigatePrev,
+  onNavigateNext,
+  onToday,
+  onViewModeChange,
 }: {
- currentDate: Date
- tasks: CalendarTask[]
- leaves: CalendarLeave[]
- holidays: CalendarHoliday[]
- meetings: CalendarMeeting[]
- projects: ProjectInfo[]
- allEmployees: EmployeeInfo[]
- allProjects: ProjectInfo[]
- allClients: ClientInfo[]
- projectFilter: string
- employeeFilter: string
- clientFilter: string
- viewMode: ViewMode
- onNavigatePrev: () => void
- onNavigateNext: () => void
- onToday: () => void
- onViewModeChange: (mode: ViewMode) => void
+  currentDate: Date
+  tasks: CalendarTask[]
+  leaves: CalendarLeave[]
+  holidays: CalendarHoliday[]
+  meetings: CalendarMeeting[]
+  shoots?: CalendarPackageShoot[]
+  projects: ProjectInfo[]
+  allEmployees: EmployeeInfo[]
+  allProjects: ProjectInfo[]
+  allClients: ClientInfo[]
+  projectFilter: string
+  employeeFilter: string
+  clientFilter: string
+  viewMode: ViewMode
+  onNavigatePrev: () => void
+  onNavigateNext: () => void
+  onToday: () => void
+  onViewModeChange: (mode: ViewMode) => void
 }) {
  const router = useRouter()
  const [selectedDay, setSelectedDay] = useState<Date | null>(new Date())
@@ -253,41 +266,55 @@ export function CalendarMonthGrid({
 
  // Group meetings by date
  const meetingsByDate = useMemo(() => {
- const map = new Map<string, CalendarMeeting[]>()
- meetings.forEach(m => {
- const key = format(new Date(m.meeting_date), 'yyyy-MM-dd')
- if (!map.has(key)) map.set(key, [])
- map.get(key)!.push(m)
- })
- return map
+   const map = new Map<string, CalendarMeeting[]>()
+   meetings.forEach(m => {
+     const key = format(new Date(m.meeting_date), 'yyyy-MM-dd')
+     if (!map.has(key)) map.set(key, [])
+     map.get(key)!.push(m)
+   })
+   return map
  }, [meetings])
+
+ // Group shoots by date
+ const shootsByDate = useMemo(() => {
+   const map = new Map<string, CalendarPackageShoot[]>()
+   shoots.forEach(s => {
+     if (!s.shoot_date) return
+     const key = format(parseISO(s.shoot_date), 'yyyy-MM-dd')
+     if (!map.has(key)) map.set(key, [])
+     map.get(key)!.push(s)
+   })
+   return map
+ }, [shoots])
 
  // Day cell data
  const dayCellData = useMemo(() => {
- return visibleDays.map(d => {
- const key = format(d, 'yyyy-MM-dd')
- const dayTasks = tasksByDate.get(key) || []
- const dayLeaves = leavesByDate.get(key) || []
- const dayMeetings = meetingsByDate.get(key) || []
- const dayProjects = projectsByDate.get(key) || []
- const holidayName = holidayDates.get(key) || null
- return {
- date: d,
- key,
- dayOfMonth: d.getDate(),
- isCurrentMonth: isSameMonth(d, currentDate),
- isToday: isToday(d),
- isWeekend: d.getDay() === 0 || d.getDay() === 6,
- isHoliday: !!holidayName,
- holidayName,
- tasks: dayTasks,
- leaves: dayLeaves,
- meetings: dayMeetings,
- projects: dayProjects,
- total: dayTasks.length + dayMeetings.length + dayProjects.length + (dayLeaves.length > 0 ? 1 : 0),
- }
- })
- }, [visibleDays, tasksByDate, leavesByDate, meetingsByDate, projectsByDate, holidayDates, currentDate])
+   return visibleDays.map(d => {
+     const key = format(d, 'yyyy-MM-dd')
+     const dayTasks = tasksByDate.get(key) || []
+     const dayLeaves = leavesByDate.get(key) || []
+     const dayMeetings = meetingsByDate.get(key) || []
+     const dayProjects = projectsByDate.get(key) || []
+     const dayShoots = shootsByDate.get(key) || []
+     const holidayName = holidayDates.get(key) || null
+     return {
+       date: d,
+       key,
+       dayOfMonth: d.getDate(),
+       isCurrentMonth: isSameMonth(d, currentDate),
+       isToday: isToday(d),
+       isWeekend: d.getDay() === 0 || d.getDay() === 6,
+       isHoliday: !!holidayName,
+       holidayName,
+       tasks: dayTasks,
+       leaves: dayLeaves,
+       meetings: dayMeetings,
+       projects: dayProjects,
+       shoots: dayShoots,
+       total: dayTasks.length + dayMeetings.length + dayProjects.length + dayShoots.length + (dayLeaves.length > 0 ? 1 : 0),
+     }
+   })
+ }, [visibleDays, tasksByDate, leavesByDate, meetingsByDate, projectsByDate, shootsByDate, holidayDates, currentDate])
 
  // Selected day detail
  const selectedDayData = useMemo(() => {
@@ -406,12 +433,16 @@ export function CalendarMonthGrid({
  >
  {cell.dayOfMonth}
  </span>
-
  <div className="flex items-center gap-0.5">
  {/* Count badges */}
  {cell.tasks.length > 0 && (
  <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${hasOverdue ? 'bg-red-100 text-m3-error ' : 'bg-sky-100 text-primary dark:text-primary'}`}>
  {cell.tasks.length}
+ </span>
+ )}
+ {cell.shoots.length > 0 && (
+ <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+ 🎥 {cell.shoots.length}
  </span>
  )}
  {cell.meetings.length > 0 && (
@@ -442,6 +473,22 @@ export function CalendarMonthGrid({
  ⏰ {overdueTasks.length} overdue
  </div>
  )}
+
+ {/* Package Shoot indicators */}
+ {cell.shoots.map(s => (
+ <div
+ key={s.id}
+ onClick={(e) => {
+ e.stopPropagation()
+ router.push(`/admin/packages/${s.package_id}`)
+ }}
+ className="text-[10px] leading-tight px-1 py-0.5 rounded bg-purple-600 text-white cursor-pointer hover:brightness-110 transition-all truncate font-medium flex items-center gap-1"
+ title={`Shoot: ${s.package_title}${s.client_name ? ` (${s.client_name})` : ''}${s.location_address ? ` @ ${s.location_address}` : ''}`}
+ >
+ <span>🎥</span>
+ <span className="truncate">{s.package_title}</span>
+ </div>
+ ))}
 
  {/* Task indicators — show compact chips */}
  {cell.tasks.slice(0, 3).map(task => {
@@ -590,6 +637,23 @@ export function CalendarMonthGrid({
  </div>
  )
  })}
+ {selectedDayData.shoots.map(s => (
+ <div
+ key={s.id}
+ onClick={() => router.push(`/admin/packages/${s.package_id}`)}
+ className="flex items-center gap-2 text-xs px-2 py-1.5 rounded bg-purple-50 dark:bg-purple-950/30 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/40 text-on-surface"
+ >
+ <span>🎥</span>
+ <span className="flex-1 truncate font-medium">
+ Package Shoot: {s.package_title}
+ </span>
+ {s.location_address && <span className="text-outline truncate max-w-[150px]">📍 {s.location_address}</span>}
+ {s.client_name && <span className="text-outline">{s.client_name}</span>}
+ <span className="text-[10px] font-medium shrink-0 px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+ SHOOT
+ </span>
+ </div>
+ ))}
  {selectedDayData.projects.map(p => (
  <div
  key={p.id}

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useState } from 'react'
@@ -7,20 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { PackageSelect } from '@/components/ui/package-select'
 import { toast } from 'sonner'
 import { Plus } from 'lucide-react'
 
@@ -28,7 +19,6 @@ export function AddProjectDialog({ clientId, clientName }: { clientId: string; c
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [title, setTitle] = useState('')
-    const [pkg, setPkg] = useState<string | null>(null)
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
 
@@ -42,7 +32,6 @@ export function AddProjectDialog({ clientId, clientName }: { clientId: string; c
         const formData = new FormData()
         formData.set('client_id', clientId)
         formData.set('title', title.trim())
-        if (pkg) formData.set('package', pkg)
         if (startDate) formData.set('start_date', startDate)
         if (endDate) formData.set('end_date', endDate)
 
@@ -55,7 +44,6 @@ export function AddProjectDialog({ clientId, clientName }: { clientId: string; c
         } else {
             toast.success('Project created successfully')
             setTitle('')
-            setPkg(null)
             setStartDate('')
             setEndDate('')
             setOpen(false)
@@ -83,13 +71,6 @@ export function AddProjectDialog({ clientId, clientName }: { clientId: string; c
                             required
                             placeholder="e.g., Summer Campaign Video"
                             className="bg-surface-container-high border-outline-variant text-on-surface"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <PackageSelect
-                            name="package"
-                            value={pkg || undefined}
-                            onChange={(val) => setPkg(val)}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">

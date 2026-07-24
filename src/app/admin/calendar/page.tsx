@@ -130,6 +130,25 @@ export default async function CalendarPage() {
         .lte('meeting_date', rangeEnd)
         .order('meeting_date', { ascending: true })
 
+    // Fetch package shoot dates from package_logistics
+    const { data: rawShoots } = await supabase
+        .from('package_logistics')
+        .select(`
+            id,
+            shoot_date,
+            location_address,
+            package_id,
+            packages!inner(
+                id,
+                title,
+                package_number,
+                clients(id, company_name)
+            )
+        `)
+        .not('shoot_date', 'is', null)
+        .gte('shoot_date', rangeStart)
+        .lte('shoot_date', rangeEnd)
+
     // Fetch all employees for the filter dropdown (show all employees, not just those with tasks)
     const { data: allEmployees } = await supabase
         .from('profiles')
@@ -223,6 +242,21 @@ export default async function CalendarPage() {
         clients: Array.isArray(m.clients) ? m.clients[0] : m.clients,
     }))
 
+    const shoots = (rawShoots || []).map((s: any) => {
+        const pkg = Array.isArray(s.packages) ? s.packages[0] : s.packages
+        const client = pkg && Array.isArray(pkg.clients) ? pkg.clients[0] : pkg?.clients
+        return {
+            id: s.id,
+            shoot_date: s.shoot_date,
+            location_address: s.location_address,
+            package_id: s.package_id,
+            package_title: pkg?.title || 'Untitled Package',
+            package_number: pkg?.package_number || '',
+            client_id: client?.id || null,
+            client_name: client?.company_name || null,
+        }
+    })
+
     // Map projects to include client name and dates
     const projectsWithClient = (allProjects || []).map((p: any) => ({
         id: p.id,
@@ -237,7 +271,7 @@ export default async function CalendarPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-on-surface">Production Calendar</h1>
-                    <p className="text-sm text-on-surface-variant">Timeline view of tasks, leave, client meetings, and holidays across projects.</p>
+                    <p className="text-sm text-on-surface-variant">Timeline view of tasks, leave, client meetings, package shoots, and holidays across projects.</p>
                 </div>
             </div>
 
@@ -246,6 +280,7 @@ export default async function CalendarPage() {
                 initialLeaves={leaves}
                 initialHolidays={holidays || []}
                 initialMeetings={meetings}
+                initialShoots={shoots}
                 allEmployees={allEmployees || []}
                 allProjects={projectsWithClient}
                 allClients={allClients || []}

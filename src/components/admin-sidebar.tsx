@@ -7,7 +7,7 @@ import {
   Film, LayoutDashboard, Users, UserSquare2, FolderKanban,
   CalendarCheck, CheckSquare, Receipt, Wallet, CalendarOff,
   Camera, ArrowRightLeft, ClipboardCheck, PenTool,
-  CalendarRange, Users2, CalendarDays, ChevronDown, ChevronUp
+  CalendarRange, Users2, CalendarDays, ChevronDown, ChevronUp, Package
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './theme-toggle'
@@ -25,6 +25,7 @@ const adminLinks = [
 ]
 
 const financeLinks = [
+  { name: 'Packages', href: '/admin/packages', icon: Package },
   { name: 'Invoices', href: '/admin/invoices', icon: Receipt },
   { name: 'Expenses', href: '/admin/expenses', icon: Wallet },
 ]

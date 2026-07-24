@@ -22,6 +22,7 @@ interface EmployeeFormProps {
 export function EmployeeForm({ designations = [] }: EmployeeFormProps) {
  const [loading, setLoading] = useState(false)
  const [selectedDesignation, setSelectedDesignation] = useState('')
+ const [hasVehicle, setHasVehicle] = useState('no')
 
  async function handleSubmit(formData: FormData) {
  if (!selectedDesignation) {
@@ -109,19 +110,33 @@ export function EmployeeForm({ designations = [] }: EmployeeFormProps) {
  />
  </div>
 
- {/* Vehicle */}
- <div className="space-y-2">
- <Label className="text-on-surface text-xs uppercase tracking-wider font-medium">Owns Vehicle?</Label>
- <Select name="vehicle" defaultValue="no">
- <SelectTrigger className="bg-surface-container-high border-outline-variant text-on-surface">
- <SelectValue placeholder="Select Yes or No" />
- </SelectTrigger>
- <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
- <SelectItem value="yes">Yes</SelectItem>
- <SelectItem value="no">No</SelectItem>
- </SelectContent>
- </Select>
- </div>
+  {/* Vehicle Section */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="space-y-2">
+      <Label className="text-on-surface text-xs uppercase tracking-wider font-medium">Owns Vehicle?</Label>
+      <Select name="vehicle" value={hasVehicle} onValueChange={(val) => setHasVehicle(val || 'no')}>
+        <SelectTrigger className="bg-surface-container-high border-outline-variant text-on-surface">
+          <SelectValue placeholder="Select Yes or No" />
+        </SelectTrigger>
+        <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
+          <SelectItem value="yes">Yes (Bike / Scooter / Car)</SelectItem>
+          <SelectItem value="no">No Vehicle</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+
+    {hasVehicle === 'yes' && (
+      <div className="space-y-2">
+        <Label htmlFor="vehicleDetails" className="text-on-surface text-xs uppercase tracking-wider font-medium">Vehicle Name & License Plate</Label>
+        <Input
+          id="vehicleDetails"
+          name="vehicleDetails"
+          placeholder="e.g. Royal Enfield Bullet - BA 99 PA 1234"
+          className="bg-surface-container-high border-outline-variant text-on-surface placeholder:text-outline"
+        />
+      </div>
+    )}
+  </div>
 
  {/* Joining Date */}
  <div className="space-y-2">

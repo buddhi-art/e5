@@ -79,32 +79,45 @@ interface ProjectBudget {
  projects: { title: string; status: string; clients: { company_name: string } | null }
 }
 
+interface CalendarPackageShoot {
+  id: string
+  shoot_date: string
+  location_address: string | null
+  package_id: string
+  package_title: string
+  package_number: string
+  client_id: string | null
+  client_name: string | null
+}
+
 type ViewMode = 'month' | 'week'
 
 export function ProductionCalendar({
- initialTasks,
- initialLeaves,
- initialHolidays,
- initialMeetings = [],
- allEmployees = [],
- allProjects = [],
- allClients = [],
- overdueTasks = [],
- projectBudgets = [],
- expenseByProject = {},
- workloadByEmployee = {},
+  initialTasks,
+  initialLeaves,
+  initialHolidays,
+  initialMeetings = [],
+  initialShoots = [],
+  allEmployees = [],
+  allProjects = [],
+  allClients = [],
+  overdueTasks = [],
+  projectBudgets = [],
+  expenseByProject = {},
+  workloadByEmployee = {},
 }: {
- initialTasks: CalendarTask[]
- initialLeaves: CalendarLeave[]
- initialHolidays: CalendarHoliday[]
- initialMeetings?: CalendarMeeting[]
- allEmployees?: EmployeeInfo[]
- allProjects?: ProjectInfo[]
- allClients?: ClientInfo[]
- overdueTasks?: OverdueTask[]
- projectBudgets?: ProjectBudget[]
- expenseByProject?: Record<string, number>
- workloadByEmployee?: Record<string, { total: number; pending: number; in_progress: number; completed: number; employee_name: string }>
+  initialTasks: CalendarTask[]
+  initialLeaves: CalendarLeave[]
+  initialHolidays: CalendarHoliday[]
+  initialMeetings?: CalendarMeeting[]
+  initialShoots?: CalendarPackageShoot[]
+  allEmployees?: EmployeeInfo[]
+  allProjects?: ProjectInfo[]
+  allClients?: ClientInfo[]
+  overdueTasks?: OverdueTask[]
+  projectBudgets?: ProjectBudget[]
+  expenseByProject?: Record<string, number>
+  workloadByEmployee?: Record<string, { total: number; pending: number; in_progress: number; completed: number; employee_name: string }>
 }) {
  const [currentDate, setCurrentDate] = useState(new Date())
  const [viewMode, setViewMode] = useState<ViewMode>('month')
@@ -179,13 +192,19 @@ export function ProductionCalendar({
  })
  }, [initialMeetings, clientFilter, allClients])
 
- const filteredProjects = useMemo(() => {
- return allProjects.filter(p => {
- if (isFilterActive(projectFilter) && p.id !== projectFilter) return false
- if (isFilterActive(clientFilter) && p.client_name !== allClients.find(c => c.id === clientFilter)?.company_name) return false
- return true
- })
- }, [allProjects, projectFilter, clientFilter, allClients])
+  const filteredProjects = useMemo(() => {
+    return allProjects.filter(p => {
+      if (isFilterActive(projectFilter) && p.id !== projectFilter) return false
+      if (isFilterActive(clientFilter) && p.client_name !== allClients.find(c => c.id === clientFilter)?.company_name) return false
+      return true
+    })
+  }, [allProjects, projectFilter, clientFilter, allClients])
+
+  const filteredShoots = useMemo(() => {
+    if (!isFilterActive(clientFilter)) return initialShoots
+    const clientName = allClients.find(c => c.id === clientFilter)?.company_name
+    return initialShoots.filter(s => s.client_name === clientName)
+  }, [initialShoots, clientFilter, allClients])
 
  return (
  <div className="flex flex-col h-[calc(100vh-10rem)] space-y-3">
@@ -297,34 +316,38 @@ export function ProductionCalendar({
  ))}
  </SelectContent>
  </Select>
- <div className="flex items-center gap-3 ml-auto text-xs text-on-surface-variant">
- <span className="flex items-center gap-1">
- <span className="w-2.5 h-2.5 rounded bg-[#0ea5e9] inline-block"></span> Task
- </span>
- <span className="flex items-center gap-1">
- <span className="w-2.5 h-2.5 rounded bg-[#f59e0b] opacity-75 inline-block"></span> Leave
- </span>
- <span className="flex items-center gap-1">
- <span className="w-2.5 h-2.5 rounded bg-[#06b6d4] inline-block"></span> Meeting
- </span>
- <span className="flex items-center gap-1">
- <span className="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 inline-block"></span> Holiday
- </span>
- </div>
- </div>
+  <div className="flex items-center gap-3 ml-auto text-xs text-on-surface-variant">
+  <span className="flex items-center gap-1">
+  <span className="w-2.5 h-2.5 rounded bg-[#0ea5e9] inline-block"></span> Task
+  </span>
+  <span className="flex items-center gap-1">
+  <span className="w-2.5 h-2.5 rounded bg-purple-500 inline-block"></span> Shoot
+  </span>
+  <span className="flex items-center gap-1">
+  <span className="w-2.5 h-2.5 rounded bg-[#f59e0b] opacity-75 inline-block"></span> Leave
+  </span>
+  <span className="flex items-center gap-1">
+  <span className="w-2.5 h-2.5 rounded bg-[#06b6d4] inline-block"></span> Meeting
+  </span>
+  <span className="flex items-center gap-1">
+  <span className="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 inline-block"></span> Holiday
+  </span>
+  </div>
+  </div>
 
- {/* Month Grid */}
- <div className="flex-1 overflow-auto border border-outline-variant/50 rounded-xl bg-surface-container-lowest elevation-1 p-4">
- <CalendarMonthGrid
- currentDate={currentDate}
- tasks={filteredTasks}
- leaves={filteredLeaves}
- holidays={initialHolidays}
- meetings={filteredMeetings}
- projects={filteredProjects}
- allEmployees={allEmployees}
- allProjects={allProjects}
- allClients={allClients}
+  {/* Month Grid */}
+  <div className="flex-1 overflow-auto border border-outline-variant/50 rounded-xl bg-surface-container-lowest elevation-1 p-4">
+  <CalendarMonthGrid
+  currentDate={currentDate}
+  tasks={filteredTasks}
+  leaves={filteredLeaves}
+  holidays={initialHolidays}
+  meetings={filteredMeetings}
+  shoots={filteredShoots}
+  projects={filteredProjects}
+  allEmployees={allEmployees}
+  allProjects={allProjects}
+  allClients={allClients}
  projectFilter={projectFilter}
  employeeFilter={employeeFilter}
  clientFilter={clientFilter}

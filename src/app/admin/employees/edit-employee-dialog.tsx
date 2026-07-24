@@ -65,6 +65,7 @@ export function EditEmployeeDialog({ employee, designations = [] }: EditEmployee
  const [tiktok, setTiktok] = useState(social.tiktok || '')
  const [threads, setThreads] = useState(social.threads || '')
  const [vehicle, setVehicle] = useState(social.vehicle || 'no')
+ const [vehicleDetails, setVehicleDetails] = useState(social.vehicle_details || '')
 
  // Reset form when dialog opens
  function handleOpenChange(isOpen: boolean) {
@@ -88,6 +89,7 @@ export function EditEmployeeDialog({ employee, designations = [] }: EditEmployee
  setTiktok(s.tiktok || '')
  setThreads(s.threads || '')
  setVehicle(s.vehicle || 'no')
+ setVehicleDetails(s.vehicle_details || '')
  }
  setOpen(isOpen)
  }
@@ -128,7 +130,8 @@ export function EditEmployeeDialog({ employee, designations = [] }: EditEmployee
  instagram,
  tiktok,
  threads,
- vehicle
+ vehicle,
+ vehicle_details: vehicleDetails
  }
  })
 
@@ -257,18 +260,32 @@ export function EditEmployeeDialog({ employee, designations = [] }: EditEmployee
  />
  </div>
 
- {/* Vehicle */}
- <div className="space-y-2">
- <Label className="text-on-surface text-xs uppercase tracking-wider font-medium">Owns Vehicle?</Label>
- <Select value={vehicle} onValueChange={(val) => setVehicle(val || 'no')}>
- <SelectTrigger className="bg-surface-container-high border-outline-variant text-on-surface">
- <SelectValue placeholder="Select Yes or No" />
- </SelectTrigger>
- <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
- <SelectItem value="yes">Yes</SelectItem>
- <SelectItem value="no">No</SelectItem>
- </SelectContent>
- </Select>
+ {/* Vehicle Section */}
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   <div className="space-y-2">
+     <Label className="text-on-surface text-xs uppercase tracking-wider font-medium">Owns Vehicle?</Label>
+     <Select value={vehicle} onValueChange={(val) => setVehicle(val || 'no')}>
+       <SelectTrigger className="bg-surface-container-high border-outline-variant text-on-surface">
+         <SelectValue placeholder="Select Yes or No" />
+       </SelectTrigger>
+       <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
+         <SelectItem value="yes">Yes (Bike / Scooter / Car)</SelectItem>
+         <SelectItem value="no">No Vehicle</SelectItem>
+       </SelectContent>
+     </Select>
+   </div>
+
+   {vehicle === 'yes' && (
+     <div className="space-y-2">
+       <Label className="text-on-surface text-xs uppercase tracking-wider font-medium">Vehicle Name & License Plate</Label>
+       <Input
+         value={vehicleDetails}
+         onChange={(e) => setVehicleDetails(e.target.value)}
+         placeholder="e.g. Royal Enfield Bullet - BA 99 PA 1234"
+         className="bg-surface-container-high border-outline-variant text-on-surface placeholder:text-outline"
+       />
+     </div>
+   )}
  </div>
 
  {/* Date of Birth */}

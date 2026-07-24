@@ -173,6 +173,7 @@ export const CreateEmployeeSchema = formObject({
   instagram: z.string().optional(),
   threads: z.string().optional(),
   vehicle: z.string().optional(),
+  vehicleDetails: z.string().optional(),
 });
 
 export const UpdateEmployeeSchema = z.object({
@@ -341,4 +342,42 @@ export const InvoiceStatusUpdateSchema = z.object({
 export const BookingStatusUpdateSchema = z.object({
   bookingId: z.string().uuid(),
   status: z.enum(['proposed', 'confirmed', 'completed', 'cancelled']),
+});
+
+export const PackageItemSchema = z.object({
+  description: z.string().min(1, "Description is required"),
+  quantity: z.number().min(0.01, "Quantity must be greater than 0"),
+  unit_cost: z.number().min(0, "Unit cost cannot be negative"),
+});
+
+export const PackageSchema = formObject({
+  client_id: z.string().uuid("Please select a client"),
+  title: z.string().min(1, "Package title is required"),
+  preset_template: z.string().optional(),
+  creation_date: z.string().min(1, "Creation date is required"),
+  status: z.enum(['in_progress', 'completed', 'cancelled']).default('in_progress'),
+  payment_status: z.enum(['unpaid', 'partially_paid', 'paid']).default('unpaid'),
+  payment_method: z.enum(['bank_transfer', 'cash', 'qr_code', 'cheque', 'esewa', 'khalti', 'other']).default('bank_transfer'),
+  discount_amount: z.number().min(0, "Discount cannot be negative").default(0),
+  tax_percent: z.number().min(0, "Tax percentage cannot be negative").default(0),
+  notes: z.string().optional(),
+  itemsRaw: z.string().optional(),
+  items: z.array(PackageItemSchema).min(1, "At least one line item is required").optional()
+}).transform((data) => {
+  if (data.itemsRaw && !data.items) {
+    try {
+      data.items = JSON.parse(data.itemsRaw);
+    } catch {
+      data.items = [];
+    }
+  }
+  return data;
+});
+
+export const PackagePaymentSchema = z.object({
+  package_id: z.string().uuid(),
+  amount: z.number().positive("Amount must be greater than zero"),
+  payment_date: z.string().min(1, "Payment date is required"),
+  payment_method: z.string().min(1, "Payment method is required"),
+  notes: z.string().optional(),
 });

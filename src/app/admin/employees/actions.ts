@@ -33,6 +33,7 @@ export async function createEmployee(formData: FormData) {
       instagram: formData.get('instagram'),
       threads: formData.get('threads'),
       vehicle: formData.get('vehicle'),
+      vehicleDetails: formData.get('vehicleDetails'),
     })
 
     if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
@@ -55,6 +56,7 @@ export async function createEmployee(formData: FormData) {
       instagram: data.instagram || '',
       threads: data.threads || '',
       vehicle: data.vehicle || 'no',
+      vehicle_details: data.vehicleDetails || '',
     }
 
     // Use the admin API to create the user in Auth
