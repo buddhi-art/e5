@@ -408,7 +408,6 @@ export async function updateLogistics(packageId: string, data: {
 
 export async function updatePostProduction(packageId: string, data: {
     assignedEditorIds?: string[]
-    deliverableLinks?: string
     clientRevisionNotes?: string
 }) {
     try {
@@ -424,7 +423,6 @@ export async function updatePostProduction(packageId: string, data: {
             .upsert({
                 package_id: packageId,
                 assigned_editor_ids: data.assignedEditorIds || [],
-                deliverable_links: data.deliverableLinks ?? null,
                 client_revision_notes: data.clientRevisionNotes ?? null,
                 updated_at: new Date().toISOString()
             }, { onConflict: 'package_id' })

@@ -53,7 +53,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
 
   // Tab 2: Post-Production state
   const [selectedEditorIds, setSelectedEditorIds] = useState<string[]>([])
-  const [deliverableLinks, setDeliverableLinks] = useState('')
+
   const [clientRevisionNotes, setClientRevisionNotes] = useState('')
   const [newDeliverableTitle, setNewDeliverableTitle] = useState('')
   const [savingPostProd, setSavingPostProd] = useState(false)
@@ -92,7 +92,6 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
     // Populate postprod form
     if (res.postProd) {
       setSelectedEditorIds(res.postProd.assigned_editor_ids || [])
-      setDeliverableLinks(res.postProd.deliverable_links || '')
       setClientRevisionNotes(res.postProd.client_revision_notes || '')
     }
   }
@@ -161,7 +160,6 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
     setSavingPostProd(true)
     const res = await updatePostProduction(packageId, {
       assignedEditorIds: selectedEditorIds,
-      deliverableLinks,
       clientRevisionNotes
     })
     setSavingPostProd(false)
@@ -781,22 +779,6 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                 </div>
               </div>
 
-              {/* Deliverable Links Box */}
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                  Deliverable Folder Links (Google Drive / Frame.io)
-                </label>
-                <div className="relative">
-                  <Link2 className="w-4 h-4 absolute left-3 top-3 text-on-surface-variant/70" />
-                  <input
-                    type="url"
-                    value={deliverableLinks}
-                    onChange={(e) => setDeliverableLinks(e.target.value)}
-                    placeholder="https://drive.google.com/drive/folders/..."
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
-                  />
-                </div>
-              </div>
 
               {/* Client Revision Notes */}
               <div>
