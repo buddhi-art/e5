@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS package_deliverables (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     package_id UUID REFERENCES packages(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'not_started' CHECK (status IN ('not_started', 'in_editing', 'client_review', 'approved')),
+    status TEXT NOT NULL DEFAULT 'UNASSIGNED' CHECK (status IN ('UNASSIGNED', 'ASSIGNED', 'IN_PROGRESS', 'UNDER_REVIEW', 'REVISION_REQUESTED', 'APPROVED', 'not_started', 'in_editing', 'client_review', 'approved')),
     sort_order INT NOT NULL DEFAULT 0,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL

@@ -1,6 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { TaskCard } from './task-card'
+import { getAssignedDeliverablesForEmployee } from '@/app/admin/packages/actions'
+import { DeliverableWorkspace } from '@/components/employee/deliverable-workspace'
 
 export default async function EmployeeDashboard() {
   const supabase = await createClient()
@@ -47,12 +49,38 @@ export default async function EmployeeDashboard() {
     commentsBySubtask.set(comment.subtask_id, existing)
   }
 
+  // Fetch assigned package deliverables
+  const deliverables = await getAssignedDeliverablesForEmployee()
+
   return (
     <div className="space-y-8">
-      <div className="morph-fade-in">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">My Tasks</h1>
-        <p className="text-base text-on-surface-variant mt-2">View and update your assigned work.</p>
+      <div className="morph-fade-in flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">My Tasks & Deliverables</h1>
+          <p className="text-base text-on-surface-variant mt-2">View and update your assigned project work and package editing deliverables.</p>
+        </div>
+        {deliverables.length > 0 && (
+          <Link
+            href="/employee/packages"
+            className="px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-all shadow-sm"
+          >
+            Package Deliverables ({deliverables.length})
+          </Link>
+        )}
       </div>
+
+      {/* Package Deliverables Section */}
+      {deliverables.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <span>Package Deliverables</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
+              {deliverables.length} assigned
+            </span>
+          </h2>
+          <DeliverableWorkspace deliverables={deliverables} />
+        </div>
+      )}
 
       {tasks && tasks.length > 0 ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

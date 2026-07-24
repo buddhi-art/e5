@@ -214,7 +214,7 @@ export async function createPackage(formData: FormData) {
         const deliverableInserts = items.map((item, idx) => ({
             package_id: packageId,
             title: `${item.quantity > 1 ? `${item.quantity}x ` : ''}${item.description}`,
-            status: 'not_started',
+            status: 'UNASSIGNED',
             sort_order: idx
         }))
         if (deliverableInserts.length > 0) {
@@ -491,7 +491,7 @@ export async function addPackageDeliverable(packageId: string, title: string) {
             .insert({
                 package_id: packageId,
                 title: title.trim(),
-                status: 'not_started'
+                status: 'UNASSIGNED'
             })
 
         if (error) return { error: error.message }
@@ -655,3 +655,288 @@ export async function getEmployeesForSelect() {
         return []
     }
 }
+
+export async function assignDeliverableEmployee(deliverableId: string, packageId: string, employeeId: string | null) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+        if (!isAuthorized) return { error: 'Permission denied.' }
+
+        // Fetch current deliverable status
+        const { data: currentDel } = await supabase
+            .from('package_deliverables')
+            .select('status, title')
+            .eq('id', deliverableId)
+            .single()
+
+        let newStatus = currentDel?.status || 'UNASSIGNED'
+        if (employeeId && (newStatus === 'UNASSIGNED' || newStatus === 'not_started')) {
+            newStatus = 'ASSIGNED'
+        } else if (!employeeId) {
+            newStatus = 'UNASSIGNED'
+        }
+
+        const { error } = await supabase
+            .from('package_deliverables')
+            .update({
+                assigned_employee_id: employeeId || null,
+                status: newStatus,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', deliverableId)
+
+        if (error) return { error: error.message }
+
+        // Audit Log
+        let empName = 'Unassigned'
+        if (employeeId) {
+            const { data: emp } = await supabase.from('profiles').select('full_name').eq('id', employeeId).single()
+            if (emp) empName = emp.full_name
+        }
+
+        await supabase.from('package_audit_logs').insert({
+            package_id: packageId,
+            actor_id: user.id,
+            action: `Assigned deliverable "${currentDel?.title || ''}" to ${empName}`
+        })
+
+        revalidatePath(`/admin/packages/${packageId}`)
+        return { success: true }
+    } catch (err: unknown) {
+        return { error: (err instanceof Error ? err.message : String(err)) }
+    }
+}
+
+export async function submitDeliverableDriveLink(deliverableId: string, driveLink: string) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+
+        if (!driveLink || !driveLink.trim()) {
+            return { error: 'Google Drive link cannot be empty.' }
+        }
+
+        const trimmedLink = driveLink.trim()
+        if (!trimmedLink.startsWith('http://') && !trimmedLink.startsWith('https://')) {
+            return { error: 'Please enter a valid URL (e.g. https://drive.google.com/...)' }
+        }
+
+        const { data: del, error: fetchErr } = await supabase
+            .from('package_deliverables')
+            .select('package_id, title, status')
+            .eq('id', deliverableId)
+            .single()
+
+        if (fetchErr || !del) return { error: 'Deliverable not found.' }
+
+        const { error } = await supabase
+            .from('package_deliverables')
+            .update({
+                drive_link: trimmedLink,
+                status: 'UNDER_REVIEW',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', deliverableId)
+
+        if (error) return { error: error.message }
+
+        // Audit Log
+        await supabase.from('package_audit_logs').insert({
+            package_id: del.package_id,
+            actor_id: user.id,
+            action: `Submitted Google Drive link for review: "${del.title}"`
+        })
+
+        revalidatePath('/employee/tasks')
+        revalidatePath('/employee/packages')
+        revalidatePath(`/employee/packages/${del.package_id}`)
+        revalidatePath(`/admin/packages/${del.package_id}`)
+        revalidatePath('/founder/review-queue')
+
+        return { success: true }
+    } catch (err: unknown) {
+        return { error: (err instanceof Error ? err.message : String(err)) }
+    }
+}
+
+export async function approveDeliverable(deliverableId: string, packageId: string) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+        if (!isAuthorized) return { error: 'Permission denied.' }
+
+        const { data: del, error: updateErr } = await supabase
+            .from('package_deliverables')
+            .update({
+                status: 'APPROVED',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', deliverableId)
+            .select('title')
+            .single()
+
+        if (updateErr) return { error: updateErr.message }
+
+        await supabase.from('package_audit_logs').insert({
+            package_id: packageId,
+            actor_id: user.id,
+            action: `Approved deliverable "${del?.title || ''}"`
+        })
+
+        // Check if ALL deliverables for this package are APPROVED
+        const { data: allDels } = await supabase
+            .from('package_deliverables')
+            .select('status')
+            .eq('package_id', packageId)
+
+        if (allDels && allDels.length > 0) {
+            const allApproved = allDels.every(d => d.status === 'APPROVED')
+            if (allApproved) {
+                await supabase
+                    .from('packages')
+                    .update({ status: 'completed', updated_at: new Date().toISOString() })
+                    .eq('id', packageId)
+
+                await supabase.from('package_audit_logs').insert({
+                    package_id: packageId,
+                    actor_id: user.id,
+                    action: `All deliverables approved! Package status set to COMPLETED.`
+                })
+            }
+        }
+
+        revalidatePath(`/admin/packages/${packageId}`)
+        revalidatePath('/founder/review-queue')
+        revalidatePath('/admin/packages')
+        return { success: true }
+    } catch (err: unknown) {
+        return { error: (err instanceof Error ? err.message : String(err)) }
+    }
+}
+
+export async function requestDeliverableRevision(deliverableId: string, packageId: string, founderComment: string) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+        if (!isAuthorized) return { error: 'Permission denied.' }
+
+        if (!founderComment || !founderComment.trim()) {
+            return { error: 'Feedback comment is mandatory when requesting a revision.' }
+        }
+
+        // Fetch current deliverable data
+        const { data: del, error: fetchErr } = await supabase
+            .from('package_deliverables')
+            .select('revision_count, revision_history, drive_link, title')
+            .eq('id', deliverableId)
+            .single()
+
+        if (fetchErr || !del) return { error: 'Deliverable not found.' }
+
+        const newRevisionCount = Number(del.revision_count || 0) + 1
+        const existingHistory = Array.isArray(del.revision_history) ? del.revision_history : []
+
+        const newHistoryItem = {
+            id: `rev-${Date.now()}`,
+            revisionNumber: newRevisionCount,
+            submittedDriveLink: del.drive_link || '',
+            founderComment: founderComment.trim(),
+            createdAt: new Date().toISOString()
+        }
+
+        const updatedHistory = [newHistoryItem, ...existingHistory]
+
+        const { error: updateErr } = await supabase
+            .from('package_deliverables')
+            .update({
+                status: 'REVISION_REQUESTED',
+                revision_count: newRevisionCount,
+                revision_history: updatedHistory,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', deliverableId)
+
+        if (updateErr) return { error: updateErr.message }
+
+        await supabase.from('package_audit_logs').insert({
+            package_id: packageId,
+            actor_id: user.id,
+            action: `Requested Revision #${newRevisionCount} for "${del.title}": "${founderComment.trim()}"`
+        })
+
+        revalidatePath(`/admin/packages/${packageId}`)
+        revalidatePath('/founder/review-queue')
+        revalidatePath('/employee/tasks')
+        revalidatePath(`/employee/packages/${packageId}`)
+        return { success: true }
+    } catch (err: unknown) {
+        return { error: (err instanceof Error ? err.message : String(err)) }
+    }
+}
+
+export async function getAssignedDeliverablesForEmployee() {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return []
+
+        const { data } = await supabase
+            .from('package_deliverables')
+            .select(`
+                *,
+                packages!inner (
+                    id,
+                    package_number,
+                    title,
+                    clients ( id, company_name )
+                )
+            `)
+            .eq('assigned_employee_id', user.id)
+            .order('updated_at', { ascending: false })
+
+        return data || []
+    } catch {
+        return []
+    }
+}
+
+export async function getPendingFounderReviews() {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return []
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+        if (!isAuthorized) return []
+
+        const { data } = await supabase
+            .from('package_deliverables')
+            .select(`
+                *,
+                profiles:assigned_employee_id ( full_name ),
+                packages!inner (
+                    id,
+                    package_number,
+                    title,
+                    clients ( id, company_name )
+                )
+            `)
+            .eq('status', 'UNDER_REVIEW')
+            .order('updated_at', { ascending: false })
+
+        return data || []
+    } catch {
+        return []
+    }
+}
+

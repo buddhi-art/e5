@@ -18,6 +18,7 @@ import {
   updatePostProduction,
   updateDeliverableStatus,
   addPackageDeliverable,
+  assignDeliverableEmployee,
   recordPackagePayment,
   getEmployeesForSelect
 } from '../actions'
@@ -660,41 +661,75 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                   <thead className="bg-surface-container-high text-on-surface-variant font-semibold uppercase text-[10px] tracking-wider border-b border-outline-variant/50">
                     <tr>
                       <th className="py-2.5 px-3">Deliverable Item</th>
-                      <th className="py-2.5 px-3 text-center">Status Tag</th>
+                      <th className="py-2.5 px-3">Assigned Editor</th>
+                      <th className="py-2.5 px-3 text-center">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant/40">
                     {deliverables.length === 0 ? (
                       <tr>
-                        <td colSpan={2} className="py-6 text-center text-on-surface-variant">
+                        <td colSpan={3} className="py-6 text-center text-on-surface-variant">
                           No deliverable items added yet.
                         </td>
                       </tr>
                     ) : (
                       deliverables.map((del: any) => (
                         <tr key={del.id} className="hover:bg-surface-container-high/40 transition-colors">
-                          <td className="py-3 px-3 font-semibold text-foreground">
-                            {del.title}
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground">{del.title}</span>
+                              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-purple-500/10 text-purple-600 border border-purple-500/20">
+                                Rev #{del.revision_count || 0}
+                              </span>
+                            </div>
+                            {del.drive_link && (
+                              <a
+                                href={del.drive_link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline mt-1 font-medium"
+                              >
+                                <Link2 className="w-3 h-3" />
+                                Drive Link Preview
+                              </a>
+                            )}
+                          </td>
+                          <td className="py-3 px-3">
+                            <select
+                              value={del.assigned_employee_id || ''}
+                              onChange={async (e) => {
+                                const val = e.target.value || null
+                                const res = await assignDeliverableEmployee(del.id, packageId, val)
+                                if (res.error) toast.error(res.error)
+                                else {
+                                  toast.success('Assigned editor updated')
+                                  loadData()
+                                }
+                              }}
+                              className="w-full px-2.5 py-1.5 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden text-foreground font-medium"
+                            >
+                              <option value="">-- Unassigned --</option>
+                              {employees.map(emp => (
+                                <option key={emp.id} value={emp.id}>
+                                  {emp.full_name} ({emp.designation || 'Editor'})
+                                </option>
+                              ))}
+                            </select>
                           </td>
                           <td className="py-3 px-3 text-center">
-                            <select
-                              value={del.status}
-                              onChange={(e) => handleStatusChange(del.id, e.target.value)}
-                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
-                                del.status === 'approved'
-                                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
-                                  : del.status === 'client_review'
-                                  ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
-                                  : del.status === 'in_editing'
-                                  ? 'bg-sky-500/10 text-sky-600 border-sky-500/30'
-                                  : 'bg-surface-container-high text-on-surface-variant border-outline-variant'
-                              }`}
-                            >
-                              <option value="not_started">Not Started</option>
-                              <option value="in_editing">In Editing</option>
-                              <option value="client_review">Client Review</option>
-                              <option value="approved">Approved</option>
-                            </select>
+                            <span className={`inline-block px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide rounded-full border ${
+                              del.status === 'APPROVED' || del.status === 'approved'
+                                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                                : del.status === 'REVISION_REQUESTED'
+                                ? 'bg-rose-500/10 text-rose-600 border-rose-500/30'
+                                : del.status === 'UNDER_REVIEW' || del.status === 'client_review'
+                                ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                                : del.status === 'ASSIGNED' || del.status === 'in_editing'
+                                ? 'bg-sky-500/10 text-sky-600 border-sky-500/30'
+                                : 'bg-surface-container-high text-on-surface-variant border-outline-variant'
+                            }`}>
+                              {(del.status || 'UNASSIGNED').replace('_', ' ')}
+                            </span>
                           </td>
                         </tr>
                       ))
