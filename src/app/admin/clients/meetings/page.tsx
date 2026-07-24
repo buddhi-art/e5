@@ -17,14 +17,11 @@ export default async function ClientMeetingsPage() {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
-    // Fetch all meetings with client info
-    const { data: meetings } = await supabase
-        .from('client_meetings')
-        .select(`
-      *,
-      clients(company_name, id)
-    `)
-        .order('meeting_date', { ascending: false })
+    // Fetch all meetings with client info & all clients for scheduling
+    const [{ data: meetings }, { data: allClients }] = await Promise.all([
+      supabase.from('client_meetings').select('*, clients(company_name, id)').order('meeting_date', { ascending: false }),
+      supabase.from('clients').select('id, company_name').is('deleted_at', null).order('company_name', { ascending: true })
+    ])
 
     // Group meetings by status
     const upcoming = (meetings || []).filter((m: any) => m.status === 'scheduled' && new Date(m.meeting_date) >= new Date())
@@ -37,21 +34,25 @@ export default async function ClientMeetingsPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-on-surface">Client Meetings</h1>
                     <p className="text-sm text-outline">Schedule and track all meetings with clients.</p>
                 </div>
-                <Link href="/admin/clients" className="inline-flex items-center gap-2 text-sm text-outline hover:text-on-surface transition-colors">
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Clients
-                </Link>
+                <div className="flex items-center gap-3">
+                    <ClientMeetingDialog clients={allClients || []} />
+                    <Link href="/admin/clients" className="inline-flex items-center gap-2 text-sm text-outline hover:text-on-surface transition-colors">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Clients
+                    </Link>
+                </div>
             </div>
 
             {(!meetings || meetings.length === 0) ? (
-                <div className="text-center py-16 border border-dashed border-outline-variant rounded-xl">
-                    <CalendarDays className="w-12 h-12 text-outline mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-on-surface-variant mb-2">No meetings scheduled</h3>
-                    <p className="text-sm text-outline mb-6">Schedule a meeting from any client detail page.</p>
-                    <Link href="/admin/clients" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
-                        <Plus className="w-4 h-4" />
-                        Go to Clients
-                    </Link>
+                <div className="text-center py-16 border border-dashed border-outline-variant rounded-xl space-y-4">
+                    <CalendarDays className="w-12 h-12 text-outline mx-auto" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-on-surface-variant">No meetings scheduled</h3>
+                      <p className="text-sm text-outline">Schedule a meeting with any of your clients.</p>
+                    </div>
+                    <div className="flex justify-center">
+                      <ClientMeetingDialog clients={allClients || []} />
+                    </div>
                 </div>
             ) : (
                 <div className="space-y-8">

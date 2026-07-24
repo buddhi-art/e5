@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Bell, Clock, AlertTriangle, CalendarOff, FileText, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getNotifications, type NotificationItem } from '@/app/actions/notifications'
+import { getNotifications, markNotificationRead, type NotificationItem } from '@/app/actions/notifications'
 import Link from 'next/link'
 
 const typeConfig: Record<string, { icon: any; className: string }> = {
@@ -12,6 +12,7 @@ const typeConfig: Record<string, { icon: any; className: string }> = {
  overdue_task: { icon: AlertTriangle, className: 'text-m3-error bg-m3-error-subtle' },
  overdue_invoice: { icon: FileText, className: 'text-primary bg-primary-container' },
  pending_payment: { icon: Clock, className: 'text-m3-info bg-m3-info-subtle' },
+ system: { icon: Bell, className: 'text-m3-info bg-m3-info-subtle' },
 }
 
 export function NotificationDropdown() {
@@ -97,7 +98,13 @@ export function NotificationDropdown() {
  <Link
  key={n.id}
  href={n.href}
- onClick={() => setOpen(false)}
+ onClick={() => {
+     setOpen(false)
+     if (n.id.startsWith('db-')) {
+         markNotificationRead(n.id)
+         setNotifications(prev => prev.filter(x => x.id !== n.id))
+     }
+ }}
  className="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-high transition-all duration-200 group"
  >
  <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', cfg.className)}>

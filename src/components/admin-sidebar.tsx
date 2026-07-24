@@ -187,7 +187,7 @@ export function AdminSidebar({ onItemClick }: { onItemClick?: () => void }) {
           })
         )}
 
-        {renderSectionCollapsible('Production', CalendarRange, 'production',
+        {renderSectionCollapsible('Videography & Projects', CalendarRange, 'production',
           <Link
             href="/admin/calendar"
             onClick={onItemClick}

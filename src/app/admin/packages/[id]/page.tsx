@@ -5,17 +5,17 @@ import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Package, ArrowLeft, Camera, Video, DollarSign, Plus,
-  MapPin, Calendar, Users, Truck, RotateCcw, Link2, MessageSquare,
+  MapPin, Calendar, Truck, RotateCcw, Link2, FolderKanban,
   CheckCircle2, Clock, PlayCircle, Loader2, Save, CreditCard, ShieldAlert,
   History, Sparkles, Download, Printer, FileText, X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { InvoicePreview } from '@/components/admin/packages/invoice-preview'
+import { ProjectAssetsCard } from '@/components/project-assets-card'
 import {
   getPackageDetails,
   incrementRevisionCount,
   updateLogistics,
-  updatePostProduction,
   updateDeliverableStatus,
   addPackageDeliverable,
   assignDeliverableEmployee,
@@ -36,9 +36,13 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
   // Tab 1: Logistics state
   const [locationAddress, setLocationAddress] = useState('')
   const [shootDate, setShootDate] = useState('')
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([])
   const [vehicleInput, setVehicleInput] = useState('')
   const [vehiclesTaken, setVehiclesTaken] = useState<string[]>([])
+  const [equipmentInput, setEquipmentInput] = useState('')
+  const [equipmentsTaken, setEquipmentsTaken] = useState<string[]>([])
   const [savingLogistics, setSavingLogistics] = useState(false)
 
   // Site Revision Modal
@@ -51,12 +55,8 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
   const [visitStaffIds, setVisitStaffIds] = useState<string[]>([])
   const [incrementing, setIncrementing] = useState(false)
 
-  // Tab 2: Post-Production state
-  const [selectedEditorIds, setSelectedEditorIds] = useState<string[]>([])
-
-  const [clientRevisionNotes, setClientRevisionNotes] = useState('')
+  // Tab 2: Editing state
   const [newDeliverableTitle, setNewDeliverableTitle] = useState('')
-  const [savingPostProd, setSavingPostProd] = useState(false)
 
   // Tab 3: Payments state
   const [paymentAmount, setPaymentAmount] = useState('')
@@ -85,14 +85,11 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
     if (res.logistics) {
       setLocationAddress(res.logistics.location_address || '')
       setShootDate(res.logistics.shoot_date || '')
+      setStartTime(res.logistics.start_time || '')
+      setEndTime(res.logistics.end_time || '')
       setSelectedStaffIds(res.logistics.assigned_staff_ids || [])
       setVehiclesTaken(res.logistics.vehicles_taken || [])
-    }
-
-    // Populate postprod form
-    if (res.postProd) {
-      setSelectedEditorIds(res.postProd.assigned_editor_ids || [])
-      setClientRevisionNotes(res.postProd.client_revision_notes || '')
+      setEquipmentsTaken(res.logistics.equipments_taken || [])
     }
   }
 
@@ -107,8 +104,11 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
     const res = await updateLogistics(packageId, {
       locationAddress,
       shootDate,
+      startTime,
+      endTime,
       assignedStaffIds: selectedStaffIds,
-      vehiclesTaken
+      vehiclesTaken,
+      equipmentsTaken
     })
     setSavingLogistics(false)
 
@@ -117,7 +117,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
       return
     }
 
-    toast.success('Logistics & Staff assignments updated!')
+    toast.success('Videography logistics, equipment & shoot details saved!')
     loadData()
   }
 
@@ -129,6 +129,18 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
 
   function handleRemoveVehicle(idx: number) {
     setVehiclesTaken(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  function handleAddEquipment() {
+    if (!equipmentInput.trim()) return
+    if (!equipmentsTaken.includes(equipmentInput.trim())) {
+      setEquipmentsTaken(prev => [...prev, equipmentInput.trim()])
+    }
+    setEquipmentInput('')
+  }
+
+  function handleRemoveEquipment(idx: number) {
+    setEquipmentsTaken(prev => prev.filter((_, i) => i !== idx))
   }
 
   async function handleIncrementRevision(e: React.FormEvent) {
@@ -154,24 +166,6 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
     loadData()
   }
 
-  // Handlers for Tab 2
-  async function handleSavePostProd(e: React.FormEvent) {
-    e.preventDefault()
-    setSavingPostProd(true)
-    const res = await updatePostProduction(packageId, {
-      assignedEditorIds: selectedEditorIds,
-      clientRevisionNotes
-    })
-    setSavingPostProd(false)
-
-    if (res.error) {
-      toast.error(res.error)
-      return
-    }
-
-    toast.success('Post-production details saved!')
-    loadData()
-  }
 
   async function handleStatusChange(deliverableId: string, newStatus: any) {
     const res = await updateDeliverableStatus(deliverableId, packageId, newStatus)
@@ -353,7 +347,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
           }`}
         >
           <Video className="w-4 h-4" />
-          Tab 2: Post-Production & Editing Hub
+          Tab 2: Editing & Deliverable Hub
         </button>
 
         <button
@@ -375,6 +369,19 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Column: Revision Counter & History (5 cols) */}
             <div className="lg:col-span-5 space-y-6">
+              {/* Project Assets Card */}
+              {pkgData?.package?.projects && (
+                <div className="mt-6 mb-6">
+                  <ProjectAssetsCard 
+                    projectId={pkgData.package.projects.id}
+                    isAdmin={true}
+                    initialRawFootage={pkgData.package.projects.raw_footage_link}
+                    initialBrandAssets={pkgData.package.projects.brand_assets_link}
+                    initialClientBrief={pkgData.package.projects.client_brief_notes}
+                  />
+                </div>
+              )}
+
               {/* Revision Counter Card */}
               <div className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-5 shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-outline-variant/40 pb-2">
@@ -434,12 +441,35 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
 
                           <p className="text-foreground font-medium">{visit.reason}</p>
 
+                          {visit.location_address && (
+                            <p className="text-[11px] text-on-surface-variant flex items-center gap-1">
+                              📍 {visit.location_address}
+                            </p>
+                          )}
+
+                          {(visit.start_time || visit.end_time) && (
+                            <p className="text-[11px] text-on-surface-variant flex items-center gap-1">
+                              ⏱️ {visit.start_time || '?'} — {visit.end_time || '?'}
+                            </p>
+                          )}
+
                           {staffNames.length > 0 && (
                             <div className="flex flex-wrap items-center gap-1 pt-1">
                               <span className="text-[10px] text-on-surface-variant">Staff:</span>
                               {staffNames.map((stName: string) => (
                                 <span key={stName} className="px-2 py-0.5 bg-primary/10 text-primary rounded-md text-[10px] font-semibold">
                                   {stName}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {(visit.equipments_taken || []).length > 0 && (
+                            <div className="flex flex-wrap items-center gap-1 pt-1">
+                              <span className="text-[10px] text-on-surface-variant">Equipment:</span>
+                              {(visit.equipments_taken as string[]).map((eq: string) => (
+                                <span key={eq} className="px-2 py-0.5 bg-sky-500/10 text-sky-600 rounded-md text-[10px] font-semibold">
+                                  📷 {eq}
                                 </span>
                               ))}
                             </div>
@@ -459,21 +489,20 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                   <Truck className="w-4 h-4 text-primary" />
                   Staff Assignment, Location & Transport
                 </h3>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Shoot Location */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                      Shoot Location Address / Google Maps Link
+                      Shoot Location Address / Google Maps Link *
                     </label>
                     <div className="relative">
-                      <MapPin className="w-4 h-4 absolute left-3 top-3 text-on-surface-variant/70" />
+                      <MapPin className="w-4 h-4 absolute left-3 top-3 text-primary" />
                       <input
                         type="text"
                         value={locationAddress}
                         onChange={(e) => setLocationAddress(e.target.value)}
-                        placeholder="e.g. Hotel Himalaya, Lalitpur"
-                        className="w-full pl-9 pr-3 py-2 text-sm bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
+                        placeholder="e.g. Hotel Himalaya, Lalitpur (https://maps.google.com/...)"
+                        className="w-full pl-9 pr-3 py-2.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground font-medium"
                       />
                     </div>
                   </div>
@@ -492,6 +521,115 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                         className="w-full pl-9 pr-3 py-2 text-sm bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
                       />
                     </div>
+                  </div>
+
+                  {/* Time Taken Box (Start Time & End Time) */}
+                  <div className="space-y-1 bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/60">
+                    <label className="block text-xs font-bold text-foreground flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary" /> Time Taken (Shoot Duration)</span>
+                      {startTime && endTime && (
+                        <span className="text-[11px] text-primary font-mono font-bold bg-primary/10 px-2 py-0.5 rounded-md">
+                          {(() => {
+                            const [sh, sm] = startTime.split(':').map(Number)
+                            const [eh, em] = endTime.split(':').map(Number)
+                            let diffMins = (eh * 60 + em) - (sh * 60 + sm)
+                            if (diffMins < 0) diffMins += 24 * 60
+                            const hrs = Math.floor(diffMins / 60)
+                            const mins = diffMins % 60
+                            return `⏱️ ${hrs}h ${mins}m`
+                          })()}
+                        </span>
+                      )}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div>
+                        <span className="text-[10px] text-outline font-medium block mb-0.5">Start Time</span>
+                        <input
+                          type="time"
+                          value={startTime}
+                          onChange={(e) => setStartTime(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs bg-surface-container border border-outline-variant rounded-lg text-foreground font-mono"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-outline font-medium block mb-0.5">End Time</span>
+                        <input
+                          type="time"
+                          value={endTime}
+                          onChange={(e) => setEndTime(e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-xs bg-surface-container border border-outline-variant rounded-lg text-foreground font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Equipment Taken Multi-Select Dropdown */}
+                <div>
+                  <label className="block text-xs font-semibold text-on-surface-variant mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5"><Camera className="w-3.5 h-3.5 text-primary" /> Equipments Taken for Shoot (Select Multiple)</span>
+                    <span className="text-[10px] text-on-surface-variant">Select gear from studio assets</span>
+                  </label>
+
+                  {/* Multi-Select Dropdown for Equipment */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const val = e.target.value
+                        if (val && !equipmentsTaken.includes(val)) {
+                          setEquipmentsTaken(prev => [...prev, val])
+                        }
+                        e.target.value = ''
+                      }}
+                      className="flex-1 px-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-foreground font-medium"
+                    >
+                      <option value="">-- Select Studio Equipment --</option>
+                      {(pkgData.equipmentList || []).map((eq: any) => {
+                        const label = `${eq.name}${eq.model ? ` (${eq.model})` : ''}`
+                        const isAlreadyAdded = equipmentsTaken.includes(label) || equipmentsTaken.includes(eq.name)
+                        return (
+                          <option key={eq.id} value={label} disabled={isAlreadyAdded}>
+                            {label} ({eq.category || 'Gear'}){isAlreadyAdded ? ' ✓ Added' : ''}
+                          </option>
+                        )
+                      })}
+                    </select>
+                  </div>
+
+                  {/* Manual Custom Equipment Input */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={equipmentInput}
+                      onChange={(e) => setEquipmentInput(e.target.value)}
+                      placeholder='Or type additional gear: "Sony A7IV, Ronin RS3, Lapel Mic"'
+                      className="flex-1 px-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-foreground"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddEquipment}
+                      className="px-3 py-2 text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-all border border-primary/20 shrink-0"
+                    >
+                      + Add Equipment
+                    </button>
+                  </div>
+
+                  {/* Tagged Selected Equipments */}
+                  <div className="flex flex-wrap items-center gap-2 min-h-[32px] p-2 bg-surface-container-lowest/50 border border-outline-variant/60 rounded-xl">
+                    {equipmentsTaken.length === 0 ? (
+                      <span className="text-[11px] text-outline italic">No equipment selected yet. Choose from dropdown above.</span>
+                    ) : (
+                      equipmentsTaken.map((eq, idx) => (
+                        <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold border border-primary/20">
+                          <Camera className="w-3 h-3 text-primary shrink-0" />
+                          {eq}
+                          <button type="button" onClick={() => handleRemoveEquipment(idx)} className="text-primary/70 hover:text-error ml-1 font-bold">
+                            ×
+                          </button>
+                        </span>
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -621,193 +759,134 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
         </div>
       )}
 
-      {/* Tab 2 Content: Post-Production & Editing Hub */}
+      {/* Tab 2 Content: Editing & Deliverable Hub */}
       {activeTab === 'postprod' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Editor Info & Checklist (7 cols) */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* Deliverable Progress Checklist */}
-            <div className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-outline-variant/40 pb-2">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <PlayCircle className="w-4 h-4 text-primary" />
-                  Deliverable Progress Checklist ({deliverables.length})
+        <div className="space-y-6">
+          {/* Deliverable Progress Checklist & Assignment Hub */}
+          <div className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-6 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline-variant/40 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <PlayCircle className="w-5 h-5 text-primary" />
+                  Editing & Deliverable Assignments ({deliverables.length})
                 </h3>
+                <p className="text-xs text-on-surface-variant mt-1">
+                  Assign deliverable items to editors. Once assigned, work is immediately pushed to the employee&apos;s portal workspace.
+                </p>
               </div>
+            </div>
 
-              {/* Add New Deliverable Bar */}
-              <form onSubmit={handleAddDeliverable} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={newDeliverableTitle}
-                  onChange={(e) => setNewDeliverableTitle(e.target.value)}
-                  placeholder="e.g. 1x Reel Video #4"
-                  className="flex-1 px-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
-                />
-                <button
-                  type="submit"
-                  className="flex items-center gap-1 px-3 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-all shadow-xs"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Deliverable
-                </button>
-              </form>
+            {/* Add New Deliverable Bar */}
+            <form onSubmit={handleAddDeliverable} className="flex items-center gap-2 max-w-xl">
+              <input
+                type="text"
+                value={newDeliverableTitle}
+                onChange={(e) => setNewDeliverableTitle(e.target.value)}
+                placeholder="e.g. 1x Reel Video #4"
+                className="flex-1 px-3.5 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
+              />
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl transition-all shadow-xs shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                Add Deliverable Item
+              </button>
+            </form>
 
-              {/* Checklist Table */}
-              <div className="overflow-hidden rounded-xl border border-outline-variant/50">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-surface-container-high text-on-surface-variant font-semibold uppercase text-[10px] tracking-wider border-b border-outline-variant/50">
+            {/* Checklist Table */}
+            <div className="overflow-hidden rounded-xl border border-outline-variant/50">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-surface-container-high text-on-surface-variant font-semibold uppercase text-[10px] tracking-wider border-b border-outline-variant/50">
+                  <tr>
+                    <th className="py-3 px-4">Deliverable Item</th>
+                    <th className="py-3 px-4 w-64">Assigned Editor</th>
+                    <th className="py-3 px-4 text-center w-36">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/40">
+                  {deliverables.length === 0 ? (
                     <tr>
-                      <th className="py-2.5 px-3">Deliverable Item</th>
-                      <th className="py-2.5 px-3">Assigned Editor</th>
-                      <th className="py-2.5 px-3 text-center">Status</th>
+                      <td colSpan={3} className="py-8 text-center text-on-surface-variant">
+                        No deliverable items added yet. Use the input above to add custom deliverables.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/40">
-                    {deliverables.length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="py-6 text-center text-on-surface-variant">
-                          No deliverable items added yet.
-                        </td>
-                      </tr>
-                    ) : (
-                      deliverables.map((del: any) => (
-                        <tr key={del.id} className="hover:bg-surface-container-high/40 transition-colors">
-                          <td className="py-3 px-3">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-foreground">{del.title}</span>
-                              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-purple-500/10 text-purple-600 border border-purple-500/20">
-                                Rev #{del.revision_count || 0}
-                              </span>
-                            </div>
+                  ) : (
+                    deliverables.map((del: any) => (
+                      <tr key={del.id} className="hover:bg-surface-container-high/40 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-foreground text-sm">{del.title}</span>
+                            <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-500/10 text-purple-600 border border-purple-500/20">
+                              Rev #{del.revision_count || 0}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
                             {del.drive_link && (
                               <a
                                 href={del.drive_link}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline mt-1 font-medium"
+                                className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-medium"
                               >
                                 <Link2 className="w-3 h-3" />
                                 Drive Link Preview
                               </a>
                             )}
-                          </td>
-                          <td className="py-3 px-3">
-                            <select
-                              value={del.assigned_employee_id || ''}
-                              onChange={async (e) => {
-                                const val = e.target.value || null
-                                const res = await assignDeliverableEmployee(del.id, packageId, val)
-                                if (res.error) toast.error(res.error)
-                                else {
-                                  toast.success('Assigned editor updated')
-                                  loadData()
-                                }
-                              }}
-                              className="w-full px-2.5 py-1.5 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden text-foreground font-medium"
-                            >
-                              <option value="">-- Unassigned --</option>
-                              {employees.map(emp => (
-                                <option key={emp.id} value={emp.id}>
-                                  {emp.full_name} ({emp.designation || 'Editor'})
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="py-3 px-3 text-center">
-                            <span className={`inline-block px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide rounded-full border ${
-                              del.status === 'APPROVED' || del.status === 'approved'
-                                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
-                                : del.status === 'REVISION_REQUESTED'
-                                ? 'bg-rose-500/10 text-rose-600 border-rose-500/30'
-                                : del.status === 'UNDER_REVIEW' || del.status === 'client_review'
-                                ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
-                                : del.status === 'ASSIGNED' || del.status === 'in_editing'
-                                ? 'bg-sky-500/10 text-sky-600 border-sky-500/30'
-                                : 'bg-surface-container-high text-on-surface-variant border-outline-variant'
-                            }`}>
-                              {(del.status || 'UNASSIGNED').replace('_', ' ')}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                            {del.project_id && (
+                              <a
+                                href={`/admin/projects/${del.project_id}`}
+                                className="inline-flex items-center gap-1 text-[11px] text-amber-600 hover:underline font-medium"
+                              >
+                                <FolderKanban className="w-3 h-3" />
+                                View Project &amp; Tasks
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <select
+                            value={del.assigned_employee_id || ''}
+                            onChange={async (e) => {
+                              const val = e.target.value || null
+                              const res = await assignDeliverableEmployee(del.id, packageId, val)
+                              if (res.error) toast.error(res.error)
+                              else {
+                                toast.success(val ? 'Deliverable assigned & pushed to Employee Portal!' : 'Deliverable unassigned')
+                                loadData()
+                              }
+                            }}
+                            className="w-full px-3 py-1.5 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden text-foreground font-medium"
+                          >
+                            <option value="">-- Unassigned --</option>
+                            {employees.map(emp => (
+                              <option key={emp.id} value={emp.id}>
+                                {emp.full_name} ({emp.designation || 'Editor'})
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span className={`inline-block px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide rounded-full border ${
+                            del.status === 'APPROVED' || del.status === 'approved'
+                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                              : del.status === 'REVISION_REQUESTED'
+                              ? 'bg-rose-500/10 text-rose-600 border-rose-500/30'
+                              : del.status === 'UNDER_REVIEW' || del.status === 'client_review'
+                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                              : del.status === 'ASSIGNED' || del.status === 'in_editing'
+                              ? 'bg-sky-500/10 text-sky-600 border-sky-500/30'
+                              : 'bg-surface-container-high text-on-surface-variant border-outline-variant'
+                          }`}>
+                            {(del.status || 'UNASSIGNED').replace('_', ' ')}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          </div>
-
-          {/* Right Column: Editor Info & Project Links (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            <form onSubmit={handleSavePostProd} className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-5 shadow-sm space-y-4">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 border-b border-outline-variant/40 pb-2">
-                <Users className="w-4 h-4 text-primary" />
-                Assigned Editors & Project Links
-              </h3>
-
-              {/* Editor Assignment Multi-Select */}
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                  Assigned Video Editors
-                </label>
-                <div className="grid grid-cols-2 gap-2 bg-surface-container-lowest p-3 rounded-xl border border-outline-variant max-h-36 overflow-y-auto">
-                  {employees.map(emp => {
-                    const isSelected = selectedEditorIds.includes(emp.id)
-                    return (
-                      <button
-                        key={emp.id}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedEditorIds(prev => prev.filter(id => id !== emp.id))
-                          } else {
-                            setSelectedEditorIds(prev => [...prev, emp.id])
-                          }
-                        }}
-                        className={`p-2 rounded-lg text-xs font-medium text-left border transition-all flex items-center justify-between ${
-                          isSelected
-                            ? 'bg-primary/10 border-primary text-primary font-semibold'
-                            : 'border-outline-variant/60 text-on-surface-variant hover:bg-surface-container-high'
-                        }`}
-                      >
-                        <span className="truncate">{emp.full_name}</span>
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-
-              {/* Client Revision Notes */}
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                  Client Revision Notes & Feedback
-                </label>
-                <div className="relative">
-                  <MessageSquare className="w-4 h-4 absolute left-3 top-3 text-on-surface-variant/70" />
-                  <textarea
-                    rows={3}
-                    value={clientRevisionNotes}
-                    onChange={(e) => setClientRevisionNotes(e.target.value)}
-                    placeholder="Log client feedback for video edits..."
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end border-t border-outline-variant/40 pt-3">
-                <button
-                  type="submit"
-                  disabled={savingPostProd}
-                  className="flex items-center gap-2 px-5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md transition-all disabled:opacity-50"
-                >
-                  {savingPostProd && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Save Editing Details
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
@@ -867,10 +946,11 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                   >
                     <option value="bank_transfer">Bank Transfer</option>
                     <option value="cash">Cash</option>
-                    <option value="qr_code">QR Code</option>
-                    <option value="cheque">Cheque</option>
                     <option value="esewa">eSewa</option>
                     <option value="khalti">Khalti</option>
+                    <option value="fonepay">Fonepay</option>
+                    <option value="qr_code">QR Code / Fonepay QR</option>
+                    <option value="cheque">Cheque</option>
                   </select>
                 </div>
 

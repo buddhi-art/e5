@@ -53,8 +53,8 @@ export function EmployeeExpenseForm({ projects }: { projects: any[] }) {
  <SelectValue placeholder="Select category" />
  </SelectTrigger>
  <SelectContent>
- <SelectItem value="production">Production</SelectItem>
- <SelectItem value="post_production">Post Production</SelectItem>
+ <SelectItem value="production">Videography (Shoot)</SelectItem>
+ <SelectItem value="post_production">Editing & Design</SelectItem>
  <SelectItem value="talent">Talent</SelectItem>
  <SelectItem value="travel">Travel</SelectItem>
  <SelectItem value="gear_rental">Gear Rental</SelectItem>

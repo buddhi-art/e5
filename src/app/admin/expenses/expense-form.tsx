@@ -19,7 +19,7 @@ export function ExpenseForm({ clients, projects }: { clients: any[], projects: a
  const [clientId, setClientId] = useState('none')
  const [projectId, setProjectId] = useState('none')
  const [categories, setCategories] = useState<string[]>([
- 'Production', 'Post Production', 'Talent', 'Travel', 'Gear Rental',
+ 'Videography (Shoot)', 'Editing & Design', 'Talent', 'Travel', 'Gear Rental',
  'Props & Wardrobe', 'Food & Catering', 'Marketing', 'Operational', 'Other',
  ])
  const [showNewCategory, setShowNewCategory] = useState(false)

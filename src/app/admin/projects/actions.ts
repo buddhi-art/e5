@@ -90,6 +90,37 @@ export async function updateProject(projectId: string, formData: FormData) {
   }
 }
 
+export async function updateProjectAssets(projectId: string, data: { raw_footage_link?: string, brand_assets_link?: string, client_brief_notes?: string }) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+    if (!isAuthorized) return { error: 'Permission denied.' }
+
+    const { error } = await supabase
+      .from('projects')
+      .update({
+        raw_footage_link: data.raw_footage_link || null,
+        brand_assets_link: data.brand_assets_link || null,
+        client_brief_notes: data.client_brief_notes || null,
+      })
+      .eq('id', projectId)
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    revalidatePath(`/admin/projects/${projectId}`)
+    revalidatePath(`/founder/projects/${projectId}`)
+    revalidatePath(`/employee/projects/${projectId}`)
+    return { success: true }
+  } catch (err: unknown) {
+    console.error('Error in updateProjectAssets:', err)
+    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+  }
+}
+
 export async function archiveProject(projectId: string) {
   try {
     const supabase = await createClient()

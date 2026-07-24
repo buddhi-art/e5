@@ -99,8 +99,8 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="all">All Categories</SelectItem>
- <SelectItem value="production">Production</SelectItem>
- <SelectItem value="post_production">Post Production</SelectItem>
+ <SelectItem value="production">Videography (Shoot)</SelectItem>
+ <SelectItem value="post_production">Editing & Design</SelectItem>
  <SelectItem value="talent">Talent</SelectItem>
  <SelectItem value="travel">Travel</SelectItem>
  <SelectItem value="gear_rental">Gear Rental</SelectItem>

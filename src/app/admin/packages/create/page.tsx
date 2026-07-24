@@ -26,7 +26,7 @@ const PACKAGE_PRESETS = [
     name: 'Standard Social Media Package',
     title: '4 Social Media Videos + 3 Banner Designs',
     items: [
-      { description: 'Reels/Shorts Video Production & Editing', quantity: 4, unit_cost: 15000 },
+      { description: 'Reels/Shorts Videography & Editing', quantity: 4, unit_cost: 15000 },
       { description: 'Graphic Banner Designs (IG/FB)', quantity: 3, unit_cost: 3000 },
       { description: 'On-site Videography Session (1 Day)', quantity: 1, unit_cost: 10000 },
     ]
@@ -78,6 +78,7 @@ export default function CreatePackagePage() {
   const [discountAmount, setDiscountAmount] = useState(0)
   const [taxPercent, setTaxPercent] = useState(0)
   const [paymentStatus, setPaymentStatus] = useState<'unpaid' | 'partially_paid' | 'paid'>('unpaid')
+  const [paidAmount, setPaidAmount] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
   const [notes, setNotes] = useState('')
 
@@ -105,6 +106,14 @@ export default function CreatePackagePage() {
   const afterDiscount = Math.max(0, subtotal - Number(discountAmount || 0))
   const taxAmount = (afterDiscount * Number(taxPercent || 0)) / 100
   const grandTotal = afterDiscount + taxAmount
+
+  const effectivePaidAmount = paymentStatus === 'paid'
+    ? grandTotal
+    : paymentStatus === 'partially_paid'
+    ? Math.min(grandTotal, Math.max(0, Number(paidAmount || 0)))
+    : 0
+
+  const remainingBalance = Math.max(0, grandTotal - effectivePaidAmount)
 
   // Preset Template Loader
   function handleSelectPreset(presetName: string) {
@@ -245,6 +254,7 @@ export default function CreatePackagePage() {
     formData.append('creation_date', creationDate)
     formData.append('status', 'in_progress')
     formData.append('payment_status', paymentStatus)
+    formData.append('paid_amount', String(effectivePaidAmount))
     formData.append('payment_method', paymentMethod)
     formData.append('discount_amount', String(discountAmount))
     formData.append('tax_percent', String(taxPercent))
@@ -548,7 +558,15 @@ export default function CreatePackagePage() {
                   </label>
                   <select
                     value={paymentStatus}
-                    onChange={(e) => setPaymentStatus(e.target.value as any)}
+                    onChange={(e) => {
+                      const newStatus = e.target.value as 'unpaid' | 'partially_paid' | 'paid'
+                      setPaymentStatus(newStatus)
+                      if (newStatus === 'paid') {
+                        setPaidAmount(grandTotal)
+                      } else if (newStatus === 'unpaid') {
+                        setPaidAmount(0)
+                      }
+                    }}
                     className="w-full px-3 py-2 text-sm bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
                   >
                     <option value="unpaid">Unpaid</option>
@@ -556,6 +574,27 @@ export default function CreatePackagePage() {
                     <option value="paid">Fully Paid</option>
                   </select>
                 </div>
+
+                {paymentStatus === 'partially_paid' && (
+                  <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                    <label className="block text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1 flex items-center justify-between">
+                      <span>Advance / Paid Amount (Rs.) <span className="text-error">*</span></span>
+                      <span className="text-[10px] font-normal text-on-surface-variant font-mono">
+                        Deducted from Invoice
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={grandTotal}
+                      step="any"
+                      value={paidAmount}
+                      onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
+                      placeholder="Enter advance amount..."
+                      className="w-full px-3 py-2 text-sm font-mono bg-surface-container-lowest border border-amber-500/50 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-amber-500/40 text-foreground"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-semibold text-on-surface-variant mb-1">
@@ -570,10 +609,11 @@ export default function CreatePackagePage() {
                     >
                       <option value="bank_transfer">Bank Transfer</option>
                       <option value="cash">Cash</option>
-                      <option value="qr_code">QR Code</option>
-                      <option value="cheque">Cheque</option>
                       <option value="esewa">eSewa</option>
                       <option value="khalti">Khalti</option>
+                      <option value="fonepay">Fonepay</option>
+                      <option value="qr_code">QR Code / Fonepay QR</option>
+                      <option value="cheque">Cheque</option>
                     </select>
                   </div>
                 </div>
@@ -594,16 +634,30 @@ export default function CreatePackagePage() {
               />
             </div>
 
-            {/* Grand Total Highlight */}
-            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-primary">Live Grand Total</span>
-                <p className="text-[11px] text-on-surface-variant">Includes subtotal, discounts & taxes</p>
+            {/* Financial Summary & Balance Breakdown */}
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between text-xs border-b border-primary/10 pb-2">
+                <span className="font-semibold text-on-surface-variant">Grand Total:</span>
+                <span className="font-mono font-bold text-foreground">Rs. {grandTotal.toLocaleString()}</span>
               </div>
-              <div className="text-right">
-                <span className="text-2xl font-black font-mono text-primary">
-                  Rs. {grandTotal.toLocaleString()}
-                </span>
+
+              <div className="flex items-center justify-between text-xs border-b border-primary/10 pb-2">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">Paid Amount (Received):</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">Rs. {effectivePaidAmount.toLocaleString()}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Remaining Balance Due</span>
+                  <p className="text-[11px] text-on-surface-variant">
+                    {paymentStatus === 'paid' ? 'Paid in Full (0 Remaining)' : paymentStatus === 'partially_paid' ? 'Advance deducted from total' : 'Full amount pending'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className={`text-2xl font-black font-mono ${remainingBalance === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary'}`}>
+                    Rs. {remainingBalance.toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -621,6 +675,7 @@ export default function CreatePackagePage() {
             discountAmount={discountAmount}
             taxPercent={taxPercent}
             paymentStatus={paymentStatus}
+            paidAmount={effectivePaidAmount}
             paymentMethod={paymentMethod}
             notes={notes}
           />

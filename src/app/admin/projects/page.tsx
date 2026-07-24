@@ -37,7 +37,7 @@ export default async function ProjectsPage() {
     <div className="space-y-6">
       <div className="morph-fade-in">
         <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">Projects</h1>
-        <p className="text-on-surface-variant">Manage client projects and their production phases.</p>
+        <p className="text-on-surface-variant">Manage client projects and their videography & editing phases.</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -56,7 +56,7 @@ export default async function ProjectsPage() {
                     </TabsTrigger>
                   </TabsList>
                 </div>
-                <CardDescription className="text-on-surface-variant mt-2">List of all production projects.</CardDescription>
+                <CardDescription className="text-on-surface-variant mt-2">List of all agency projects.</CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
                 <TabsContent value="active" className="mt-0">

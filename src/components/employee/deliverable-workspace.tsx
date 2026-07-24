@@ -7,6 +7,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { submitDeliverableDriveLink } from '@/app/admin/packages/actions'
+import { ProjectAssetsCard } from '@/components/project-assets-card'
+import { ProjectDiscussion } from '@/components/project-discussion'
 
 interface RevisionHistoryItem {
   id: string
@@ -27,15 +29,23 @@ interface DeliverableItem {
   packages?: {
     package_number: string
     title: string
+    projects?: {
+      id: string
+      raw_footage_link?: string
+      brand_assets_link?: string
+      client_brief_notes?: string
+    }
     clients?: { company_name: string }
   }
 }
 
 export function DeliverableWorkspace({
   deliverables,
+  currentUserId,
   onRefresh
 }: {
   deliverables: DeliverableItem[]
+  currentUserId: string
   onRefresh?: () => void
 }) {
   const [links, setLinks] = useState<Record<string, string>>({})
@@ -223,6 +233,22 @@ export function DeliverableWorkspace({
                   </button>
                 </div>
               </div>
+            )}
+
+            {del.packages?.projects && (
+                <div className="mt-4 mb-4 space-y-4">
+                  <ProjectAssetsCard 
+                    projectId={del.packages.projects.id}
+                    isAdmin={false}
+                    initialRawFootage={del.packages.projects.raw_footage_link}
+                    initialBrandAssets={del.packages.projects.brand_assets_link}
+                    initialClientBrief={del.packages.projects.client_brief_notes}
+                  />
+                  <ProjectDiscussion 
+                    projectId={del.packages.projects.id}
+                    currentUserId={currentUserId}
+                  />
+                </div>
             )}
 
             {/* Link History Accordion */}

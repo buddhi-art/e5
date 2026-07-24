@@ -79,7 +79,7 @@ export default async function EmployeeDashboard() {
               {deliverables.length} assigned
             </span>
           </h2>
-          <DeliverableWorkspace deliverables={deliverables} />
+          <DeliverableWorkspace deliverables={deliverables} currentUserId={user.id} />
         </div>
       )}
 

@@ -52,6 +52,10 @@ export async function toggleSubtask(subtaskId: string, isCompleted: boolean) {
         taskUpdate.completed_at = new Date().toISOString()
       }
       await supabase.from('tasks').update(taskUpdate).eq('id', subtask.task_id)
+
+      if (newStatus === 'completed') {
+        await triggerTaskCompletionNotifications(supabase, subtask.task_id)
+      }
     }
   }
 
@@ -92,6 +96,58 @@ export async function toggleSubSubtask(subSubtaskId: string, isCompleted: boolea
   return { success: true }
 }
 
+async function triggerTaskCompletionNotifications(supabase: any, taskId: string) {
+  try {
+    const { data: completedTask } = await supabase
+      .from('tasks')
+      .select('title, phase, project_id, projects(title)')
+      .eq('id', taskId)
+      .single()
+
+    if (!completedTask) return
+
+    const projectTitle = (completedTask as any).projects?.title || 'Project'
+
+    // 1. Notify Admins and Founders
+    const { data: admins } = await supabase.from('profiles').select('id').in('role', ['admin', 'founder'])
+    const adminNotifs = (admins || []).map((admin: any) => ({
+      user_id: admin.id,
+      title: 'Task Completed',
+      message: `Task "${completedTask.title}" has been completed for ${projectTitle}.`,
+      link_url: `/admin/projects/${completedTask.project_id}`,
+      is_read: false
+    }))
+    if (adminNotifs.length > 0) {
+      await supabase.from('notifications').insert(adminNotifs)
+    }
+
+    // 2. Baton Pass: If Videography phase completed, check for assigned Editor in Phase 3
+    const isVideography = completedTask.phase?.includes('Phase 2') || completedTask.title?.toLowerCase().includes('videography') || completedTask.title?.toLowerCase().includes('shoot')
+    if (isVideography) {
+      const { data: editingTasks } = await supabase
+        .from('tasks')
+        .select('id, assigned_to, title')
+        .eq('project_id', completedTask.project_id)
+        .or('phase.ilike.%Phase 3%,title.ilike.%editing%')
+        .not('assigned_to', 'is', null)
+
+      for (const editTask of editingTasks || []) {
+        if (editTask.assigned_to) {
+          await supabase.from('notifications').insert({
+            user_id: editTask.assigned_to,
+            title: 'Footage Ready! (Baton Pass)',
+            message: `Footage is ready, Editing phase has begun for ${projectTitle}.`,
+            link_url: `/employee`,
+            is_read: false
+          })
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error triggering completion notifications:', err)
+  }
+}
+
 export async function updateMainTaskStatus(taskId: string, status: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -124,6 +180,10 @@ export async function updateMainTaskStatus(taskId: string, status: string) {
 
   if (error) {
     return { error: error.message }
+  }
+
+  if (data.status === 'completed') {
+    await triggerTaskCompletionNotifications(supabase, data.taskId)
   }
 
   revalidatePath('/employee')

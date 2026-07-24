@@ -5,11 +5,12 @@ import { createClient } from '@/lib/supabase/server'
 
 export interface NotificationItem {
     id: string
-    type: 'leave_request' | 'overdue_task' | 'overdue_invoice' | 'pending_payment'
+    type: 'leave_request' | 'overdue_task' | 'overdue_invoice' | 'pending_payment' | 'system'
     title: string
     description: string
     href: string
     createdAt: string
+    isRead?: boolean
 }
 
 export async function getNotifications(): Promise<NotificationItem[]> {
@@ -153,6 +154,27 @@ export async function getNotifications(): Promise<NotificationItem[]> {
         }
     }
 
+    // Phase 2 DB Notifications
+    const { data: dbNotifications } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+        .order('created_at', { ascending: false })
+        .limit(15)
+
+    for (const notif of dbNotifications || []) {
+        notifications.push({
+            id: `db-${notif.id}`,
+            type: 'system',
+            title: notif.title,
+            description: notif.message,
+            href: notif.link_url || '#',
+            createdAt: notif.created_at,
+            isRead: false
+        })
+    }
+
     // Sort: newest first. Treat missing/invalid dates as oldest (timestamp 0)
     // so a NaN never corrupts the comparator.
     const toTime = (value: string): number => {
@@ -162,4 +184,19 @@ export async function getNotifications(): Promise<NotificationItem[]> {
     notifications.sort((a, b) => toTime(b.createdAt) - toTime(a.createdAt))
 
     return notifications
+}
+
+export async function markNotificationRead(id: string) {
+    if (!id.startsWith('db-')) return // Only db notifications can be marked read permanently right now
+    const dbId = id.replace('db-', '')
+    
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', dbId)
+        .eq('user_id', user.id)
 }

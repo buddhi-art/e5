@@ -19,7 +19,7 @@ export default async function FounderReviewQueuePage() {
         </p>
       </div>
 
-      <ReviewQueueClient initialReviews={pendingReviews} />
+      <ReviewQueueClient initialReviews={pendingReviews} currentUserId={user.id} />
     </div>
   )
 }

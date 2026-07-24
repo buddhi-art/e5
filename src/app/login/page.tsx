@@ -50,10 +50,10 @@ export default function LoginPage() {
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
               <h1 className="text-5xl font-black tracking-tight leading-[1.1] mb-6">
-                Your Unified Production Workspace.
+                Your Creative Agency Workspace.
               </h1>
               <p className="text-on-surface-variant text-lg leading-relaxed">
-                Access your dashboard to orchestrate production workflows, manage clients, or view your assigned tasks seamlessly.
+                Access your dashboard to manage videography shoots, editing projects, client packages, and team tasks — all in one place.
               </p>
             </motion.div>
           </AnimatePresence>

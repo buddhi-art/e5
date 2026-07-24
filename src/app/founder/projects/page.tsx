@@ -84,7 +84,7 @@ export default async function FounderProjectsPage() {
                                         </TabsTrigger>
                                     </TabsList>
                                 </div>
-                                <CardDescription className="text-on-surface-variant mt-2">List of all production projects.</CardDescription>
+                                <CardDescription className="text-on-surface-variant mt-2">List of all agency projects.</CardDescription>
                             </CardHeader>
                             <CardContent className="pt-4">
                                 <TabsContent value="active" className="mt-0">

@@ -7,6 +7,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { approveDeliverable, requestDeliverableRevision } from '@/app/admin/packages/actions'
+import { ProjectAssetsCard } from '@/components/project-assets-card'
+import { ProjectDiscussion } from '@/components/project-discussion'
 
 interface ReviewItem {
   id: string
@@ -20,14 +22,22 @@ interface ReviewItem {
   packages?: {
     package_number: string
     title: string
+    projects?: {
+      id: string
+      raw_footage_link?: string
+      brand_assets_link?: string
+      client_brief_notes?: string
+    }
     clients?: { company_name: string }
   }
 }
 
 export function ReviewQueueClient({
-  initialReviews
+  initialReviews,
+  currentUserId
 }: {
   initialReviews: ReviewItem[]
+  currentUserId: string
 }) {
   const [reviews, setReviews] = useState<ReviewItem[]>(initialReviews)
   const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -161,7 +171,24 @@ export function ReviewQueueClient({
                 )}
               </div>
 
-              {/* Action Buttons */}
+              {/* Project Assets Card */}
+              {rev.packages?.projects && (
+                <div className="mt-4 px-4 pb-4 space-y-4">
+                  <ProjectAssetsCard 
+                    projectId={rev.packages.projects.id}
+                    isAdmin={true}
+                    initialRawFootage={rev.packages.projects.raw_footage_link}
+                    initialBrandAssets={rev.packages.projects.brand_assets_link}
+                    initialClientBrief={rev.packages.projects.client_brief_notes}
+                  />
+                  <ProjectDiscussion 
+                    projectId={rev.packages.projects.id}
+                    currentUserId={currentUserId}
+                  />
+                </div>
+              )}
+
+              {/* Action / State Section */}
               <div className="flex items-center gap-2 pt-2 border-t border-outline-variant/40">
                 <button
                   type="button"

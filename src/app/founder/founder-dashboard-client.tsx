@@ -54,6 +54,8 @@ interface FounderData {
  tasksThisMonth: number
  monthlyInvoicesPaid: number
  monthlyInvoicesTotal: number
+ bottleneckAnalytics: { phase: string; avgDays: number }[]
+ taskTimeliness: { early: number; onTime: number; late: number }
 }
 
 /* ──────────────────────────────────────
@@ -277,7 +279,7 @@ export function FounderDashboardClient({ data }: { data: FounderData }) {
  equipmentAvailable, equipmentCheckedOut, equipmentInMaintenance,
  clientCount, month, recentTasks, todayAttendance, expenseByCategory,
  monthlyRevenueData, topClients, completedTasksThisMonth, tasksThisMonth,
- monthlyInvoicesPaid, monthlyInvoicesTotal,
+ monthlyInvoicesPaid, monthlyInvoicesTotal, bottleneckAnalytics, taskTimeliness
  } = data
 
  // Compute health score the same way as admin dashboard
@@ -335,9 +337,9 @@ export function FounderDashboardClient({ data }: { data: FounderData }) {
  </div>
  </section>
 
- {/* ─── PRODUCTION DOMAIN ─── */}
+ {/* ─── VIDEOGRAPHY & EDITING DOMAIN ─── */}
  <section className="morph-fade-in morph-delay-3">
- <SectionHeader icon={FolderKanban} title="Production & Tasks"
+ <SectionHeader icon={FolderKanban} title="Videography, Editing & Tasks"
  subtitle={`${completedTasks} completed · ${pendingTasks + inProgressTasks} active · ${overdueTasks} overdue`} />
  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
  <StatCard label="Active Projects" value={activeProjects} icon={FolderKanban} color="primary" subtitle={`${projectHealthPercent}% healthy`} delay={40} />
@@ -452,6 +454,64 @@ export function FounderDashboardClient({ data }: { data: FounderData }) {
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
  <DomainScore label="Equipment Availability" score={equipmentAvailable} max={Math.max(equipmentAvailable + equipmentCheckedOut + equipmentInMaintenance, 1)} icon={Camera} />
  <DomainScore label="Collection Rate (This Month)" score={monthlyInvoicesPaid} max={Math.max(monthlyInvoicesTotal, 1)} icon={DollarSign} />
+ </div>
+ </section>
+
+ {/* ─── PERFORMANCE & BOTTLENECK ANALYTICS ─── */}
+ <section className="mb-6 lg:mb-8 card-morph morph-fade-in morph-delay-5">
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+ {/* Bottlenecks */}
+ <div className="rounded-2xl bg-surface-container-lowest ring-1 ring-outline-variant/40 overflow-hidden">
+ <div className="px-5 pt-5">
+ <SectionHeader icon={Timer} title="Phase Bottlenecks" subtitle="Average days spent per project phase" />
+ </div>
+ <div className="px-5 pb-5 pt-2">
+ {bottleneckAnalytics.length > 0 ? (
+ <div className="space-y-4 mt-2">
+ {bottleneckAnalytics.map((b, i) => {
+ const maxDays = bottleneckAnalytics[0].avgDays
+ const pct = maxDays > 0 ? (b.avgDays / maxDays) * 100 : 0
+ return (
+ <div key={b.phase} className="space-y-1">
+ <div className="flex justify-between text-xs font-medium text-foreground">
+ <span>{b.phase}</span>
+ <span>{b.avgDays} days</span>
+ </div>
+ <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+ <div className={cn("h-full rounded-full", i === 0 ? "bg-amber-500" : "bg-primary")} style={{ width: `${pct}%` }} />
+ </div>
+ </div>
+ )
+ })}
+ </div>
+ ) : (
+ <p className="text-sm text-outline py-4 text-center">No completed phases yet.</p>
+ )}
+ </div>
+ </div>
+
+ {/* Timeliness */}
+ <div className="rounded-2xl bg-surface-container-lowest ring-1 ring-outline-variant/40 overflow-hidden">
+ <div className="px-5 pt-5">
+ <SectionHeader icon={Target} title="Delivery Timeliness" subtitle="Tasks completed before vs after deadlines" />
+ </div>
+ <div className="px-5 pb-5 pt-2">
+ <div className="flex flex-col gap-4 mt-2">
+ <div className="flex justify-between items-center p-3 rounded-lg bg-m3-success/10 border border-m3-success/20">
+ <span className="text-sm font-semibold text-m3-success flex items-center gap-2"><ArrowUp className="w-4 h-4" /> Early</span>
+ <span className="text-lg font-bold text-m3-success">{taskTimeliness.early}</span>
+ </div>
+ <div className="flex justify-between items-center p-3 rounded-lg bg-surface-container-high border border-outline-variant/50">
+ <span className="text-sm font-semibold text-foreground flex items-center gap-2"><CheckSquare className="w-4 h-4 text-outline" /> On Time</span>
+ <span className="text-lg font-bold text-foreground">{taskTimeliness.onTime}</span>
+ </div>
+ <div className="flex justify-between items-center p-3 rounded-lg bg-m3-error/10 border border-m3-error/20">
+ <span className="text-sm font-semibold text-m3-error flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Late</span>
+ <span className="text-lg font-bold text-m3-error">{taskTimeliness.late}</span>
+ </div>
+ </div>
+ </div>
+ </div>
  </div>
  </section>
 

@@ -19,7 +19,7 @@ export default async function EmployeePackagesPage() {
         </p>
       </div>
 
-      <DeliverableWorkspace deliverables={deliverables} />
+      <DeliverableWorkspace deliverables={deliverables} currentUserId={user.id} />
     </div>
   )
 }

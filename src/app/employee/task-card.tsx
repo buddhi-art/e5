@@ -71,11 +71,11 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
             </CardTitle>
             <div className="flex items-center gap-2 mt-2 text-sm text-on-surface-variant">
               <span>{
-                task.phase === 'Phase 1' ? 'Phase 1: Client Requirement' :
-                  task.phase === 'Phase 2' ? 'Phase 2: Pre-Production' :
-                    task.phase === 'Phase 3' ? 'Phase 3: Production' :
-                      task.phase === 'Phase 4' ? 'Phase 4: Post-Production' :
-                        task.phase === 'Phase 5' ? 'Phase 5: Delivery & SEO' : task.phase
+                task.phase === 'Phase 1' ? 'Phase 1: Concept & Planning' :
+                  task.phase === 'Phase 2' ? 'Phase 2: Videography (Shoot)' :
+                    task.phase === 'Phase 3' ? 'Phase 3: Editing & Design' :
+                      task.phase === 'Phase 4' ? 'Phase 4: QA & Review' :
+                        task.phase === 'Phase 5' ? 'Phase 5: Delivery' : task.phase
               }</span>
             </div>
           </div>

@@ -9,6 +9,8 @@ import { ArrowLeft, FolderKanban, DollarSign, Users, Calendar, Clock, Plus, Chec
 import { ProjectActionsMenu } from '../project-actions-menu'
 import { TaskActionsMenu } from '@/app/admin/tasks/task-actions-menu'
 import { SubtaskCommentSection } from '@/components/subtask-comment-section'
+import { ProjectAssetsCard } from '@/components/project-assets-card'
+import { ProjectDiscussion } from '@/components/project-discussion'
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient()
@@ -171,7 +173,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                 </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <ProjectAssetsCard
+                projectId={project.id}
+                isAdmin={true}
+                initialRawFootage={project.raw_footage_link}
+                initialBrandAssets={project.brand_assets_link}
+                initialClientBrief={project.client_brief_notes}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                 {/* Project Info */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1">
@@ -249,6 +259,26 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                         <CardContent>
                             {tasks && tasks.length > 0 ? (
                                 <div className="space-y-4">
+                                    {/* Overall Project Sub-task & Task Checklist Progress Bar */}
+                                    {(() => {
+                                        const completedTaskCount = tasks.filter((t: any) => t.status === 'completed').length
+                                        const overallTaskProgress = totalTasks > 0 ? Math.round((completedTaskCount / totalTasks) * 100) : 0
+                                        return (
+                                            <div className="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant/60 space-y-2">
+                                                <div className="flex justify-between items-center text-xs font-bold">
+                                                    <span className="text-foreground flex items-center gap-1.5">
+                                                        <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                                                        Editing & Videography Tasks Checklist
+                                                    </span>
+                                                    <span className="text-primary font-mono">{completedTaskCount} of {totalTasks} Completed ({overallTaskProgress}%)</span>
+                                                </div>
+                                                <div className="w-full h-2.5 bg-surface-container-highest rounded-full overflow-hidden">
+                                                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${overallTaskProgress}%` }} />
+                                                </div>
+                                            </div>
+                                        )
+                                    })()}
+
                                     {tasks.map((task: any) => {
                                         const completedSubs = task.subtasks?.filter((s: any) => s.is_completed).length || 0
                                         const totalSubs = task.subtasks?.length || 0
@@ -270,13 +300,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                                             })()}
                                                         </h3>
                                                         <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-2">
-                                                            <span>{
-                                                                task.phase === 'Phase 1' ? 'Phase 1: Client Requirement' :
-                                                                task.phase === 'Phase 2' ? 'Phase 2: Pre-Production' :
-                                                                task.phase === 'Phase 3' ? 'Phase 3: Production' :
-                                                                task.phase === 'Phase 4' ? 'Phase 4: Post-Production' :
-                                                                task.phase === 'Phase 5' ? 'Phase 5: Delivery & SEO' : task.phase
-                                                            }</span>
+                                                             <span>{
+                                                                 task.phase === 'Phase 1' ? 'Phase 1: Concept & Planning' :
+                                                                 task.phase === 'Phase 2' ? 'Phase 2: Videography (Shoot)' :
+                                                                 task.phase === 'Phase 3' ? 'Phase 3: Editing & Design' :
+                                                                 task.phase === 'Phase 4' ? 'Phase 4: QA & Review' :
+                                                                 task.phase === 'Phase 5' ? 'Phase 5: Delivery' : task.phase
+                                                             }</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2">
@@ -372,6 +402,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                             )}
                         </CardContent>
                     </Card>
+
+                    <ProjectDiscussion projectId={project.id} currentUserId={user.id} />
                 </div>
 
                 {/* Sidebar info */}

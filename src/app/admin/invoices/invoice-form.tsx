@@ -175,7 +175,7 @@ export function InvoiceForm({ clients, projects, initialData }: { clients: any[]
 
  <div className="space-y-2">
  <Label>Invoice Title *</Label>
- <Input name="title" required defaultValue={initialData?.title} placeholder="e.g. Phase 1 Production" className="bg-surface-container-high" />
+ <Input name="title" required defaultValue={initialData?.title} placeholder="e.g. Phase 2 Videography" className="bg-surface-container-high" />
  </div>
 
  <div className="space-y-2">

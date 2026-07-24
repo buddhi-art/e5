@@ -125,15 +125,15 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
                 <Select value={phase} onValueChange={(val) => setPhase(val || '')}>
                   <SelectTrigger className="w-full bg-surface-container-high border-outline-variant text-on-surface">
                     <SelectValue placeholder="Select Phase">
-                      {phase === 'Phase 1' ? 'Client Requirement' : phase === 'Phase 2' ? 'Pre-Production' : phase === 'Phase 3' ? 'Production' : phase === 'Phase 4' ? 'Post-Production' : phase === 'Phase 5' ? 'Delivery & SEO' : null}
+                      {phase === 'Phase 1' ? 'Concept & Scripting' : phase === 'Phase 2' ? 'Videography (Shoot)' : phase === 'Phase 3' ? 'Editing & Design' : phase === 'Phase 4' ? 'QA & Revision' : phase === 'Phase 5' ? 'Delivery' : null}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
-                    <SelectItem value="Phase 1">Phase 1: Client Requirement</SelectItem>
-                    <SelectItem value="Phase 2">Phase 2: Pre-Production</SelectItem>
-                    <SelectItem value="Phase 3">Phase 3: Production</SelectItem>
-                    <SelectItem value="Phase 4">Phase 4: Post-Production</SelectItem>
-                    <SelectItem value="Phase 5">Phase 5: Delivery & SEO</SelectItem>
+                    <SelectItem value="Phase 1">Phase 1: Concept & Scripting</SelectItem>
+                    <SelectItem value="Phase 2">Phase 2: Videography (Shoot)</SelectItem>
+                    <SelectItem value="Phase 3">Phase 3: Editing & Design</SelectItem>
+                    <SelectItem value="Phase 4">Phase 4: QA & Revision</SelectItem>
+                    <SelectItem value="Phase 5">Phase 5: Delivery</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

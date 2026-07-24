@@ -70,6 +70,22 @@ export async function checkOut(daySummary: string) {
       return { error: 'You have already checked out today.' }
     }
 
+    // Enforce 2-hour minimum work duration
+    const checkInDate = new Date(record.check_in_time)
+    const nowDate = new Date()
+    const diffMs = nowDate.getTime() - checkInDate.getTime()
+    const diffMinutes = diffMs / (1000 * 60)
+    const MIN_WORK_MINUTES = 120 // 2 hours
+
+    if (diffMinutes < MIN_WORK_MINUTES) {
+      const remainingMins = Math.ceil(MIN_WORK_MINUTES - diffMinutes)
+      const hrs = Math.floor(remainingMins / 60)
+      const mins = remainingMins % 60
+      return {
+        error: `You cannot check out yet. Minimum 2 hours required after check-in. ${hrs > 0 ? `${hrs}h ` : ''}${mins}m remaining.`
+      }
+    }
+
     const { error } = await supabase
       .from('attendance')
       .update({ check_out_time: now, day_summary: validSummary.trim() })

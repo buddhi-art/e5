@@ -341,7 +341,7 @@ export function AdminDashboardClient({
             <section className="morph-fade-in morph-delay-3">
                 <SectionHeader
                     icon={FolderKanban}
-                    title="Production & Tasks"
+                    title="Videography, Editing & Tasks"
                     subtitle={`${completedTasks} completed \u00b7 ${pendingTasks + inProgressTasks} active \u00b7 ${overdueTasks} overdue`}
                 />
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
