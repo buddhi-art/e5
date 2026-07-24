@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   Video, Link2, Send, CheckCircle2, Clock, AlertTriangle,
-  History, ExternalLink, RefreshCw, MessageSquare
+  History, ExternalLink, RefreshCw
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { submitDeliverableDriveLink } from '@/app/admin/packages/actions'
@@ -142,7 +142,7 @@ export function DeliverableWorkspace({
                   </span>
                 </div>
                 <p className="text-xs font-medium text-foreground bg-surface-container-lowest/80 p-3 rounded-lg border border-rose-500/20">
-                  "{latestRevision.founderComment}"
+                  &ldquo;{latestRevision.founderComment}&rdquo;
                 </p>
                 {latestRevision.submittedDriveLink && (
                   <p className="text-[11px] text-on-surface-variant flex items-center gap-1">
@@ -253,7 +253,7 @@ export function DeliverableWorkspace({
                       )}
                       {rev.founderComment && (
                         <p className="text-[11px] text-on-surface-variant italic bg-surface-container-high/40 p-1.5 rounded">
-                          "{rev.founderComment}"
+                          &ldquo;{rev.founderComment}&rdquo;
                         </p>
                       )}
                     </div>

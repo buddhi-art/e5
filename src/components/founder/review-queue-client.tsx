@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import {
-  Video, Link2, ExternalLink, CheckCircle2, AlertTriangle,
-  RotateCcw, RefreshCw, MessageSquare, Clock, ShieldCheck, X
+  Video, ExternalLink, CheckCircle2, AlertTriangle,
+  RotateCcw, RefreshCw, Clock, ShieldCheck, X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { approveDeliverable, requestDeliverableRevision } from '@/app/admin/packages/actions'
@@ -15,7 +15,7 @@ interface ReviewItem {
   drive_link?: string
   status: string
   revision_count: number
-  revision_history?: any[]
+  revision_history?: { id: string; revisionNumber: number; submittedDriveLink: string; founderComment?: string; createdAt: string }[]
   profiles?: { full_name: string }
   packages?: {
     package_number: string
