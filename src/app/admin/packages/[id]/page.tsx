@@ -20,8 +20,10 @@ import {
   addPackageDeliverable,
   assignDeliverableEmployee,
   recordPackagePayment,
-  getEmployeesForSelect
+  getEmployeesForSelect,
+  updatePackageItems,
 } from '../actions'
+import { calculatePackageItemTotal } from '@/lib/package-items'
 
 export default function PackageWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: packageId } = use(params)
@@ -35,6 +37,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
 
   // Tab 1: Logistics state
   const [locationAddress, setLocationAddress] = useState('')
+  const [shootLocations, setShootLocations] = useState<string[]>([''])
   const [shootDate, setShootDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
@@ -44,6 +47,10 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
   const [equipmentInput, setEquipmentInput] = useState('')
   const [equipmentsTaken, setEquipmentsTaken] = useState<string[]>([])
   const [savingLogistics, setSavingLogistics] = useState(false)
+
+  // Editable package items
+  const [packageItems, setPackageItems] = useState<any[]>([])
+  const [savingItems, setSavingItems] = useState(false)
 
   // Site Revision Modal
   const [revisionModalOpen, setRevisionModalOpen] = useState(false)
@@ -80,10 +87,20 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
 
     setPkgData(res)
     setEmployees(empList || [])
+    setPackageItems((res.items || []).map((item: any) => ({
+      ...item,
+      unit_cost: item.unit_cost === null ? null : Number(item.unit_cost),
+      total_cost: Number(item.total_cost ?? item.subtotal ?? 0),
+      quantity: Number(item.quantity),
+    })))
 
     // Populate logistics form
     if (res.logistics) {
       setLocationAddress(res.logistics.location_address || '')
+      const savedLocations = Array.isArray(res.logistics.locations) && res.logistics.locations.length > 0
+        ? res.logistics.locations
+        : res.logistics.location_address ? [res.logistics.location_address] : ['']
+      setShootLocations(savedLocations)
       setShootDate(res.logistics.shoot_date || '')
       setStartTime(res.logistics.start_time || '')
       setEndTime(res.logistics.end_time || '')
@@ -102,7 +119,8 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
     e.preventDefault()
     setSavingLogistics(true)
     const res = await updateLogistics(packageId, {
-      locationAddress,
+      locationAddress: shootLocations[0] || locationAddress,
+      locations: shootLocations,
       shootDate,
       startTime,
       endTime,
@@ -118,6 +136,58 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
     }
 
     toast.success('Videography logistics, equipment & shoot details saved!')
+    loadData()
+  }
+
+  function updatePackageItem(localKey: string, field: string, value: string | number | null) {
+    setPackageItems(prev => prev.map(item => {
+      if ((item.id || item.local_id) !== localKey) return item
+      const updated = { ...item, [field]: value }
+      if ((field === 'quantity' || field === 'unit_cost') && updated.unit_cost !== null) {
+        updated.total_cost = calculatePackageItemTotal(updated)
+      }
+      return updated
+    }))
+  }
+
+  function addPackageItemRow() {
+    setPackageItems(prev => [...prev, {
+      local_id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `new-${Date.now()}`,
+      description: '',
+      quantity: 1,
+      unit_cost: null,
+      total_cost: 0,
+    }])
+  }
+
+  function removePackageItemRow(localKey: string) {
+    if (packageItems.length <= 1) {
+      toast.warning('A package must keep at least one item')
+      return
+    }
+    setPackageItems(prev => prev.filter(item => (item.id || item.local_id) !== localKey))
+  }
+
+  async function handleSavePackageItems() {
+    if (packageItems.some(item => !item.description?.trim())) {
+      toast.error('Every package item needs a description')
+      return
+    }
+    setSavingItems(true)
+    const payload = packageItems.map(({ local_id, ...item }) => ({
+      id: item.id,
+      description: item.description.trim(),
+      quantity: Number(item.quantity),
+      unit_cost: item.unit_cost === null || item.unit_cost === '' ? null : Number(item.unit_cost),
+      total_cost: calculatePackageItemTotal(item),
+    }))
+    const res = await updatePackageItems(packageId, payload)
+    setSavingItems(false)
+    if (res.error) {
+      toast.error(res.error)
+      return
+    }
+    toast.success('Package items, totals, and generated projects updated')
     loadData()
   }
 
@@ -289,13 +359,12 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
         {/* Status badges bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1 font-bold px-3 py-1 rounded-full text-xs ${
-              pkg.payment_status === 'paid'
-                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                : pkg.payment_status === 'partially_paid'
+            <span className={`inline-flex items-center gap-1 font-bold px-3 py-1 rounded-full text-xs ${pkg.payment_status === 'paid'
+              ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+              : pkg.payment_status === 'partially_paid'
                 ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                 : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-            }`}>
+              }`}>
               {pkg.payment_status === 'paid' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
               Payment: {(pkg.payment_status || 'unpaid').replace('_', ' ').toUpperCase()}
             </span>
@@ -328,11 +397,10 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
       <div className="flex items-center gap-2 border-b border-outline-variant/60 pb-px">
         <button
           onClick={() => setActiveTab('logistics')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 ${
-            activeTab === 'logistics'
-              ? 'border-primary text-primary bg-primary/10'
-              : 'border-transparent text-on-surface-variant hover:text-foreground hover:bg-surface-container-high/40'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 ${activeTab === 'logistics'
+            ? 'border-primary text-primary bg-primary/10'
+            : 'border-transparent text-on-surface-variant hover:text-foreground hover:bg-surface-container-high/40'
+            }`}
         >
           <Camera className="w-4 h-4" />
           Tab 1: Videography & On-Site Logistics
@@ -340,11 +408,10 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
 
         <button
           onClick={() => setActiveTab('postprod')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 ${
-            activeTab === 'postprod'
-              ? 'border-primary text-primary bg-primary/10'
-              : 'border-transparent text-on-surface-variant hover:text-foreground hover:bg-surface-container-high/40'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 ${activeTab === 'postprod'
+            ? 'border-primary text-primary bg-primary/10'
+            : 'border-transparent text-on-surface-variant hover:text-foreground hover:bg-surface-container-high/40'
+            }`}
         >
           <Video className="w-4 h-4" />
           Tab 2: Editing & Deliverable Hub
@@ -352,11 +419,10 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
 
         <button
           onClick={() => setActiveTab('payments')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 ${
-            activeTab === 'payments'
-              ? 'border-primary text-primary bg-primary/10'
-              : 'border-transparent text-on-surface-variant hover:text-foreground hover:bg-surface-container-high/40'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all border-b-2 ${activeTab === 'payments'
+            ? 'border-primary text-primary bg-primary/10'
+            : 'border-transparent text-on-surface-variant hover:text-foreground hover:bg-surface-container-high/40'
+            }`}
         >
           <DollarSign className="w-4 h-4" />
           Tab 3: Payments & Activity Log
@@ -372,7 +438,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
               {/* Project Assets Card */}
               {pkgData?.package?.projects && (
                 <div className="mt-6 mb-6">
-                  <ProjectAssetsCard 
+                  <ProjectAssetsCard
                     projectId={pkgData.package.projects.id}
                     isAdmin={true}
                     initialRawFootage={pkgData.package.projects.raw_footage_link}
@@ -492,18 +558,47 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Shoot Location */}
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-on-surface-variant mb-1">
-                      Shoot Location Address / Google Maps Link *
-                    </label>
-                    <div className="relative">
-                      <MapPin className="w-4 h-4 absolute left-3 top-3 text-primary" />
-                      <input
-                        type="text"
-                        value={locationAddress}
-                        onChange={(e) => setLocationAddress(e.target.value)}
-                        placeholder="e.g. Hotel Himalaya, Lalitpur (https://maps.google.com/...)"
-                        className="w-full pl-9 pr-3 py-2.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground font-medium"
-                      />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-on-surface-variant">
+                        Shoot Locations / Google Maps Links
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShootLocations(prev => [...prev, ''])}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add location
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {shootLocations.map((location, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <MapPin className="w-4 h-4 absolute left-3 top-3 text-primary" />
+                            <input
+                              type="text"
+                              value={location}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                setShootLocations(prev => prev.map((entry, entryIndex) => entryIndex === index ? value : entry))
+                                if (index === 0) setLocationAddress(value)
+                              }}
+                              placeholder="e.g. Hotel Himalaya, Lalitpur (https://maps.google.com/...)"
+                              className="w-full pl-9 pr-3 py-2.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground font-medium"
+                            />
+                          </div>
+                          {shootLocations.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setShootLocations(prev => prev.filter((_, entryIndex) => entryIndex !== index))}
+                              className="p-2 text-error hover:bg-error/10 rounded-lg"
+                              title="Remove location"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -655,11 +750,10 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                               setSelectedStaffIds(prev => [...prev, emp.id])
                             }
                           }}
-                          className={`p-2.5 rounded-lg text-xs font-medium text-left border transition-all flex items-center justify-between ${
-                            isSelected
-                              ? 'bg-primary/10 border-primary text-primary font-semibold'
-                              : 'border-outline-variant/60 text-on-surface-variant hover:bg-surface-container-high'
-                          }`}
+                          className={`p-2.5 rounded-lg text-xs font-medium text-left border transition-all flex items-center justify-between ${isSelected
+                            ? 'bg-primary/10 border-primary text-primary font-semibold'
+                            : 'border-outline-variant/60 text-on-surface-variant hover:bg-surface-container-high'
+                            }`}
                         >
                           <div className="truncate">
                             <span className="block font-semibold truncate text-foreground">{emp.full_name}</span>
@@ -762,6 +856,113 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
       {/* Tab 2 Content: Editing & Deliverable Hub */}
       {activeTab === 'postprod' && (
         <div className="space-y-6">
+          {/* Editable package items */}
+          <div className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-outline-variant/40 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Package className="w-5 h-5 text-primary" />
+                  Package Items & Project Quantities
+                </h3>
+                <p className="text-xs text-on-surface-variant mt-1">
+                  Edit, add, or remove items. Saving synchronizes the numbered client projects to each quantity.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addPackageItemRow}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-xl"
+              >
+                <Plus className="w-4 h-4" /> Add item
+              </button>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-outline-variant/50">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-surface-container-high text-on-surface-variant font-semibold uppercase text-[10px] tracking-wider">
+                  <tr>
+                    <th className="py-2.5 px-3">Description</th>
+                    <th className="py-2.5 px-3 w-20 text-center">Qty</th>
+                    <th className="py-2.5 px-3 w-32 text-right">Unit cost</th>
+                    <th className="py-2.5 px-3 w-32 text-right">Total cost</th>
+                    <th className="py-2.5 px-3 w-16 text-center">Remove</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/40">
+                  {packageItems.map((item: any) => {
+                    const key = item.id || item.local_id
+                    const calculatedTotal = calculatePackageItemTotal(item)
+                    return (
+                      <tr key={key}>
+                        <td className="p-2">
+                          <input
+                            value={item.description || ''}
+                            onChange={(e) => updatePackageItem(key, 'description', e.target.value)}
+                            className="w-full px-2.5 py-1.5 text-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-foreground"
+                            placeholder="Service or item description"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <input
+                            type="number"
+                            min="0.1"
+                            step="any"
+                            value={item.quantity}
+                            onChange={(e) => updatePackageItem(key, 'quantity', Number(e.target.value) || 0)}
+                            className="w-full px-2 py-1.5 text-center text-xs font-mono bg-surface-container-lowest border border-outline-variant rounded-lg text-foreground"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={item.unit_cost ?? ''}
+                            onChange={(e) => updatePackageItem(key, 'unit_cost', e.target.value === '' ? null : Number(e.target.value) || 0)}
+                            placeholder="Optional"
+                            className="w-full px-2 py-1.5 text-right text-xs font-mono bg-surface-container-lowest border border-outline-variant rounded-lg text-foreground"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={calculatedTotal}
+                            readOnly={item.unit_cost !== null}
+                            onChange={(e) => updatePackageItem(key, 'total_cost', Number(e.target.value) || 0)}
+                            className={`w-full px-2 py-1.5 text-right text-xs font-mono border rounded-lg text-foreground ${item.unit_cost !== null ? 'bg-surface-container-high border-outline-variant' : 'bg-surface-container-lowest border-primary/40'}`}
+                          />
+                        </td>
+                        <td className="p-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => removePackageItemRow(key)}
+                            className="p-1.5 text-error hover:bg-error/10 rounded-lg"
+                            title="Remove package item"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleSavePackageItems}
+                disabled={savingItems}
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl disabled:opacity-50"
+              >
+                {savingItems && <Loader2 className="w-4 h-4 animate-spin" />}
+                <Save className="w-4 h-4" /> Save package items
+              </button>
+            </div>
+          </div>
+
           {/* Deliverable Progress Checklist & Assignment Hub */}
           <div className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-6 shadow-sm space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline-variant/40 pb-4">
@@ -867,17 +1068,16 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                           </select>
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          <span className={`inline-block px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide rounded-full border ${
-                            del.status === 'APPROVED' || del.status === 'approved'
-                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
-                              : del.status === 'REVISION_REQUESTED'
+                          <span className={`inline-block px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide rounded-full border ${del.status === 'APPROVED' || del.status === 'approved'
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                            : del.status === 'REVISION_REQUESTED'
                               ? 'bg-rose-500/10 text-rose-600 border-rose-500/30'
                               : del.status === 'UNDER_REVIEW' || del.status === 'client_review'
-                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
-                              : del.status === 'ASSIGNED' || del.status === 'in_editing'
-                              ? 'bg-sky-500/10 text-sky-600 border-sky-500/30'
-                              : 'bg-surface-container-high text-on-surface-variant border-outline-variant'
-                          }`}>
+                                ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                                : del.status === 'ASSIGNED' || del.status === 'in_editing'
+                                  ? 'bg-sky-500/10 text-sky-600 border-sky-500/30'
+                                  : 'bg-surface-container-high text-on-surface-variant border-outline-variant'
+                            }`}>
                             {(del.status || 'UNASSIGNED').replace('_', ' ')}
                           </span>
                         </td>
@@ -1107,9 +1307,8 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                             setVisitStaffIds(prev => [...prev, emp.id])
                           }
                         }}
-                        className={`p-1.5 rounded-lg text-xs font-medium text-left transition-all ${
-                          isSelected ? 'bg-primary/10 text-primary font-semibold' : 'text-on-surface-variant hover:bg-surface-container-high'
-                        }`}
+                        className={`p-1.5 rounded-lg text-xs font-medium text-left transition-all ${isSelected ? 'bg-primary/10 text-primary font-semibold' : 'text-on-surface-variant hover:bg-surface-container-high'
+                          }`}
                       >
                         {emp.full_name}
                       </button>
@@ -1169,6 +1368,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
               discountAmount={Number(pkg.discount_amount || 0)}
               taxPercent={Number(pkg.tax_percent || 0)}
               paymentStatus={pkg.payment_status}
+              paidAmount={Number(pkg.paid_amount || 0)}
               paymentMethod={pkg.payment_method || 'bank_transfer'}
               notes={pkg.notes}
             />

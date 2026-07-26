@@ -1,10 +1,11 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Film, Download, CheckCircle2, Clock, Landmark, FileText, Phone, Mail, MapPin } from 'lucide-react'
+import { Film, Download, CheckCircle2, Clock, Landmark, Phone, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import { calculatePackageItemTotal } from '@/lib/package-items'
 
 export interface InvoicePreviewProps {
   clientName: string
@@ -16,7 +17,8 @@ export interface InvoicePreviewProps {
   items: Array<{
     description: string
     quantity: number
-    unit_cost: number
+    unit_cost: number | null
+    total_cost: number
   }>
   discountAmount: number
   taxPercent: number
@@ -45,7 +47,7 @@ export function InvoicePreview({
   const [downloading, setDownloading] = useState(false)
 
   // Financial calculations
-  const subtotal = items.reduce((sum, item) => sum + (Number(item.quantity || 0) * Number(item.unit_cost || 0)), 0)
+  const subtotal = items.reduce((sum, item) => sum + calculatePackageItemTotal(item), 0)
   const afterDiscount = Math.max(0, subtotal - Number(discountAmount || 0))
   const taxAmount = (afterDiscount * Number(taxPercent || 0)) / 100
   const grandTotal = afterDiscount + taxAmount
@@ -53,8 +55,8 @@ export function InvoicePreview({
   const effectivePaidAmount = paymentStatus === 'paid'
     ? grandTotal
     : paymentStatus === 'unpaid'
-    ? 0
-    : Math.min(grandTotal, Math.max(0, Number(paidAmount || 0)))
+      ? 0
+      : Math.min(grandTotal, Math.max(0, Number(paidAmount || 0)))
 
   const remainingDue = Math.max(0, grandTotal - effectivePaidAmount)
 
@@ -171,7 +173,7 @@ export function InvoicePreview({
     pdf.setFontSize(9)
     pdf.setFont('helvetica', 'normal')
     pdf.setTextColor(textMuted[0], textMuted[1], textMuted[2])
-    let clientSubText = []
+    const clientSubText: string[] = []
     if (clientEmail) clientSubText.push(`Email: ${clientEmail}`)
     if (clientPhone) clientSubText.push(`Phone: ${clientPhone}`)
     pdf.text(clientSubText.join(' | ') || 'Client Contact', 18, y + 21)
@@ -191,8 +193,8 @@ export function InvoicePreview({
     const badgeText = paymentStatus === 'paid'
       ? 'PAID IN FULL'
       : paymentStatus === 'partially_paid'
-      ? `PARTIALLY PAID (PAID: RS. ${effectivePaidAmount.toLocaleString()})`
-      : 'UNPAID'
+        ? `PARTIALLY PAID (PAID: RS. ${effectivePaidAmount.toLocaleString()})`
+        : 'UNPAID'
 
     const badgeColor = paymentStatus === 'paid' ? greenColor : paymentStatus === 'partially_paid' ? amberColor : redColor
     pdf.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2])
@@ -221,7 +223,7 @@ export function InvoicePreview({
 
     // Line Items Rows
     items.forEach((item, idx) => {
-      const lineTotal = Number(item.quantity || 0) * Number(item.unit_cost || 0)
+      const lineTotal = calculatePackageItemTotal(item)
 
       if (idx % 2 === 1) {
         pdf.setFillColor(bgLight[0], bgLight[1], bgLight[2])
@@ -235,7 +237,7 @@ export function InvoicePreview({
       pdf.text(String(idx + 1), 18, y + 5.5)
       pdf.text((item.description || 'Line Item').substring(0, 48), 28, y + 5.5)
       pdf.text(String(item.quantity || 1), 125, y + 5.5, { align: 'center' })
-      pdf.text(Number(item.unit_cost || 0).toLocaleString(), 155, y + 5.5, { align: 'right' })
+      pdf.text(item.unit_cost === null ? '-' : Number(item.unit_cost).toLocaleString(), 155, y + 5.5, { align: 'right' })
       pdf.setFont('helvetica', 'bold')
       pdf.text(lineTotal.toLocaleString(), 191, y + 5.5, { align: 'right' })
 
@@ -456,13 +458,13 @@ export function InvoicePreview({
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
               {items.map((item, idx) => {
-                const lineTotal = Number(item.quantity || 0) * Number(item.unit_cost || 0)
+                const lineTotal = calculatePackageItemTotal(item)
                 return (
                   <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
                     <td style={{ color: '#94a3b8' }} className="py-3 px-4 font-semibold">{idx + 1}</td>
                     <td style={{ color: '#0f172a' }} className="py-3 px-4 font-medium">{item.description || 'Line Item'}</td>
                     <td style={{ color: '#334155' }} className="py-3 px-4 text-center font-mono">{item.quantity}</td>
-                    <td style={{ color: '#334155' }} className="py-3 px-4 text-right font-mono">Rs. {Number(item.unit_cost || 0).toLocaleString()}</td>
+                    <td style={{ color: '#334155' }} className="py-3 px-4 text-right font-mono">{item.unit_cost === null ? '—' : `Rs. ${Number(item.unit_cost).toLocaleString()}`}</td>
                     <td style={{ color: '#0f172a' }} className="py-3 px-4 text-right font-mono font-bold">Rs. {lineTotal.toLocaleString()}</td>
                   </tr>
                 )

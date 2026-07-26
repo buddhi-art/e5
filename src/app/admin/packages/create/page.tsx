@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -13,12 +12,14 @@ import { getClientsForSelect, createPackage } from '@/app/admin/packages/actions
 import { listPackages, createPackage as createCustomPackage, deletePackage as deleteCustomPackage, type ProjectPackage } from '@/app/admin/projects/package-actions'
 import { QuickClientModal } from '@/components/admin/packages/quick-client-modal'
 import { InvoicePreview } from '@/components/admin/packages/invoice-preview'
+import { calculatePackageItemTotal } from '@/lib/package-items'
 
 export interface LineItem {
   id: string
   description: string
   quantity: number
-  unit_cost: number
+  unit_cost: number | null
+  total_cost: number
 }
 
 const PACKAGE_PRESETS = [
@@ -26,28 +27,28 @@ const PACKAGE_PRESETS = [
     name: 'Standard Social Media Package',
     title: '4 Social Media Videos + 3 Banner Designs',
     items: [
-      { description: 'Reels/Shorts Videography & Editing', quantity: 4, unit_cost: 15000 },
-      { description: 'Graphic Banner Designs (IG/FB)', quantity: 3, unit_cost: 3000 },
-      { description: 'On-site Videography Session (1 Day)', quantity: 1, unit_cost: 10000 },
+      { description: 'Reels/Shorts Videography & Editing', quantity: 4, unit_cost: 15000, total_cost: 60000 },
+      { description: 'Graphic Banner Designs (IG/FB)', quantity: 3, unit_cost: 3000, total_cost: 9000 },
+      { description: 'On-site Videography Session (1 Day)', quantity: 1, unit_cost: 10000, total_cost: 10000 },
     ]
   },
   {
     name: 'Event Coverage Package',
     title: 'Full Day Event Coverage & Highlights Video',
     items: [
-      { description: 'Full Day Multi-Cam Event Shoot', quantity: 1, unit_cost: 35000 },
-      { description: 'Event Highlight Reel (2-3 Mins)', quantity: 1, unit_cost: 20000 },
-      { description: 'Edited Event Photos (100+ Retouched)', quantity: 1, unit_cost: 15000 },
+      { description: 'Full Day Multi-Cam Event Shoot', quantity: 1, unit_cost: 35000, total_cost: 35000 },
+      { description: 'Event Highlight Reel (2-3 Mins)', quantity: 1, unit_cost: 20000, total_cost: 20000 },
+      { description: 'Edited Event Photos (100+ Retouched)', quantity: 1, unit_cost: 15000, total_cost: 15000 },
     ]
   },
   {
     name: 'Brand Commercial & Campaign Package',
     title: 'High-End Brand Ad & Commercial Video',
     items: [
-      { description: 'Scriptwriting & Storyboarding', quantity: 1, unit_cost: 15000 },
-      { description: 'Commercial Video Shooting (4K Cinema)', quantity: 2, unit_cost: 40000 },
-      { description: 'Color Grading & Motion Graphics Editing', quantity: 1, unit_cost: 25000 },
-      { description: 'Social Media Cutdowns (15s & 30s)', quantity: 3, unit_cost: 5000 },
+      { description: 'Scriptwriting & Storyboarding', quantity: 1, unit_cost: 15000, total_cost: 15000 },
+      { description: 'Commercial Video Shooting (4K Cinema)', quantity: 2, unit_cost: 40000, total_cost: 80000 },
+      { description: 'Color Grading & Motion Graphics Editing', quantity: 1, unit_cost: 25000, total_cost: 25000 },
+      { description: 'Social Media Cutdowns (15s & 30s)', quantity: 3, unit_cost: 5000, total_cost: 15000 },
     ]
   }
 ]
@@ -71,7 +72,7 @@ export default function CreatePackagePage() {
 
   // Line items spreadsheet
   const [items, setItems] = useState<LineItem[]>([
-    { id: '1', description: '', quantity: 1, unit_cost: 0 }
+    { id: '1', description: '', quantity: 1, unit_cost: null, total_cost: 0 }
   ])
 
   // Financial calculations
@@ -102,7 +103,7 @@ export default function CreatePackagePage() {
   }, [])
 
   // Auto-calculate live numbers
-  const subtotal = items.reduce((sum, item) => sum + (Number(item.quantity || 0) * Number(item.unit_cost || 0)), 0)
+  const subtotal = items.reduce((sum, item) => sum + calculatePackageItemTotal(item), 0)
   const afterDiscount = Math.max(0, subtotal - Number(discountAmount || 0))
   const taxAmount = (afterDiscount * Number(taxPercent || 0)) / 100
   const grandTotal = afterDiscount + taxAmount
@@ -110,8 +111,8 @@ export default function CreatePackagePage() {
   const effectivePaidAmount = paymentStatus === 'paid'
     ? grandTotal
     : paymentStatus === 'partially_paid'
-    ? Math.min(grandTotal, Math.max(0, Number(paidAmount || 0)))
-    : 0
+      ? Math.min(grandTotal, Math.max(0, Number(paidAmount || 0)))
+      : 0
 
   const remainingBalance = Math.max(0, grandTotal - effectivePaidAmount)
 
@@ -126,7 +127,8 @@ export default function CreatePackagePage() {
         id: String(Date.now() + idx),
         description: it.description,
         quantity: it.quantity,
-        unit_cost: it.unit_cost
+        unit_cost: it.unit_cost,
+        total_cost: it.total_cost,
       }))
       setItems(newItems)
       toast.info(`Loaded "${preset.name}" preset!`)
@@ -185,10 +187,14 @@ export default function CreatePackagePage() {
   }
 
   // Row Manipulation
-  function updateLineItem(id: string, field: keyof LineItem, val: string | number) {
+  function updateLineItem(id: string, field: keyof LineItem, val: string | number | null) {
     setItems(prev => prev.map(item => {
       if (item.id === id) {
-        return { ...item, [field]: val }
+        const updated = { ...item, [field]: val }
+        if ((field === 'quantity' || field === 'unit_cost') && updated.unit_cost !== null) {
+          updated.total_cost = calculatePackageItemTotal(updated)
+        }
+        return updated
       }
       return item
     }))
@@ -199,7 +205,8 @@ export default function CreatePackagePage() {
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(index + items.length + 1),
       description: '',
       quantity: 1,
-      unit_cost: 0
+      unit_cost: null,
+      total_cost: 0,
     }
     const updated = [...items]
     updated.splice(index + 1, 0, newItem)
@@ -259,7 +266,7 @@ export default function CreatePackagePage() {
     formData.append('discount_amount', String(discountAmount))
     formData.append('tax_percent', String(taxPercent))
     formData.append('notes', notes)
-    formData.append('items', JSON.stringify(validItems))
+    formData.append('items', JSON.stringify(validItems.map(({ id: _localId, ...item }) => item)))
 
     const res = await createPackage(formData)
     setSaving(false)
@@ -437,13 +444,12 @@ export default function CreatePackagePage() {
                     <th className="py-2.5 px-3">Description</th>
                     <th className="py-2.5 px-3 w-20 text-center">Qty</th>
                     <th className="py-2.5 px-3 w-32 text-right">Unit Cost (Rs.)</th>
-                    <th className="py-2.5 px-3 w-32 text-right">Subtotal (Rs.)</th>
+                    <th className="py-2.5 px-3 w-32 text-right">Total Cost (Rs.)</th>
                     <th className="py-2.5 px-2 w-16 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/40">
                   {items.map((item, idx) => {
-                    const rowSubtotal = (Number(item.quantity) || 0) * (Number(item.unit_cost) || 0)
                     const isLast = idx === items.length - 1
                     return (
                       <tr key={item.id} className="hover:bg-surface-container-high/40 transition-colors">
@@ -471,14 +477,24 @@ export default function CreatePackagePage() {
                             type="number"
                             min="0"
                             step="any"
-                            value={item.unit_cost}
-                            onChange={(e) => updateLineItem(item.id, 'unit_cost', parseFloat(e.target.value) || 0)}
+                            value={item.unit_cost ?? ''}
+                            onChange={(e) => updateLineItem(item.id, 'unit_cost', e.target.value === '' ? null : Math.max(0, parseFloat(e.target.value) || 0))}
                             onKeyDown={(e) => isLast && handleKeyDownOnLastCost(e, idx)}
+                            placeholder="Optional"
                             className="w-full text-right px-2 py-1.5 text-xs font-mono bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
                           />
                         </td>
-                        <td className="p-2 text-right font-mono font-semibold text-foreground">
-                          Rs. {rowSubtotal.toLocaleString()}
+                        <td className="p-2">
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={calculatePackageItemTotal(item)}
+                            onChange={(e) => updateLineItem(item.id, 'total_cost', Math.max(0, parseFloat(e.target.value) || 0))}
+                            readOnly={item.unit_cost !== null}
+                            title={item.unit_cost !== null ? 'Automatically calculated from quantity × unit cost' : 'Enter the agreed total cost for this line item'}
+                            className={`w-full text-right px-2 py-1.5 text-xs font-mono border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground ${item.unit_cost !== null ? 'bg-surface-container-high border-outline-variant cursor-not-allowed' : 'bg-surface-container-lowest border-primary/40'}`}
+                          />
                         </td>
                         <td className="p-2 text-center">
                           <div className="flex items-center justify-center gap-1">

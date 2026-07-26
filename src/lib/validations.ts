@@ -345,9 +345,11 @@ export const BookingStatusUpdateSchema = z.object({
 });
 
 export const PackageItemSchema = z.object({
+  id: z.string().uuid().optional(),
   description: z.string().min(1, "Description is required"),
   quantity: z.number().min(0.01, "Quantity must be greater than 0"),
-  unit_cost: z.number().min(0, "Unit cost cannot be negative"),
+  unit_cost: z.number().min(0, "Unit cost cannot be negative").nullable(),
+  total_cost: z.number().min(0, "Total cost cannot be negative"),
 });
 
 export const PackageSchema = formObject({

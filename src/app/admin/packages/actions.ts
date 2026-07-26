@@ -3,7 +3,105 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
-import { PackageSchema, PackagePaymentSchema } from '@/lib/validations'
+import { PackageSchema, PackagePaymentSchema, PackageItemSchema } from '@/lib/validations'
+import {
+    calculatePackageItemTotal,
+    formatGeneratedProjectTitle,
+    getPackageItemProjectCount,
+} from '@/lib/package-items'
+import { z } from 'zod'
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>
+
+const PackageItemsUpdateSchema = z.array(PackageItemSchema).min(1, 'At least one package item is required')
+
+async function syncPackageItemProjects(
+    supabase: SupabaseClient,
+    input: {
+        packageId: string
+        packageName: string
+        packageItemId: string
+        clientId: string
+        clientName: string
+        description: string
+        quantity: number
+        sortOrder: number
+    }
+) {
+    const desiredCount = getPackageItemProjectCount(input.quantity)
+    const [{ data: existingProjects }, { data: existingDeliverables }] = await Promise.all([
+        supabase.from('projects').select('id, package_item_unit_index').eq('package_item_id', input.packageItemId),
+        supabase.from('package_deliverables').select('id, project_id, unit_index').eq('package_item_id', input.packageItemId),
+    ])
+
+    const projectByUnit = new Map((existingProjects || []).map(project => [Number(project.package_item_unit_index), project]))
+    const deliverableByUnit = new Map((existingDeliverables || []).map(deliverable => [Number(deliverable.unit_index), deliverable]))
+
+    let firstProjectId: string | undefined
+    for (let unitIndex = 1; unitIndex <= desiredCount; unitIndex++) {
+        const projectTitle = formatGeneratedProjectTitle(input.clientName, input.description, unitIndex)
+        let projectId = projectByUnit.get(unitIndex)?.id as string | undefined
+
+        if (projectId) {
+            const { error } = await supabase.from('projects').update({
+                title: projectTitle,
+                client_id: input.clientId,
+                package_id: input.packageId,
+                package: input.packageName,
+            }).eq('id', projectId)
+            if (error) throw error
+        } else {
+            const { data: project, error } = await supabase.from('projects').insert({
+                client_id: input.clientId,
+                title: projectTitle,
+                status: 'in_progress',
+                package: input.packageName,
+                package_id: input.packageId,
+                package_item_id: input.packageItemId,
+                package_item_unit_index: unitIndex,
+            }).select('id').single()
+            if (error || !project) throw error || new Error('Failed to create generated project')
+            projectId = project.id
+        }
+        if (unitIndex === 1) firstProjectId = projectId
+
+        const existingDeliverable = deliverableByUnit.get(unitIndex)
+        if (existingDeliverable) {
+            const { error } = await supabase.from('package_deliverables').update({
+                title: projectTitle,
+                project_id: projectId,
+                sort_order: (input.sortOrder * 1000) + unitIndex,
+                updated_at: new Date().toISOString(),
+            }).eq('id', existingDeliverable.id)
+            if (error) throw error
+        } else {
+            const { error } = await supabase.from('package_deliverables').insert({
+                package_id: input.packageId,
+                package_item_id: input.packageItemId,
+                unit_index: unitIndex,
+                title: projectTitle,
+                status: 'UNASSIGNED',
+                sort_order: (input.sortOrder * 1000) + unitIndex,
+                project_id: projectId,
+            })
+            if (error) throw error
+        }
+    }
+
+    const excessDeliverables = (existingDeliverables || []).filter(item => Number(item.unit_index) > desiredCount)
+    if (excessDeliverables.length > 0) {
+        const { error } = await supabase.from('package_deliverables').delete().in('id', excessDeliverables.map(item => item.id))
+        if (error) throw error
+    }
+
+    const excessProjects = (existingProjects || []).filter(item => Number(item.package_item_unit_index) > desiredCount)
+    if (excessProjects.length > 0) {
+        const { error } = await supabase.from('projects').delete().in('id', excessProjects.map(item => item.id))
+        if (error) throw error
+    }
+
+    return firstProjectId
+}
 
 export async function getPackagesList(params: {
     search?: string
@@ -132,13 +230,23 @@ export async function createPackage(formData: FormData) {
         }
 
         const pkg = parsed.data
-        const items = pkg.items || []
-        if (items.length === 0) {
-            return { error: 'Please add at least one line item' }
+        let rawItems: unknown = pkg.items
+        if (!rawItems && formData.get('items')) {
+            try {
+                rawItems = JSON.parse(String(formData.get('items')))
+            } catch {
+                return { error: 'Package items contain invalid JSON' }
+            }
         }
+        const parsedItems = PackageItemsUpdateSchema.safeParse(rawItems)
+        if (!parsedItems.success) return { error: 'Validation failed: ' + parsedItems.error.issues[0].message }
+        const items = parsedItems.data.map(item => ({
+            ...item,
+            total_cost: calculatePackageItemTotal(item),
+        }))
 
         // Calculate Subtotal, Tax, Grand Total
-        const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0)
+        const subtotal = items.reduce((sum, item) => sum + item.total_cost, 0)
         const afterDiscount = Math.max(0, subtotal - (pkg.discount_amount || 0))
         const taxAmount = (afterDiscount * (pkg.tax_percent || 0)) / 100
         const grandTotal = afterDiscount + taxAmount
@@ -148,8 +256,8 @@ export async function createPackage(formData: FormData) {
         const paidAmount = pkg.payment_status === 'paid'
             ? grandTotal
             : pkg.payment_status === 'partially_paid'
-            ? Math.min(grandTotal, Math.max(0, rawPaidAmount))
-            : 0
+                ? Math.min(grandTotal, Math.max(0, rawPaidAmount))
+                : 0
 
         // Generate Package Number e.g. PKG-2026-XXXX
         const year = new Date(pkg.creation_date).getFullYear()
@@ -185,6 +293,12 @@ export async function createPackage(formData: FormData) {
         }
 
         const packageId = insertedPkg.id
+        const { data: client, error: clientError } = await supabase
+            .from('clients')
+            .select('company_name')
+            .eq('id', pkg.client_id)
+            .single()
+        if (clientError || !client) return { error: clientError?.message || 'Client not found' }
 
         // Record initial payment record if paid amount > 0
         if (paidAmount > 0) {
@@ -206,19 +320,24 @@ export async function createPackage(formData: FormData) {
             description: item.description,
             quantity: item.quantity,
             unit_cost: item.unit_cost,
-            subtotal: item.quantity * item.unit_cost,
+            total_cost: item.total_cost,
+            subtotal: item.total_cost,
             sort_order: idx
         }))
 
-        const { error: itemsErr } = await supabase.from('package_items').insert(itemInserts)
-        if (itemsErr) console.error('Error inserting items:', itemsErr)
+        const { data: insertedItems, error: itemsErr } = await supabase
+            .from('package_items')
+            .insert(itemInserts)
+            .select('id, description, quantity, sort_order')
+        if (itemsErr || !insertedItems) return { error: itemsErr?.message || 'Failed to create package items' }
 
         // Initialize Logistics
         await supabase.from('package_logistics').insert({
             package_id: packageId,
             revision_count: 0,
             assigned_staff_ids: [],
-            vehicles_taken: []
+            vehicles_taken: [],
+            locations: []
         })
 
         // Initialize Editing Hub
@@ -229,46 +348,24 @@ export async function createPackage(formData: FormData) {
             client_revision_notes: ''
         })
 
-        // Each deliverable item is a Project with Tasks
-        for (let idx = 0; idx < items.length; idx++) {
-            const item = items[idx]
-            const deliverableTitle = `${item.quantity > 1 ? `${item.quantity}x ` : ''}${item.description}`
-            const projectTitle = `${pkg.title} - ${deliverableTitle}`
-
-            // Create dedicated project for this deliverable
-            const { data: createdProject } = await supabase
-                .from('projects')
-                .insert({
-                    client_id: pkg.client_id,
-                    title: projectTitle,
-                    status: 'in_progress',
-                    package: pkg.preset_template || pkg.title || null
-                })
-                .select('id')
-                .single()
-
-            const projectId = createdProject?.id || null
-
-            if (projectId) {
-                // Generate default 5-phase tasks for this deliverable project (Videography & Editing agency workflow)
-                const defaultTasks = [
-                    { project_id: projectId, phase: 'Phase 1', title: `Concept & Scripting (${deliverableTitle})`, description: 'Initial planning, storyboarding, scriptwriting, and concept approval', status: 'pending' },
-                    { project_id: projectId, phase: 'Phase 2', title: `Videography & On-Site Shoot (${deliverableTitle})`, description: 'On-site camera shoot, lighting, asset capture, and audio recording', status: 'pending' },
-                    { project_id: projectId, phase: 'Phase 3', title: `Editing & Graphic Design (${deliverableTitle})`, description: 'Video editing, color grading, audio sync, graphic assets, and motion design', status: 'pending' },
-                    { project_id: projectId, phase: 'Phase 4', title: `QA Review & Founder Feedback (${deliverableTitle})`, description: 'Internal quality review, founder feedback, and revision round', status: 'pending' },
-                    { project_id: projectId, phase: 'Phase 5', title: `Final Export & Client Delivery (${deliverableTitle})`, description: 'Exporting final 4K/HD video or design files and submitting Drive link', status: 'pending' }
-                ]
-                await supabase.from('tasks').insert(defaultTasks)
-            }
-
-            // Insert package deliverable linked to its project
-            await supabase.from('package_deliverables').insert({
-                package_id: packageId,
-                title: deliverableTitle,
-                status: 'UNASSIGNED',
-                sort_order: idx,
-                project_id: projectId
+        // Create one numbered project and deliverable for every whole quantity unit.
+        let firstProjectId: string | undefined
+        for (const item of insertedItems) {
+            const projectId = await syncPackageItemProjects(supabase, {
+                packageId,
+                packageName: pkg.preset_template || pkg.title,
+                packageItemId: item.id,
+                clientId: pkg.client_id,
+                clientName: client.company_name,
+                description: item.description,
+                quantity: Number(item.quantity),
+                sortOrder: item.sort_order,
             })
+            firstProjectId ||= projectId
+        }
+
+        if (firstProjectId) {
+            await supabase.from('packages').update({ project_id: firstProjectId }).eq('id', packageId)
         }
 
         // Audit Log
@@ -301,14 +398,36 @@ export async function getPackageDetails(packageId: string) {
             .from('packages')
             .select(`
                 *,
-                projects ( id, raw_footage_link, brand_assets_link, client_brief_notes ),
                 clients!inner ( id, company_name, contact_person, contact_email, phone_number, billing_address, tax_id )
             `)
             .eq('id', packageId)
             .is('deleted_at', null)
             .single()
 
-        if (pkgErr || !pkg) return { error: 'Package not found' }
+        if (pkgErr) {
+            console.error('Error fetching package workspace:', pkgErr)
+            return { error: `Failed to load package workspace: ${pkgErr.message}` }
+        }
+        if (!pkg) return { error: 'Package not found' }
+
+        // Do not embed projects here: packages has both the legacy
+        // packages.project_id relationship and the generated-projects
+        // projects.package_id relationship. A direct lookup avoids relying
+        // on a database-generated relationship name and works on databases
+        // migrated before or after the generated-projects migration.
+        let packageProject = null
+        if (pkg.project_id) {
+            const { data: project, error: projectError } = await supabase
+                .from('projects')
+                .select('id, raw_footage_link, brand_assets_link, client_brief_notes')
+                .eq('id', pkg.project_id)
+                .maybeSingle()
+            if (projectError) {
+                console.error('Error fetching package project assets:', projectError)
+            } else {
+                packageProject = project
+            }
+        }
 
         // Fetch child tables
         const [
@@ -332,7 +451,7 @@ export async function getPackageDetails(packageId: string) {
         ])
 
         return {
-            package: pkg,
+            package: { ...pkg, projects: packageProject },
             items: items || [],
             logistics: logistics || { revision_count: 0, assigned_staff_ids: [], vehicles_taken: [], equipments_taken: [], start_time: '', end_time: '' },
             siteVisits: siteVisits || [],
@@ -344,6 +463,124 @@ export async function getPackageDetails(packageId: string) {
         }
     } catch (err: unknown) {
         return { error: (err instanceof Error ? err.message : String(err)) }
+    }
+}
+
+export async function updatePackageItems(packageId: string, rawItems: unknown) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+        if (!await verifyAdminOrFounder(supabase, user.id)) return { error: 'Permission denied.' }
+
+        const parsed = PackageItemsUpdateSchema.safeParse(rawItems)
+        if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
+
+        const { data: pkg, error: packageError } = await supabase
+            .from('packages')
+            .select('id, client_id, title, preset_template, discount_amount, tax_percent, paid_amount, clients(company_name)')
+            .eq('id', packageId)
+            .is('deleted_at', null)
+            .single()
+        if (packageError || !pkg) return { error: packageError?.message || 'Package not found' }
+
+        const { data: existingItems, error: existingError } = await supabase
+            .from('package_items')
+            .select('id')
+            .eq('package_id', packageId)
+        if (existingError) return { error: existingError.message }
+
+        const existingIds = new Set((existingItems || []).map(item => item.id))
+        const submittedIds = new Set(parsed.data.flatMap(item => item.id ? [item.id] : []))
+        const removedIds = [...existingIds].filter(id => !submittedIds.has(id))
+        if (removedIds.length > 0) {
+            const { error } = await supabase.from('package_items').delete().in('id', removedIds).eq('package_id', packageId)
+            if (error) return { error: error.message }
+        }
+
+        const savedItems: Array<{ id: string, description: string, quantity: number, total_cost: number, sort_order: number }> = []
+        for (let sortOrder = 0; sortOrder < parsed.data.length; sortOrder++) {
+            const item = parsed.data[sortOrder]
+            const totalCost = calculatePackageItemTotal(item)
+            const values = {
+                description: item.description.trim(),
+                quantity: item.quantity,
+                unit_cost: item.unit_cost,
+                total_cost: totalCost,
+                subtotal: totalCost,
+                sort_order: sortOrder,
+                updated_at: new Date().toISOString(),
+            }
+
+            if (item.id) {
+                if (!existingIds.has(item.id)) return { error: 'One or more package items are invalid' }
+                const { data: updated, error } = await supabase
+                    .from('package_items')
+                    .update(values)
+                    .eq('id', item.id)
+                    .eq('package_id', packageId)
+                    .select('id, description, quantity, total_cost, sort_order')
+                    .single()
+                if (error || !updated) return { error: error?.message || 'Failed to update package item' }
+                savedItems.push(updated)
+            } else {
+                const { data: inserted, error } = await supabase
+                    .from('package_items')
+                    .insert({ package_id: packageId, ...values })
+                    .select('id, description, quantity, total_cost, sort_order')
+                    .single()
+                if (error || !inserted) return { error: error?.message || 'Failed to add package item' }
+                savedItems.push(inserted)
+            }
+        }
+
+        const clientRelation = pkg.clients as unknown as { company_name: string } | null
+        let firstProjectId: string | undefined
+        for (const item of savedItems) {
+            const projectId = await syncPackageItemProjects(supabase, {
+                packageId,
+                packageName: pkg.preset_template || pkg.title,
+                packageItemId: item.id,
+                clientId: pkg.client_id,
+                clientName: clientRelation?.company_name || 'Client',
+                description: item.description,
+                quantity: Number(item.quantity),
+                sortOrder: item.sort_order,
+            })
+            firstProjectId ||= projectId
+        }
+
+        const subtotal = savedItems.reduce((sum, item) => sum + Number(item.total_cost || 0), 0)
+        const afterDiscount = Math.max(0, subtotal - Number(pkg.discount_amount || 0))
+        const taxAmount = afterDiscount * Number(pkg.tax_percent || 0) / 100
+        const grandTotal = afterDiscount + taxAmount
+        const paidAmount = Math.min(Number(pkg.paid_amount || 0), grandTotal)
+        const paymentStatus = paidAmount <= 0 ? 'unpaid' : paidAmount >= grandTotal ? 'paid' : 'partially_paid'
+
+        const { error: totalError } = await supabase.from('packages').update({
+            project_id: firstProjectId || null,
+            subtotal,
+            tax_amount: taxAmount,
+            grand_total: grandTotal,
+            paid_amount: paidAmount,
+            payment_status: paymentStatus,
+            updated_at: new Date().toISOString(),
+        }).eq('id', packageId)
+        if (totalError) return { error: totalError.message }
+
+        await supabase.from('package_audit_logs').insert({
+            package_id: packageId,
+            actor_id: user.id,
+            action: `Updated package items and synchronized ${savedItems.reduce((sum, item) => sum + getPackageItemProjectCount(item.quantity), 0)} generated projects`,
+        })
+
+        revalidatePath(`/admin/packages/${packageId}`)
+        revalidatePath('/admin/packages')
+        revalidatePath('/admin/projects')
+        revalidatePath('/founder/projects')
+        return { success: true }
+    } catch (err: unknown) {
+        return { error: err instanceof Error ? err.message : String(err) }
     }
 }
 
@@ -434,6 +671,7 @@ export async function incrementRevisionCount(
 
 export async function updateLogistics(packageId: string, data: {
     locationAddress?: string
+    locations?: string[]
     shootDate?: string
     startTime?: string
     endTime?: string
@@ -449,11 +687,16 @@ export async function updateLogistics(packageId: string, data: {
         const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
         if (!isAuthorized) return { error: 'Permission denied.' }
 
+        const locations = (data.locations || [])
+            .map(location => location.trim())
+            .filter((location, index, all) => location.length > 0 && all.indexOf(location) === index)
+
         const { error } = await supabase
             .from('package_logistics')
             .upsert({
                 package_id: packageId,
-                location_address: data.locationAddress ?? null,
+                location_address: locations[0] || data.locationAddress?.trim() || null,
+                locations,
                 shoot_date: data.shootDate || null,
                 start_time: data.startTime || null,
                 end_time: data.endTime || null,
@@ -468,7 +711,7 @@ export async function updateLogistics(packageId: string, data: {
         await supabase.from('package_audit_logs').insert({
             package_id: packageId,
             actor_id: user.id,
-            action: 'Updated logistics, shoot time, equipment & staff assignments'
+            action: `Updated logistics, ${locations.length} shoot location(s), equipment & staff assignments`
         })
 
         revalidatePath(`/admin/packages/${packageId}`)
@@ -792,23 +1035,15 @@ export async function submitDeliverableDriveLink(deliverableId: string, driveLin
             return { error: `Deliverable is currently ${del.status}, link submission is locked.` }
         }
 
-        const { error } = await supabase
-            .from('package_deliverables')
-            .update({
-                drive_link: trimmedLink,
-                status: 'UNDER_REVIEW',
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', deliverableId)
+        const { data: submittedDeliverable, error } = await supabase.rpc('submit_deliverable_for_founder_review', {
+            p_deliverable_id: deliverableId,
+            p_drive_link: trimmedLink,
+        })
 
         if (error) return { error: error.message }
-
-        // Audit Log
-        await supabase.from('package_audit_logs').insert({
-            package_id: del.package_id,
-            actor_id: user.id,
-            action: `Submitted Google Drive link for review: "${del.title}"`
-        })
+        if (!submittedDeliverable || submittedDeliverable.length === 0) {
+            return { error: 'Submission was not saved. Confirm this deliverable is assigned to you and try again.' }
+        }
 
         revalidatePath('/employee/tasks')
         revalidatePath('/employee/packages')
@@ -882,6 +1117,8 @@ export async function approveDeliverable(deliverableId: string, packageId: strin
         revalidatePath(`/admin/packages/${packageId}`)
         revalidatePath('/founder/review-queue')
         revalidatePath('/admin/packages')
+        revalidatePath('/employee/packages')
+        revalidatePath(`/employee/packages/${packageId}`)
         return { success: true }
     } catch (err: unknown) {
         return { error: (err instanceof Error ? err.message : String(err)) }
@@ -965,7 +1202,7 @@ export async function getAssignedDeliverablesForEmployee() {
                     id,
                     package_number,
                     title,
-                    projects ( id, raw_footage_link, brand_assets_link, client_brief_notes ),
+                    projects!packages_project_id_fkey ( id, raw_footage_link, brand_assets_link, client_brief_notes ),
                     clients ( id, company_name )
                 )
             `)
@@ -987,25 +1224,31 @@ export async function getPendingFounderReviews() {
         const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
         if (!isAuthorized) return []
 
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('package_deliverables')
             .select(`
                 *,
-                profiles:assigned_employee_id ( full_name ),
+                profiles!package_deliverables_assigned_employee_id_fkey ( full_name ),
                 packages!inner (
                     id,
                     package_number,
                     title,
-                    projects ( id, raw_footage_link, brand_assets_link, client_brief_notes ),
+                    projects!packages_project_id_fkey ( id, raw_footage_link, brand_assets_link, client_brief_notes ),
                     clients ( id, company_name )
                 )
             `)
             .eq('status', 'UNDER_REVIEW')
             .order('updated_at', { ascending: false })
 
+        if (error) {
+            console.error('Error fetching founder review queue:', error)
+            throw new Error(`Failed to load founder review queue: ${error.message}`)
+        }
+
         return data || []
-    } catch {
-        return []
+    } catch (err: unknown) {
+        console.error('Founder review queue unavailable:', err)
+        throw err
     }
 }
 

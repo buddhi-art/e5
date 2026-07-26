@@ -2,11 +2,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ProjectForm } from "./project-form"
-import { ProjectStatusSelect } from "./project-status-select"
 import { ProjectActionsMenu } from "./project-actions-menu"
 import { Archive } from "lucide-react"
+import { ClientProjectGroups } from "@/components/projects/client-project-groups"
 
 // Layer 2: ISR - Cache for 5 minutes
 export const revalidate = 300
@@ -60,30 +59,7 @@ export default async function ProjectsPage() {
               </CardHeader>
               <CardContent className="pt-4">
                 <TabsContent value="active" className="mt-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-outline-variant/50 hover:bg-surface-container-high">
-                        <TableHead className="text-on-surface-variant">Project Title</TableHead>
-                        <TableHead className="text-on-surface-variant">Client</TableHead>
-                        <TableHead className="text-on-surface-variant">Status</TableHead>
-                        <TableHead className="text-on-surface-variant text-right w-[60px]">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {activeProjects && activeProjects.length > 0 ? (
-                        activeProjects.map((project: any) => (
-                          <TableRow key={project.id} className="border-outline-variant/50 hover:bg-surface-container-high transition-colors">
-                            <TableCell className="font-medium text-on-surface">{project.title}</TableCell>
-                            <TableCell className="text-on-surface">{project.clients?.company_name || "Unknown Client"}</TableCell>
-                            <TableCell><ProjectStatusSelect projectId={project.id} currentStatus={project.status} /></TableCell>
-                            <TableCell className="text-right"><ProjectActionsMenu project={project} clients={typedClients} /></TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow><TableCell colSpan={4} className="text-center py-6 text-outline">No active projects found.</TableCell></TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+                  <ClientProjectGroups projects={activeProjects as any[]} clients={typedClients} />
                 </TabsContent>
                 <TabsContent value="archived" className="mt-0">
                   {archivedProjects && archivedProjects.length > 0 ? (
