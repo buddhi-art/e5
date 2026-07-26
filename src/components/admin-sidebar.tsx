@@ -17,6 +17,7 @@ const adminLinks = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Employees', href: '/admin/employees', icon: Users },
   { name: 'Clients', href: '/admin/clients', icon: UserSquare2 },
+  { name: 'Packages', href: '/admin/packages', icon: Package },
   { name: 'Projects', href: '/admin/projects', icon: FolderKanban },
   { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare },
   { name: 'Kanban', href: '/admin/kanban', icon: ArrowRightLeft },
@@ -25,7 +26,6 @@ const adminLinks = [
 ]
 
 const financeLinks = [
-  { name: 'Packages', href: '/admin/packages', icon: Package },
   { name: 'Invoices', href: '/admin/invoices', icon: Receipt },
   { name: 'Expenses', href: '/admin/expenses', icon: Wallet },
 ]
