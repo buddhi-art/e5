@@ -45,7 +45,6 @@ export function ProjectDiscussion({
     const val = e.target.value
     setNewComment(val)
 
-    const lastChar = val.slice(-1)
     const atIndex = val.lastIndexOf('@')
 
     if (atIndex !== -1 && (atIndex === 0 || val[atIndex - 1] === ' ')) {
@@ -91,7 +90,7 @@ export function ProjectDiscussion({
     }
   }
 
-  const filteredMembers = teamMembers.filter(m => 
+  const filteredMembers = teamMembers.filter(m =>
     m.full_name.toLowerCase().includes(mentionFilter.toLowerCase())
   )
 
@@ -103,7 +102,7 @@ export function ProjectDiscussion({
           Project Discussion
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-premium">
         {loading ? (
           <div className="flex justify-center items-center h-full text-outline">Loading...</div>
@@ -117,7 +116,7 @@ export function ProjectDiscussion({
           comments.map(c => {
             const isMe = c.user_id === currentUserId || c.profiles?.full_name === 'You'
             const initials = (c.profiles?.full_name || 'U').substring(0, 2).toUpperCase()
-            
+
             return (
               <div key={c.id} className={cn("flex gap-3", isMe ? "flex-row-reverse" : "flex-row")}>
                 <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-xs border border-primary/20">
@@ -141,7 +140,7 @@ export function ProjectDiscussion({
         )}
         <div ref={bottomRef} />
       </CardContent>
-      
+
       <div className="p-4 bg-surface-container/30 border-t border-outline-variant/30 rounded-b-xl relative">
         {showMentions && filteredMembers.length > 0 && (
           <div className="absolute bottom-full mb-2 left-4 right-4 bg-surface-container-high border border-outline-variant rounded-xl shadow-lg p-2 max-h-40 overflow-y-auto z-50 space-y-1">
@@ -160,7 +159,7 @@ export function ProjectDiscussion({
           </div>
         )}
         <div className="relative flex items-center">
-          <Textarea 
+          <Textarea
             value={newComment}
             onChange={handleInputChange}
             placeholder="Type a message (use @ to mention)..."
@@ -172,9 +171,9 @@ export function ProjectDiscussion({
               }
             }}
           />
-          <Button 
-            size="icon" 
-            variant="ghost" 
+          <Button
+            size="icon"
+            variant="ghost"
             className="absolute right-1 text-primary hover:bg-primary/10"
             disabled={!newComment.trim() || submitting}
             onClick={handleSend}

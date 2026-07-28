@@ -5,35 +5,51 @@ import { ClientReviewClient } from './client-review-client'
 export const dynamic = 'force-dynamic'
 
 export default async function ClientReviewPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  
-  if (!id) notFound()
+  const { id: token } = await params
+
+  if (!token) notFound()
 
   // Use the admin service role client because clients are NOT logged in
   const supabase = createSupabaseAdmin(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
-  
-  // Actually, we'll need to fetch the deliverable by ID (UUID).
-  const { data: deliverable, error } = await supabase
-    .from('package_deliverables')
-    .select(`
-      *,
-      packages ( package_number, title, clients ( company_name ) )
-    `)
-    .eq('id', id)
+
+  const { data: reviewLink, error: linkError } = await supabase
+    .from('client_reviews')
+    .select('token, package_deliverable_id, is_active')
+    .eq('token', token)
+    .eq('is_active', true)
     .single()
 
-  if (error || !deliverable) {
+  if (linkError || !reviewLink) {
     notFound()
   }
+
+  const { data: deliverable, error: deliverableError } = await supabase
+    .from('package_deliverables')
+    .select(`
+      id, title, status, drive_link, revision_history,
+      packages ( package_number, title, clients ( company_name ) )
+    `)
+    .eq('id', reviewLink.package_deliverable_id)
+    .single()
+
+  if (deliverableError || !deliverable) notFound()
+
+  const packageRelation = Array.isArray(deliverable.packages)
+    ? deliverable.packages[0]
+    : deliverable.packages
+  const clientRelation = Array.isArray(packageRelation?.clients)
+    ? packageRelation.clients[0]
+    : packageRelation?.clients
 
   // Fetch existing client reviews for this deliverable
   const { data: reviews } = await supabase
     .from('client_reviews')
-    .select('*')
-    .eq('deliverable_id', id)
+    .select('id, status, feedback, created_at')
+    .eq('package_deliverable_id', reviewLink.package_deliverable_id)
+    .not('status', 'is', null)
     .order('created_at', { ascending: false })
 
   return (
@@ -41,14 +57,14 @@ export default async function ClientReviewPage({ params }: { params: Promise<{ i
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {deliverable.packages?.clients?.company_name || 'Client'} - Deliverable Review
+            {clientRelation?.company_name || 'Client'} - Deliverable Review
           </h1>
           <p className="text-on-surface-variant mt-2 text-lg">
             {deliverable.title}
           </p>
         </div>
 
-        <ClientReviewClient deliverable={deliverable} reviews={reviews || []} />
+        <ClientReviewClient reviewToken={token} deliverable={deliverable} reviews={reviews || []} />
       </div>
     </div>
   )

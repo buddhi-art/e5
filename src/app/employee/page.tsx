@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { TaskCard } from './task-card'
 import { getAssignedDeliverablesForEmployee } from '@/app/admin/packages/actions'
 import { DeliverableWorkspace } from '@/components/employee/deliverable-workspace'
+import { ProjectDiscussion } from '@/components/project-discussion'
 
 export default async function EmployeeDashboard() {
   const supabase = await createClient()
@@ -16,14 +17,31 @@ export default async function EmployeeDashboard() {
     .from('tasks')
     .select(`
       *,
-      projects ( title, clients ( company_name ) ),
+       projects ( id, title, package_id, package_item_id, clients ( company_name ) ),
       subtasks (*, sub_subtasks (*))
     `)
     .eq('assigned_to', user.id)
     .order('deadline', { ascending: true })
 
+  // Package projects used to receive five generated phase tasks. Filter only
+  // those legacy rows, preserving manually-created tasks with the same title
+  // on ordinary projects.
+  const legacyGeneratedTitles = [
+    /^Concept & Scripting \(.+\)$/,
+    /^Videography & On-Site Shoot \(.+\)$/,
+    /^Editing & Graphic Design \(.+\)$/,
+    /^QA Review & Founder Feedback \(.+\)$/,
+    /^Final Export & Client Delivery \(.+\)$/,
+  ]
+  const visibleTasks = (tasks || []).filter(task => {
+    const project = task.projects
+    const isPackageProject = Boolean(project?.package_id || project?.package_item_id)
+    const isLegacyGeneratedTask = legacyGeneratedTitles.some(pattern => pattern.test(task.title || ''))
+    return !(isPackageProject && isLegacyGeneratedTask)
+  })
+
   // Fetch all subtask comments for the loaded tasks
-  const subtaskIds = (tasks || []).flatMap(t => (t.subtasks || []).map((s: any) => s.id))
+  const subtaskIds = visibleTasks.flatMap(t => (t.subtasks || []).map((s: any) => s.id))
 
   let allComments: any[] = []
   let commentsErr: any = null
@@ -52,6 +70,12 @@ export default async function EmployeeDashboard() {
 
   // Fetch assigned package deliverables
   const deliverables = await getAssignedDeliverablesForEmployee()
+  const assignedProjects = Array.from(new Map(
+    visibleTasks
+      .map(task => task.projects)
+      .filter((project): project is { id: string; title: string } => Boolean(project?.id))
+      .map(project => [project.id, project])
+  ).values())
 
   return (
     <div className="space-y-8">
@@ -83,9 +107,26 @@ export default async function EmployeeDashboard() {
         </div>
       )}
 
-      {tasks && tasks.length > 0 ? (
+      {assignedProjects.length > 0 && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Project Discussions</h2>
+            <p className="text-xs text-on-surface-variant mt-1">Messages from admins and your project team. Reply here or mention a teammate with @.</p>
+          </div>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {assignedProjects.map(project => (
+              <div key={project.id} className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground">{project.title}</h3>
+                <ProjectDiscussion projectId={project.id} currentUserId={user.id} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {visibleTasks.length > 0 ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {tasks.map((task, i) => (
+          {visibleTasks.map((task, i) => (
             <div key={task.id} className="morph-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
               <TaskCard task={task} commentsBySubtask={Object.fromEntries(commentsBySubtask)} />
             </div>

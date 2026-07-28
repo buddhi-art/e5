@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,37 +10,68 @@ import { submitClientReview } from '@/app/actions/client-reviews'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
+type ReviewStatus = 'APPROVED' | 'REVISION_REQUESTED'
+
+export interface ClientReviewDeliverable {
+  id: string
+  title: string
+  status: string
+  drive_link: string | null
+  revision_history: unknown
+}
+
+export interface ClientReview {
+  id: string
+  status: ReviewStatus
+  feedback: string | null
+  created_at: string
+}
+
+interface RevisionEntry {
+  submittedDriveLink?: string | null
+}
+
 export function ClientReviewClient({
+  reviewToken,
   deliverable,
-  reviews
+  reviews,
 }: {
-  deliverable: any
-  reviews: any[]
+  reviewToken: string
+  deliverable: ClientReviewDeliverable
+  reviews: ClientReview[]
 }) {
+  const router = useRouter()
   const [feedback, setFeedback] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const isApproved = deliverable.status === 'APPROVED'
   const isRevisionRequested = deliverable.status === 'REVISION_REQUESTED'
-  
+
   // The client sees the latest link in the revision history, or the drive_link
-  const history = Array.isArray(deliverable.revision_history) ? deliverable.revision_history : []
+  const history: RevisionEntry[] = Array.isArray(deliverable.revision_history)
+    ? deliverable.revision_history.filter((entry): entry is RevisionEntry => (
+      typeof entry === 'object' && entry !== null && 'submittedDriveLink' in entry
+    ))
+    : []
   const latestRevision = history[0]
   const currentLink = latestRevision ? latestRevision.submittedDriveLink : deliverable.drive_link
 
-  const handleAction = async (status: 'APPROVED' | 'REVISION_REQUESTED') => {
+  const handleAction = async (status: ReviewStatus) => {
     if (status === 'REVISION_REQUESTED' && !feedback.trim()) {
       toast.error('Please provide feedback for the revision.')
       return
     }
 
     setSubmitting(true)
-    const res = await submitClientReview(deliverable.id, status, feedback)
-    if (res.error) {
-      toast.error(res.error)
+    try {
+      const res = await submitClientReview(reviewToken, status, feedback)
+      if (res.error) {
+        toast.error(res.error)
+      } else {
+        toast.success(status === 'APPROVED' ? 'Deliverable approved!' : 'Revision requested!')
+        router.refresh()
+      }
+    } finally {
       setSubmitting(false)
-    } else {
-      toast.success(status === 'APPROVED' ? 'Deliverable approved!' : 'Revision requested!')
-      // Page will revalidate and reload via server action
     }
   }
 
@@ -58,7 +90,7 @@ export function ClientReviewClient({
               <p className="text-sm text-on-surface-variant mt-1">
                 Please review the video/asset from the link below.
               </p>
-              
+
               {currentLink ? (
                 <div className="mt-4">
                   <a
@@ -77,7 +109,7 @@ export function ClientReviewClient({
                 </p>
               )}
             </div>
-            
+
             {/* Status Badge */}
             <div className="shrink-0">
               {isApproved && (
@@ -106,13 +138,13 @@ export function ClientReviewClient({
         <Card className="bg-surface-container-low border-outline-variant/60">
           <CardContent className="p-6 space-y-6">
             <h3 className="text-lg font-bold text-foreground">Your Decision</h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-on-surface mb-2 block">
                   Feedback / Revision Notes
                 </label>
-                <Textarea 
+                <Textarea
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder="If requesting a revision, please detail what needs to be changed (e.g., 'At 0:15 change the font size')."
@@ -120,9 +152,9 @@ export function ClientReviewClient({
                   disabled={submitting}
                 />
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button 
+                <Button
                   onClick={() => handleAction('APPROVED')}
                   disabled={submitting}
                   className="bg-m3-success text-white hover:bg-m3-success/90 h-12 flex-1 font-bold text-base"
@@ -130,7 +162,7 @@ export function ClientReviewClient({
                   <CheckCircle2 className="w-5 h-5 mr-2" />
                   Approve Deliverable
                 </Button>
-                <Button 
+                <Button
                   onClick={() => handleAction('REVISION_REQUESTED')}
                   disabled={submitting || !feedback.trim()}
                   variant="outline"

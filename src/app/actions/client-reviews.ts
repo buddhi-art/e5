@@ -1,8 +1,8 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
+import { UuidParamSchema } from '@/lib/validations'
 
 // Use admin client since clients are not authenticated
 function getAdminClient() {
@@ -13,50 +13,33 @@ function getAdminClient() {
 }
 
 export async function submitClientReview(
-  deliverableId: string, 
-  status: 'APPROVED' | 'REVISION_REQUESTED', 
+  reviewToken: string,
+  status: 'APPROVED' | 'REVISION_REQUESTED',
   feedback?: string
 ) {
   try {
+    const parsedToken = UuidParamSchema.safeParse(reviewToken)
+    if (!parsedToken.success) return { error: 'Invalid review link.' }
+    if (status !== 'APPROVED' && status !== 'REVISION_REQUESTED') {
+      return { error: 'Invalid review status.' }
+    }
+
+    const trimmedFeedback = feedback?.trim() || null
+    if (trimmedFeedback && trimmedFeedback.length > 5000) {
+      return { error: 'Feedback must be 5,000 characters or fewer.' }
+    }
+
     const supabase = getAdminClient()
 
-    // 1. Fetch current deliverable to verify it's under review
-    const { data: del, error: fetchErr } = await supabase
-      .from('package_deliverables')
-      .select('*')
-      .eq('id', deliverableId)
-      .single()
+    const { data: submission, error: submitErr } = await supabase.rpc('submit_client_review', {
+      p_review_token: parsedToken.data,
+      p_status: status,
+      p_feedback: trimmedFeedback,
+    })
 
-    if (fetchErr || !del) {
-      return { error: 'Deliverable not found.' }
-    }
-
-    // Insert review record
-    const { error: insertErr } = await supabase
-      .from('client_reviews')
-      .insert({
-        deliverable_id: deliverableId,
-        status: status,
-        feedback: feedback || null
-      })
-
-    if (insertErr) {
-      return { error: insertErr.message }
-    }
-
-    // Update deliverable status if revision was requested or if approved
-    // Actually, maybe we only update the status to REVISION_REQUESTED or APPROVED
-    const { error: updateErr } = await supabase
-      .from('package_deliverables')
-      .update({
-        status: status,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', deliverableId)
-
-    if (updateErr) {
-      return { error: updateErr.message }
-    }
+    if (submitErr) return { error: submitErr.message }
+    const del = Array.isArray(submission) ? submission[0] : submission
+    if (!del) return { error: 'This review link is expired or no longer available.' }
 
     // Optionally, insert a notification to the admin/founder/employee
     // Since we're using admin client, we can query profiles
@@ -72,10 +55,10 @@ export async function submitClientReview(
       await supabase.from('notifications').insert(notifications)
     }
 
-    revalidatePath(`/client/review/${deliverableId}`)
+    revalidatePath(`/client/review/${reviewToken}`)
     revalidatePath(`/admin/packages/${del.package_id}`)
     revalidatePath(`/founder/review-queue`)
-    
+
     return { success: true }
   } catch (err: unknown) {
     return { error: (err instanceof Error ? err.message : String(err)) }

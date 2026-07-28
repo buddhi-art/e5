@@ -9,11 +9,13 @@ import { ProjectForm } from '@/app/admin/projects/project-form'
 import { ProjectStatusSelect } from '@/app/admin/projects/project-status-select'
 import { ProjectActionsMenu } from '@/app/admin/projects/project-actions-menu'
 import { Archive, FolderKanban, CheckCircle, Clock, AlertTriangle, User } from 'lucide-react'
+import { ProjectDiscussion } from '@/components/project-discussion'
 
 export const revalidate = 300
 
 export default async function FounderProjectsPage() {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
     const { data: allProjects, error } = await supabase
         .from('projects')
@@ -158,7 +160,7 @@ export default async function FounderProjectsPage() {
                     </Card>
                 </div>
 
-                <div>
+                <div className="space-y-4">
                     <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 sticky top-24 morph-fade-in morph-delay-3">
                         <CardHeader>
                             <CardTitle className="text-on-surface">New Project</CardTitle>
@@ -166,6 +168,22 @@ export default async function FounderProjectsPage() {
                         </CardHeader>
                         <CardContent><ProjectForm clients={clients || []} /></CardContent>
                     </Card>
+                    {activeProjectStats.length > 0 && (
+                        <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1">
+                            <CardHeader>
+                                <CardTitle className="text-on-surface">Project Discussions</CardTitle>
+                                <CardDescription className="text-on-surface-variant">Read and reply to team messages across active projects.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-5">
+                                {activeProjectStats.map((project: any) => (
+                                    <div key={project.id}>
+                                        <h3 className="text-sm font-semibold text-foreground mb-2">{project.title}</h3>
+                                        <ProjectDiscussion projectId={project.id} currentUserId={user?.id || ''} />
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
         </div>

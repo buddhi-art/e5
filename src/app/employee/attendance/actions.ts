@@ -86,12 +86,16 @@ export async function checkOut(daySummary: string) {
       }
     }
 
-    const { error } = await supabase
+    const { data: updatedRecord, error } = await supabase
       .from('attendance')
       .update({ check_out_time: now, day_summary: validSummary.trim() })
       .eq('id', record.id)
+      .is('check_out_time', null)
+      .select('id')
+      .maybeSingle()
 
     if (error) return { error: error.message }
+    if (!updatedRecord) return { error: 'This attendance record was already checked out.' }
 
     revalidatePath('/employee/attendance')
     return { success: true, checkOutTime: now }

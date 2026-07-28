@@ -35,10 +35,10 @@ export async function getProjectComments(projectId: string): Promise<ProjectComm
   }
 }
 
-export async function getProjectTeamMembers(): Promise<{ id: string; full_name: string; role: string }[]> {
+export async function getProjectTeamMembers(): Promise<{ id: string; full_name: string; role: string; designation?: string }[]> {
   try {
     const supabase = await createClient()
-    const { data } = await supabase.from('profiles').select('id, full_name, role').is('deleted_at', null)
+    const { data } = await supabase.from('profiles').select('id, full_name, role, designation').is('deleted_at', null)
     return data || []
   } catch {
     return []
@@ -68,7 +68,7 @@ export async function addProjectComment(projectId: string, text: string) {
     const sender = allProfiles.find(p => p.id === user.id)
     const senderName = sender?.full_name || 'A team member'
 
-    const mentionedUsers = allProfiles.filter(p => 
+    const mentionedUsers = allProfiles.filter(p =>
       text.toLowerCase().includes(`@${p.full_name.toLowerCase()}`) && p.id !== user.id
     )
 
@@ -77,7 +77,11 @@ export async function addProjectComment(projectId: string, text: string) {
         user_id: m.id,
         title: 'New Mention',
         message: `${senderName} mentioned you in a project discussion: "${text.trim().substring(0, 60)}..."`,
-        link_url: `/admin/projects/${projectId}`,
+        link_url: m.designation === 'Founder'
+          ? '/founder/projects'
+          : m.role === 'admin'
+            ? `/admin/projects/${projectId}`
+            : '/employee',
         is_read: false
       }))
       await supabase.from('notifications').insert(notifications)
@@ -87,6 +91,7 @@ export async function addProjectComment(projectId: string, text: string) {
     revalidatePath(`/admin/packages/[id]`, 'page')
     revalidatePath(`/founder/review-queue`)
     revalidatePath(`/employee`)
+    revalidatePath(`/founder/projects`)
 
     return { success: true }
   } catch (err: unknown) {
