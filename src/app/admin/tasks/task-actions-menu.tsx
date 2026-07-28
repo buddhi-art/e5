@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { toast } from 'sonner'
 import { MoreVertical, Edit, Trash2 } from 'lucide-react'
+import { TaskLogisticsSection } from '@/components/task-logistics-section'
+import { EditingLogisticsSection } from '@/components/editing-logistics-section'
 
 export function TaskActionsMenu({ task, projects, employees }: { task: any, projects: any[], employees: any[] }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -43,7 +45,7 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
 
   async function handleDelete() {
     if (!confirm('Are you sure you want to delete this task? All sub-tasks will be permanently deleted.')) return
-    
+
     setLoading(true)
     const result = await deleteTask(task.id)
     if (result?.error) {
@@ -64,10 +66,10 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
     formData.set('phase', phase)
     formData.set('assigned_to', assignedTo)
     formData.set('status', status)
-    
+
     setLoading(true)
     const result = await updateTask(task.id, formData)
-    
+
     if (result?.error) {
       toast.error(result.error)
     } else {
@@ -98,7 +100,7 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
       </DropdownMenu>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] bg-surface-container-lowest border-outline-variant">
+        <DialogContent className="max-h-[92vh] w-[calc(100vw-2rem)] overflow-y-auto bg-surface-container-lowest border-outline-variant sm:max-w-4xl lg:max-w-6xl">
           <DialogHeader>
             <DialogTitle className="text-on-surface">Edit Task</DialogTitle>
           </DialogHeader>
@@ -153,7 +155,7 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label className="text-on-surface">Status</Label>
                 <Select value={status} onValueChange={(val) => setStatus(val || '')}>
@@ -187,6 +189,10 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
               <Label htmlFor="description" className="text-on-surface">Description</Label>
               <Textarea defaultValue={task.description} id="description" name="description" className="bg-surface-container-high border-outline-variant text-on-surface min-h-[100px]" />
             </div>
+
+            {/* Package operations are phase-gated and persist in canonical package tables. */}
+            {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} />}
+            {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} />}
 
             <Button type="submit" className="w-full bg-inverse-surface text-inverse-on-surface hover:bg-inverse-surface/90" disabled={loading}>
               {loading ? 'Saving...' : 'Save Changes'}

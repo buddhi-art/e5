@@ -20,7 +20,6 @@ export interface EmailResult {
  * Provider is selected via env vars:
  *   EMAIL_PROVIDER=resend   → uses Resend (requires RESEND_API_KEY)
  *   EMAIL_PROVIDER=sendgrid → uses SendGrid (requires SENDGRID_API_KEY)
- *   EMAIL_PROVIDER=smtp     → uses SMTP (requires SMTP_* vars)
  *   unset / dev             → logs to console, does not send
  */
 export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
@@ -31,8 +30,6 @@ export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
             return sendViaResend(payload)
         case 'sendgrid':
             return sendViaSendGrid(payload)
-        case 'smtp':
-            return sendViaSmtp(payload)
         default:
             console.log('[Email Dev] Would send:', { to: payload.to, subject: payload.subject })
             return { success: true }
@@ -109,12 +106,4 @@ async function sendViaSendGrid(payload: EmailPayload): Promise<EmailResult> {
         console.error('SendGrid exception:', err)
         return { success: false, error: err.message }
     }
-}
-
-async function sendViaSmtp(payload: EmailPayload): Promise<EmailResult> {
-    // SMTP support requires the `nodemailer` package, which is not installed.
-    // Report failure so callers don't believe an email was sent.
-    console.warn('SMTP email provider requires `npm install nodemailer` and SMTP_* env vars.')
-    console.log('[Email SMTP] Not sent (stub):', { to: payload.to, subject: payload.subject })
-    return { success: false, error: 'SMTP provider not implemented — install nodemailer and configure SMTP_* env vars, or set EMAIL_PROVIDER to resend/sendgrid' }
 }

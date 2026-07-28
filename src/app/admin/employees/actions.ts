@@ -127,26 +127,10 @@ export async function archiveEmployee(employeeId: string) {
     const parsed = UuidParamSchema.safeParse({ id: employeeId });
     if (!parsed.success) return { error: 'Invalid employee ID' };
 
-    // First, nullify all non-completed task assignments for this employee
-    const { error: taskError } = await supabaseAdmin
-      .from('tasks')
-      .update({ assigned_to: null })
-      .eq('assigned_to', parsed.data.id)
-      .neq('status', 'completed')
-
-    if (taskError) {
-      console.error("Failed to nullify tasks:", taskError)
-      // Continue with archive even if task nullification fails
-    }
-
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', parsed.data.id)
-
-    if (error) {
-      return { error: error.message }
-    }
+    const { error } = await supabase.rpc('archive_employee_atomic', {
+      p_employee_id: parsed.data.id,
+    })
+    if (error) return { error: error.message }
 
     revalidatePath('/admin/employees')
     revalidatePath('/admin/tasks')

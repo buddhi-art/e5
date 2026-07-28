@@ -10,15 +10,24 @@ export async function logout() {
   redirect('/login')
 }
 
-export async function changePasscode(newPasscode: string) {
-  const parsed = ChangePasscodeSchema.safeParse({ newPasscode })
+export async function changePasscode(currentPasscode: string, newPasscode: string) {
+  const parsed = ChangePasscodeSchema.safeParse({ currentPasscode, newPasscode })
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message }
   }
 
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) return { error: 'Not authenticated' }
+
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: parsed.data.currentPasscode,
+  })
+  if (verifyError) return { error: 'Current passcode is incorrect.' }
+
   const { error } = await supabase.auth.updateUser({
-    password: parsed.data.newPasscode
+    password: parsed.data.newPasscode,
   })
 
   if (error) {

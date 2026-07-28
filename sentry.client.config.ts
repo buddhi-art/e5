@@ -13,6 +13,6 @@ if (SENTRY_DSN) {
         replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1.0,
         environment: process.env.NODE_ENV || 'development',
-        enabled: process.env.NODE_ENV === 'production' || !!process.env.SENTRY_DSN,
+        enabled: process.env.NODE_ENV === 'production',
     })
 }

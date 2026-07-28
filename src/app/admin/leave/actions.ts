@@ -79,44 +79,27 @@ export async function rejectLeave(requestId: string, notes: string) {
 
   const { data: request } = await supabase
     .from('leave_requests')
-    .select('*')
+    .select('user_id, status, start_date, leave_type_id, total_days')
     .eq('id', parsed.data.requestId)
     .single()
 
   if (!request) return { error: 'Request not found' }
   if (request.status !== 'pending') return { error: 'Only pending requests can be rejected' }
 
-  // Refund the balance since it was optimistically decremented on submit
-  const currentYear = new Date(request.start_date).getFullYear()
-  const { data: balance } = await supabase
-    .from('leave_balances')
-    .select('*')
-    .eq('user_id', request.user_id)
-    .eq('leave_type_id', request.leave_type_id)
-    .eq('year', currentYear)
-    .single()
-
-  if (balance) {
-    await supabase
-      .from('leave_balances')
-      .update({ used_days: Number(balance.used_days) - Number(request.total_days) })
-      .eq('id', balance.id)
-  }
-
-  const { error } = await supabase
-    .from('leave_requests')
-    .update({
-      status: 'rejected',
-      reviewed_by: user.id,
-      review_notes: parsed.data.notes
-    })
-    .eq('id', parsed.data.requestId)
+  const { data: rejectedRequest, error } = await supabase.rpc('reject_leave_atomic', {
+    p_request_id: parsed.data.requestId,
+    p_notes: parsed.data.notes,
+    p_reviewer: user.id,
+  })
 
   if (error) return { error: error.message }
+  if (!rejectedRequest || rejectedRequest.length === 0) {
+    return { error: 'Only pending requests can be rejected' }
+  }
 
   // Notify the employee
   await createNotification(
-    request.user_id,
+    rejectedRequest[0].user_id,
     'leave_rejected',
     'Leave Rejected',
     notes,
@@ -174,33 +157,23 @@ export async function seedLeaveBalances(year: number) {
 
   const { data: leaveTypes } = await supabase
     .from('leave_types')
-    .select('*')
+    .select('id, default_days_per_year')
 
-  if (!leaveTypes) return { error: 'No leave types found' }
+  if (!leaveTypes || leaveTypes.length === 0) return { error: 'No leave types found' }
 
-  let count = 0
-  for (const emp of employees) {
-    for (const type of leaveTypes) {
-      const { data: existing } = await supabase
-        .from('leave_balances')
-        .select('id')
-        .match({ user_id: emp.id, leave_type_id: type.id, year })
-        .single()
-
-      if (!existing) {
-        await supabase
-          .from('leave_balances')
-          .insert({
-            user_id: emp.id,
-            leave_type_id: type.id,
-            year,
-            total_days: type.default_days_per_year,
-            used_days: 0
-          })
-        count++
-      }
-    }
-  }
+  const rows = employees.flatMap((employee) => leaveTypes.map((type) => ({
+    user_id: employee.id,
+    leave_type_id: type.id,
+    year,
+    total_days: type.default_days_per_year,
+    used_days: 0,
+  })))
+  const { data: inserted, error } = await supabase
+    .from('leave_balances')
+    .upsert(rows, { onConflict: 'user_id,leave_type_id,year', ignoreDuplicates: true })
+    .select('id')
+  if (error) return { error: error.message }
+  const count = inserted?.length ?? 0
 
   revalidatePath('/admin/leave/balances')
   return { success: true, count }

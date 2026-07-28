@@ -438,7 +438,8 @@ export async function getPackageDetails(packageId: string) {
             { data: deliverables },
             { data: payments },
             { data: auditLogs },
-            { data: equipmentList }
+            { data: equipmentList },
+            { data: employees }
         ] = await Promise.all([
             supabase.from('package_items').select('*').eq('package_id', packageId).order('sort_order', { ascending: true }),
             supabase.from('package_logistics').select('*').eq('package_id', packageId).maybeSingle(),
@@ -447,7 +448,8 @@ export async function getPackageDetails(packageId: string) {
             supabase.from('package_deliverables').select('*').eq('package_id', packageId).order('sort_order', { ascending: true }),
             supabase.from('package_payments').select('*, profiles!package_payments_received_by_fkey(full_name)').eq('package_id', packageId).order('created_at', { ascending: false }),
             supabase.from('package_audit_logs').select('*, profiles!package_audit_logs_actor_id_fkey(full_name)').eq('package_id', packageId).order('created_at', { ascending: false }),
-            supabase.from('equipment').select('id, name, model, category, status').is('deleted_at', null).order('name', { ascending: true })
+            supabase.from('equipment').select('id, name, model, category, status').is('deleted_at', null).order('name', { ascending: true }),
+            supabase.from('profiles').select('id, full_name, designation, role, social_urls').is('deleted_at', null).order('full_name', { ascending: true })
         ])
 
         return {
@@ -459,10 +461,45 @@ export async function getPackageDetails(packageId: string) {
             deliverables: deliverables || [],
             payments: payments || [],
             auditLogs: auditLogs || [],
-            equipmentList: equipmentList || []
+            equipmentList: equipmentList || [],
+            employees: employees || []
         }
     } catch (err: unknown) {
         return { error: (err instanceof Error ? err.message : String(err)) }
+    }
+}
+
+export async function getPackageDetailsForProject(projectId: string) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+        if (!await verifyAdminOrFounder(supabase, user.id)) return { error: 'Permission denied.' }
+
+        const { data: project, error: projectError } = await supabase
+            .from('projects')
+            .select('package_id')
+            .eq('id', projectId)
+            .is('deleted_at', null)
+            .maybeSingle()
+        if (projectError) return { error: projectError.message }
+
+        let packageId = project?.package_id || null
+        if (!packageId) {
+            const { data: legacyPackage, error: packageError } = await supabase
+                .from('packages')
+                .select('id')
+                .eq('project_id', projectId)
+                .is('deleted_at', null)
+                .maybeSingle()
+            if (packageError) return { error: packageError.message }
+            packageId = legacyPackage?.id || null
+        }
+
+        if (!packageId) return { error: 'This project is not linked to a package workspace.' }
+        return getPackageDetails(packageId)
+    } catch (err: unknown) {
+        return { error: err instanceof Error ? err.message : String(err) }
     }
 }
 
@@ -663,6 +700,8 @@ export async function incrementRevisionCount(
         })
 
         revalidatePath(`/admin/packages/${packageId}`)
+        revalidatePath('/admin/tasks')
+        revalidatePath('/admin/projects')
         return { success: true, revisionCount: newCount }
     } catch (err: unknown) {
         return { error: (err instanceof Error ? err.message : String(err)) }
@@ -715,9 +754,55 @@ export async function updateLogistics(packageId: string, data: {
         })
 
         revalidatePath(`/admin/packages/${packageId}`)
+        revalidatePath('/admin/tasks')
+        revalidatePath('/admin/projects')
         return { success: true }
     } catch (err: unknown) {
         return { error: (err instanceof Error ? err.message : String(err)) }
+    }
+}
+
+export async function updatePostProduction(packageId: string, data: {
+    editingLocation?: string
+    editingDate?: string
+    editingStartTime?: string
+    editingEndTime?: string
+    assignedEditorIds?: string[]
+    editingNotes?: string
+}) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+        if (!await verifyAdminOrFounder(supabase, user.id)) return { error: 'Permission denied.' }
+
+        const { error } = await supabase
+            .from('package_post_prod')
+            .upsert({
+                package_id: packageId,
+                editing_location: data.editingLocation?.trim() || null,
+                editing_date: data.editingDate || null,
+                editing_start_time: data.editingStartTime || null,
+                editing_end_time: data.editingEndTime || null,
+                assigned_editor_ids: data.assignedEditorIds || [],
+                client_revision_notes: data.editingNotes?.trim() || null,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'package_id' })
+
+        if (error) return { error: error.message }
+
+        await supabase.from('package_audit_logs').insert({
+            package_id: packageId,
+            actor_id: user.id,
+            action: 'Updated editing logistics, editor assignments, and revision notes',
+        })
+
+        revalidatePath(`/admin/packages/${packageId}`)
+        revalidatePath('/admin/tasks')
+        revalidatePath('/admin/projects')
+        return { success: true }
+    } catch (err: unknown) {
+        return { error: err instanceof Error ? err.message : String(err) }
     }
 }
 
@@ -747,6 +832,8 @@ export async function updateDeliverableStatus(deliverableId: string, packageId: 
         })
 
         revalidatePath(`/admin/packages/${packageId}`)
+        revalidatePath('/admin/tasks')
+        revalidatePath('/admin/projects')
         return { success: true }
     } catch (err: unknown) {
         return { error: (err instanceof Error ? err.message : String(err)) }
@@ -781,6 +868,8 @@ export async function addPackageDeliverable(packageId: string, title: string) {
         })
 
         revalidatePath(`/admin/packages/${packageId}`)
+        revalidatePath('/admin/tasks')
+        revalidatePath('/admin/projects')
         return { success: true }
     } catch (err: unknown) {
         return { error: (err instanceof Error ? err.message : String(err)) }

@@ -65,34 +65,32 @@ export default async function TasksPage() {
         <p className="text-on-surface-variant">Assign work to your team and track progress.</p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Assignment Form */}
-        <div className="xl:col-span-1 space-y-6">
-          <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 morph-fade-in morph-delay-2">
-            <CardHeader>
-              <CardTitle className="text-on-surface">Assign a Task</CardTitle>
-              <CardDescription className="text-on-surface-variant">Delegate work with specific sub-tasks.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TaskForm projects={projects || []} employees={employees || []} />
-            </CardContent>
-          </Card>
-        </div>
+      <div className="space-y-6">
+        {/* The task workspace remains full width so Phase 2/3 operations fit on 13–15 inch laptop displays. */}
+        <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 morph-fade-in morph-delay-2">
+          <CardHeader>
+            <CardTitle className="text-on-surface">Assign a Task</CardTitle>
+            <CardDescription className="text-on-surface-variant">Delegate work, then manage phase-specific package operations without leaving the task workflow.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TaskForm projects={projects || []} employees={employees || []} />
+          </CardContent>
+        </Card>
 
-        {/* Client Category View */}
-        <div className="xl:col-span-2">
-          <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 morph-fade-in morph-delay-3">
-            <CardHeader>
-              <CardTitle className="text-on-surface flex items-center gap-2">
-                <FolderKanban className="w-5 h-5 text-primary" /> Client Overview
-              </CardTitle>
-              <CardDescription className="text-on-surface-variant">Track active projects and assignments by client.</CardDescription>
-            </CardHeader>
+        <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 morph-fade-in morph-delay-3">
+          <CardHeader>
+            <CardTitle className="text-on-surface flex items-center gap-2">
+              <FolderKanban className="w-5 h-5 text-primary" /> Client Overview
+            </CardTitle>
+            <CardDescription className="text-on-surface-variant">Track active projects and assignments by client.</CardDescription>
+          </CardHeader>
 
+          <CardContent>
             <ClientProjectsAccordion clients={clientOverview as any} />
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
+
     </div>
   )
 }

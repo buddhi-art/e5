@@ -206,6 +206,20 @@ export const ExpenseStatusSchema = z.object({
   status: z.enum(['pending', 'approved', 'rejected', 'reimbursed']),
 });
 
+export const TaskLogisticsSchema = z.object({
+  locationAddress: z.string().optional(),
+  locations: z.array(z.string()).optional(),
+  shootDate: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  assignedStaffIds: z.array(z.string()).optional(),
+  vehiclesTaken: z.array(z.string()).optional(),
+  equipmentsTaken: z.array(z.string()).optional(),
+});
+
+export type AssignTaskData = z.infer<typeof AssignTaskSchema>;
+export type UpdateTaskData = z.infer<typeof UpdateTaskSchema>;
+
 export const AssignTaskSchema = formObject({
   project_id: z.string().uuid("Project is required"),
   phase: z.string().min(1, "Phase is required"),
@@ -215,6 +229,33 @@ export const AssignTaskSchema = formObject({
   start_date: z.string().optional(),
   deadline: z.string().optional(),
   subtasksRaw: z.string().optional(),
+  logistics: z.string().optional().nullable(),
+}).transform((data) => {
+  const result: {
+    project_id: string;
+    phase: string;
+    assigned_to: string;
+    title: string;
+    description?: string;
+    start_date?: string;
+    deadline?: string;
+    subtasksRaw?: string;
+    logistics: z.infer<typeof TaskLogisticsSchema> | null;
+  } = {
+    ...data,
+    logistics: null,
+  };
+
+  if (data.logistics) {
+    try {
+      const parsed = JSON.parse(data.logistics);
+      result.logistics = TaskLogisticsSchema.parse(parsed);
+    } catch {
+      result.logistics = null;
+    }
+  }
+
+  return result;
 });
 
 export const UpdateTaskSchema = formObject({
@@ -226,6 +267,33 @@ export const UpdateTaskSchema = formObject({
   start_date: z.string().optional(),
   deadline: z.string().optional(),
   status: z.string().optional(),
+  logistics: z.string().optional().nullable(),
+}).transform((data) => {
+  const result: {
+    project_id: string;
+    phase: string;
+    assigned_to: string;
+    title: string;
+    description?: string;
+    start_date?: string;
+    deadline?: string;
+    status?: string;
+    logistics: z.infer<typeof TaskLogisticsSchema> | null;
+  } = {
+    ...data,
+    logistics: null,
+  };
+
+  if (data.logistics) {
+    try {
+      const parsed = JSON.parse(data.logistics);
+      result.logistics = TaskLogisticsSchema.parse(parsed);
+    } catch {
+      result.logistics = null;
+    }
+  }
+
+  return result;
 });
 
 export const CreateProjectSchema = formObject({
@@ -315,6 +383,7 @@ export const LoginSchema = z.object({
 });
 
 export const ChangePasscodeSchema = z.object({
+  currentPasscode: z.string().min(1, "Current passcode is required"),
   newPasscode: z.string().min(8, "Passcode must be at least 8 characters"),
 });
 

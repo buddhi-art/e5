@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { LeaveRequestSchema } from '@/lib/validations'
+import { z } from 'zod'
 
 export async function requestLeave(formData: FormData) {
   const supabase = await createClient()
@@ -57,10 +58,10 @@ export async function requestLeave(formData: FormData) {
 
   const currentYear = start.getUTCFullYear()
 
-  // Fetch leave balance
+  // Validate the balance exists before attempting the atomic reservation.
   const { data: balance, error: balanceError } = await supabase
     .from('leave_balances')
-    .select('*')
+    .select('remaining_days')
     .eq('user_id', user.id)
     .eq('leave_type_id', leave_type_id)
     .eq('year', currentYear)
@@ -74,28 +75,21 @@ export async function requestLeave(formData: FormData) {
     return { error: `Insufficient balance. You have ${balance.remaining_days} days remaining.` }
   }
 
-  // Insert request
-  const { error: insertError } = await supabase
-    .from('leave_requests')
-    .insert({
-      user_id: user.id,
-      leave_type_id,
-      start_date,
-      end_date,
-      total_days: workingDays,
-      reason,
-      status: 'pending'
-    })
+  const { error: requestError } = await supabase.rpc('request_leave_atomic', {
+    p_user_id: user.id,
+    p_leave_type_id: leave_type_id,
+    p_start_date: start_date,
+    p_end_date: end_date,
+    p_total_days: workingDays,
+    p_reason: reason,
+  })
 
-  if (insertError) {
-    return { error: insertError.message }
+  if (requestError) {
+    if (requestError.message.includes('insufficient_leave_balance')) {
+      return { error: 'Insufficient leave balance.' }
+    }
+    return { error: requestError.message }
   }
-
-  // Optimistic decrement
-  await supabase
-    .from('leave_balances')
-    .update({ used_days: Number(balance.used_days) + workingDays })
-    .eq('id', balance.id)
 
   revalidatePath('/employee/leave')
   return { success: true }
@@ -106,41 +100,25 @@ export async function cancelLeave(requestId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
+  const parsedRequestId = z.string().uuid().safeParse(requestId)
+  if (!parsedRequestId.success) return { error: 'Invalid request ID' }
+
   const { data: request } = await supabase
     .from('leave_requests')
-    .select('*')
-    .eq('id', requestId)
+    .select('id, user_id, leave_type_id, start_date, total_days, status')
+    .eq('id', parsedRequestId.data)
     .eq('user_id', user.id)
     .single()
 
   if (!request) return { error: 'Request not found' }
   if (request.status !== 'pending') return { error: 'Only pending requests can be cancelled' }
 
-  // Refund balance
-  const currentYear = new Date(`${request.start_date}T00:00:00Z`).getUTCFullYear()
-  const { data: balance } = await supabase
-    .from('leave_balances')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('leave_type_id', request.leave_type_id)
-    .eq('year', currentYear)
-    .single()
-
-  if (balance) {
-    // FIX: Ensure used_days never goes negative
-    const newUsedDays = Math.max(0, Number(balance.used_days) - Number(request.total_days))
-    await supabase
-      .from('leave_balances')
-      .update({ used_days: newUsedDays })
-      .eq('id', balance.id)
-  }
-
-  const { error } = await supabase
-    .from('leave_requests')
-    .update({ status: 'cancelled' })
-    .eq('id', requestId)
+  const { data: cancelled, error } = await supabase.rpc('cancel_leave_atomic', {
+    p_request_id: parsedRequestId.data,
+  })
 
   if (error) return { error: error.message }
+  if (!cancelled) return { error: 'Only pending requests can be cancelled' }
 
   revalidatePath('/employee/leave')
   return { success: true }

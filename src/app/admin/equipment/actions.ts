@@ -183,7 +183,9 @@ export async function archiveEquipment(id: string) {
   const parsed = UuidParamSchema.safeParse({ id });
   if (!parsed.success) return { error: 'Invalid equipment ID' };
 
-  const { error } = await supabase.from('equipment').update({ status: 'retired', deleted_at: new Date().toISOString() }).eq('id', parsed.data.id)
+  const { error } = await supabase.rpc('archive_equipment_atomic', {
+    p_equipment_id: parsed.data.id,
+  })
   if (error) return { error: error.message }
 
   revalidatePath('/admin/equipment')

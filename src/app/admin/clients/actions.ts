@@ -194,20 +194,10 @@ export async function archiveClient(clientId: string) {
     const parsed = UuidParamSchema.safeParse({ id: clientId });
     if (!parsed.success) return { error: 'Invalid client ID' };
 
-    // Soft-delete the client (archives it)
-    const { error } = await supabase
-      .from('clients')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', parsed.data.id)
-
+    const { error } = await supabase.rpc('archive_client_atomic', {
+      p_client_id: parsed.data.id,
+    })
     if (error) return { error: error.message }
-
-    // Also archive all projects belonging to this client
-    await supabase
-      .from('projects')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('client_id', clientId)
-      .is('deleted_at', null)
 
     revalidatePath('/admin/clients')
     revalidatePath('/admin/projects')

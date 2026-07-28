@@ -1,5 +1,5 @@
 export interface EmailConfig {
-    provider: 'resend' | 'sendgrid' | 'smtp'
+    provider: 'resend' | 'sendgrid'
     apiKey: string
     fromAddress: string
     fromName: string

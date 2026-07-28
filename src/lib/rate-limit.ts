@@ -25,18 +25,10 @@ const redis: Redis | null = hasRedisEnv
 // In-memory fallback (single-process only)
 const memoryStore = new Map<string, { count: number; resetAt: number }>()
 
-// FIX: Clean up expired entries every 5 minutes to prevent memory leak
-const cleanupInterval = setInterval(() => {
-  const now = Date.now()
+function purgeExpiredEntries(now: number) {
   for (const [key, entry] of memoryStore.entries()) {
-    if (now > entry.resetAt) {
-      memoryStore.delete(key)
-    }
+    if (now > entry.resetAt) memoryStore.delete(key)
   }
-}, 5 * 60 * 1000)
-
-if (cleanupInterval.unref) {
-  cleanupInterval.unref()
 }
 
 export interface RateLimitResult {
@@ -74,6 +66,7 @@ export async function checkRateLimit(
   }
 
   const now = Date.now()
+  purgeExpiredEntries(now)
   const entry = memoryStore.get(identifier)
 
   if (!entry || now > entry.resetAt) {

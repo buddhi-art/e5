@@ -29,12 +29,10 @@ export async function assignTask(formData: FormData) {
     if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
     const data = parsed.data
 
-    // Get current task count to determine task number
-    const { count } = await supabase
-      .from('tasks')
-      .select('*', { count: 'exact', head: true })
-
-    const taskNumber = (count || 0) + 1
+    const { data: taskNumber, error: numberError } = await supabase.rpc('next_task_number')
+    if (numberError || taskNumber === null || taskNumber === undefined) {
+      return { error: 'Failed to allocate a task number.' }
+    }
     const basePrefix = `E5_Task_${taskNumber}`
     const finalTitle = `${basePrefix} - ${data.title}`
 
@@ -49,6 +47,7 @@ export async function assignTask(formData: FormData) {
         description: data.description,
         start_date: data.start_date ? new Date(data.start_date).toISOString() : null,
         deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+        logistics: data.logistics || null,
       })
       .select()
       .single()
@@ -167,6 +166,7 @@ export async function updateTask(id: string, formData: FormData) {
         status: data.status,
         start_date: data.start_date ? new Date(data.start_date).toISOString() : null,
         deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+        logistics: data.logistics || null,
         ...extraUpdate,
       })
       .eq('id', id)

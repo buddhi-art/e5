@@ -35,11 +35,11 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 * **Smart Performance Windows:** A unique dual-window approach. Top stat cards show **historical lifetime data** (always cumulative), while the lower domain blocks show **isolated monthly metrics** that reset every month. This keeps performance tracking highly relevant to the current month without losing historical context.
 * Optimized via **Incremental Static Regeneration (ISR)** to auto-refresh the data every 5 minutes, preventing constant, heavy DB reads on complex analytics.
 * **Single RPC Architecture:** The admin dashboard's analytics have been vastly improved by consolidating 35+ parallel database queries into a single, lightning-fast PostgreSQL RPC (`get_admin_dashboard_metrics`).
-* **In-Memory Caching:** This single RPC call is further wrapped in a `node-cache` layer with a 600-second TTL, serving repeated hits within the same 10-minute window directly from RAM.
+* **In-Memory Caching:** Cache-backed category lookups use a 600-second TTL. The admin dashboard uses Next.js ISR with a 5-minute revalidation window.
 
 ### 👥 People, Attendance & Leave
 
-* **Optimistic Check-ins:** Real-time employee check-in tracking with status variables (**Present**, **Late**, **Absent**, **Half-Day**) featuring instant Optimistic UI feedback.
+* **Employee Check-ins:** Employee attendance actions validate the active employee role and soft-delete status before recording check-in/check-out.
 * Visual admin panels showing yesterday-vs-today attendance trends and 30-day consistency rates.
 * A clean leave request calendar view to prevent team scheduling conflicts.
 
@@ -48,7 +48,7 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 * Kanban-style task lifecycles (**To Do → In Progress → Completed**) mapped directly to client projects.
 * Live tracking of expensive gear with distinct statuses (**Available**, **Checked Out**, **In Maintenance**).
 * **Atomic Checkouts:** Equipment checkout features robust Postgres RPC functions (`checkout_equipment`) preventing race conditions and keeping status perfectly synced.
-* Built-in **QR scanning** via the device camera for instantaneous equipment check-ins/check-outs on set.
+* Equipment check-ins/check-outs support fast **manual asset-ID lookup**. Camera QR scanning is not enabled in the current build.
 
 ### 📊 Employee KPI Scoring
 
@@ -98,7 +98,7 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 
 ### 🩺 Monitoring & Observability
 
-* **Sentry** captures client and server errors with tracing and session replay (enabled automatically in production, or when `SENTRY_DSN` is set).
+* **Sentry** captures client and server errors with tracing and session replay in production when a DSN is configured.
 * **Datadog Synthetics** runs scheduled uptime checks against production via a GitHub Actions workflow (business-hours cadence, NPT).
 
 ---
@@ -121,7 +121,7 @@ src/
 │   ├── supabase/              # Supabase clients (browser, server, middleware, admin, storage)
 │   ├── cache.ts               # Deployment-aware cache (node-cache ↔ Upstash Redis)
 │   ├── notifications.ts       # In-app notification helpers
-│   ├── email.ts               # Email dispatch (Resend / SendGrid / SMTP / dev-console)
+│   ├── email.ts               # Email dispatch (Resend / SendGrid / dev-console)
 │   ├── validations.ts         # Zod schemas
 │   └── __tests__/             # Vitest suites (invoice numbering, checkout, RLS)
 └── types/                     # Shared TypeScript type definitions
@@ -199,7 +199,7 @@ Head over to `http://localhost:3000` to log in.
 * **`node-cache` / Upstash Redis (deployment-aware caching):** The app uses `src/lib/cache.ts` which auto-selects between `node-cache` (600s TTL, long-running/self-hosted) or **Upstash Redis** (when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are set, e.g., on Vercel). You can also force a driver with `CACHE_DRIVER=memory` or `CACHE_DRIVER=redis`. The dev server log will print a warning if Redis is unavailable and fall back gracefully. See `cache.ts` for the rational defaults.
 * **Kanban Board:** A full drag-and-drop Kanban board is available at `/admin/kanban`. Tasks are grouped into **Pending**, **In Progress**, **Completed**, and **Blocked** columns. Drag cards between columns to update their status. Optimistic locking prevents duplicate updates when two admins modify the same task concurrently — conflicts show a toast with the server state.
 * **Invoice Timeline:** Each invoice now has a visual timeline showing state transitions (Draft → Sent → Viewed → Paid/Overdue/Cancelled) with timestamps. Timeline entries are auto-inserted via a database trigger whenever the invoice status changes.
-* **In-App Notifications + Email:** The notification system now supports email dispatch via Resend, SendGrid, or SMTP. When a leave request is approved/rejected, or a task is blocked, the assigned user receives an in-app notification and optionally an email. Configure via `EMAIL_PROVIDER` env var (see `.env.local.example`).
+* **In-App Notifications + Email:** The notification system supports email dispatch via Resend or SendGrid. When a leave request is approved/rejected, or a task is blocked, the assigned user receives an in-app notification and optionally an email. Configure via `EMAIL_PROVIDER` env var (see `.env.local.example`).
 * **Insufficient Data State:** The admin dashboard now detects when the database has no meaningful data (0 employees, 0 invoices, 0 tasks) and shows a helpful "Insufficient Data" banner with quick-action links to get started, rather than showing misleading fallback health scores.
 * **Equipment Manual Asset-ID Lookup:** Equipment can now be looked up by `serial_number` or `manual_asset_id` via the `lookupByAssetId` server action. This serves as a fallback when QR scanning is unavailable — admins can type in an asset ID to find equipment quickly.
 * **Testing & CI:** The project now includes Vitest with a test setup file that mocks Supabase and Resend. Three test files cover: invoice number atomicity (10 concurrent calls, no collisions), checkout atomicity (5 concurrent checkouts, exactly 1 succeeds), and RLS access denial (employee cannot read admin data). A GitHub Actions CI pipeline runs lint, typecheck, and tests on every PR.

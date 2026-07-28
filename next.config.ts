@@ -3,25 +3,26 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 import path from 'path';
 
+const isDevelopment = process.env.NODE_ENV !== 'production'
+const allowedOrigins = isDevelopment
+  ? ["localhost:3000", "*.github.dev", "*.app.github.dev"]
+  : []
+
 const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
   experimental: {
     serverActions: {
-      allowedOrigins: [
-        "localhost:3000",
-        "*.github.dev", // Whitelists all VS Code Port Forwarding tunnels
-        "*.app.github.dev"
-      ]
+      allowedOrigins,
     }
   },
   // Content Security Policy headers for all routes
   async headers() {
     const cspHeader = [
       "default-src 'self'",
-      // Scripts: allow self, inline for Next.js, and Supabase auth
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // React's development diagnostics require eval; production CSP remains strict.
+      `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
       // Styles: allow self, inline (Tailwind, Framer Motion), and external fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: allow self, data URIs, Supabase storage, and blob URLs (html2canvas)
@@ -91,6 +92,14 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
           },
         ],
       },

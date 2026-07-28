@@ -17,6 +17,7 @@ import { Lock } from 'lucide-react'
 
 export function ChangePasscodeDialog() {
  const [open, setOpen] = useState(false)
+ const [currentPasscode, setCurrentPasscode] = useState('')
  const [passcode, setPasscode] = useState('')
  const [confirmPasscode, setConfirmPasscode] = useState('')
  const [error, setError] = useState('')
@@ -28,18 +29,25 @@ export function ChangePasscodeDialog() {
  setError('')
  setSuccess(false)
 
- if (passcode.length < 6) {
- setError('Passcode must be at least 6 characters.')
- return
- }
+  if (currentPasscode.length === 0) {
+  setError('Enter your current passcode.')
+  return
+  }
 
- if (passcode !== confirmPasscode) {
+  if (passcode.length < 8) {
+  setError('Passcode must be at least 8 characters.')
+  return
+  }
+
+  if (passcode !== confirmPasscode) {
+
  setError('Passcodes do not match.')
  return
  }
 
  setIsLoading(true)
- const result = await changePasscode(passcode)
+  const result = await changePasscode(currentPasscode, passcode)
+
  setIsLoading(false)
 
  if (result.error) {
@@ -47,9 +55,11 @@ export function ChangePasscodeDialog() {
  } else {
  setSuccess(true)
  setTimeout(() => {
- setOpen(false)
- setPasscode('')
- setConfirmPasscode('')
+  setOpen(false)
+  setCurrentPasscode('')
+  setPasscode('')
+  setConfirmPasscode('')
+
  setSuccess(false)
  }, 1500)
  }
@@ -68,13 +78,24 @@ export function ChangePasscodeDialog() {
  <DialogContent className="sm:max-w-[425px]">
  <DialogHeader>
  <DialogTitle>Change Passcode</DialogTitle>
- <DialogDescription>
- Enter your new passcode below. It must be at least 6 characters long.
- </DialogDescription>
- </DialogHeader>
- <form onSubmit={handleSubmit} className="space-y-4 pt-4">
- <div className="space-y-2">
- <Label htmlFor="passcode">New Passcode</Label>
+  <DialogDescription>
+  Confirm your current passcode, then enter a new one of at least 8 characters.
+  </DialogDescription>
+  </DialogHeader>
+  <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+  <div className="space-y-2">
+  <Label htmlFor="current-passcode">Current Passcode</Label>
+  <Input
+  id="current-passcode"
+  type="password"
+  value={currentPasscode}
+  onChange={(e) => setCurrentPasscode(e.target.value)}
+  required
+  />
+  </div>
+  <div className="space-y-2">
+  <Label htmlFor="passcode">New Passcode</Label>
+
  <Input
  id="passcode"
  type="password"

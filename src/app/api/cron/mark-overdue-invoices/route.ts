@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
@@ -13,7 +14,15 @@ export async function GET(request: NextRequest) {
             console.error('CRON_SECRET environment variable is not set')
             return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
         }
-        if (authHeader !== `Bearer ${expectedSecret}`) {
+        const suppliedSecret = authHeader?.startsWith('Bearer ')
+            ? authHeader.slice('Bearer '.length)
+            : null
+        if (!suppliedSecret) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+        const supplied = Buffer.from(suppliedSecret)
+        const expected = Buffer.from(expectedSecret)
+        if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

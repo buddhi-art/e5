@@ -135,9 +135,15 @@ export async function executeInvoiceCreation(
         project_id: string | null
         invoice_number: string
         title: string
+        description?: string | null
         issue_date: string
         due_date: string
         status: string
+        currency?: string
+        tax_rate?: number
+        advance_received?: number
+        discount_type?: 'fixed' | 'percentage'
+        discount_value?: number
         notes: string | null
     },
     items: Array<{
@@ -155,9 +161,15 @@ export async function executeInvoiceCreation(
             project_id: invoiceData.project_id,
             invoice_number: invoiceData.invoice_number,
             title: invoiceData.title,
+            description: invoiceData.description ?? null,
             issue_date: invoiceData.issue_date,
             due_date: invoiceData.due_date,
             status: invoiceData.status,
+            currency: invoiceData.currency ?? 'NPR',
+            tax_rate: invoiceData.tax_rate ?? 0,
+            advance_received: invoiceData.advance_received ?? 0,
+            discount_type: invoiceData.discount_type ?? 'fixed',
+            discount_value: invoiceData.discount_value ?? 0,
             notes: invoiceData.notes,
             created_by: userId
         },

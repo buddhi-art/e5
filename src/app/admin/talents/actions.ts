@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { TalentSchema, TalentBookingSchema, UuidParamSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { validateFileUpload, generateStorageFilename, ALLOWED_IMAGE_TYPES } from '@/lib/supabase/storage'
+import { executeTalentBooking } from '@/lib/supabase/transactions'
 
 export async function addTalentType(name: string) {
     const supabase = await createClient()
@@ -224,49 +225,20 @@ export async function createBooking(formData: FormData) {
     if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
     const validated = parsed.data
 
-    // NOTE: This availability check + insert is NOT atomic. Two concurrent bookings
-    // can both pass this check before either inserts, causing a double-booking.
-    // The reliable fix is a DB-level guard — add to talent_bookings one of:
-    //   (a) an exclusion constraint over (talent_id, daterange(booking_date, end_date))
-    //       using btree_gist:  EXCLUDE USING gist (talent_id WITH =, daterange(...) WITH &&)
-    //   (b) a SECURITY DEFINER function that SELECT ... FOR UPDATE locks the talent row.
-    // Until then this check is best-effort only.
-    const { data: existing } = await supabase
-        .from('talent_bookings')
-        .select('id')
-        .eq('talent_id', validated.talent_id)
-        .in('status', ['proposed', 'confirmed'])
-        .lte('booking_date', validated.end_date || validated.booking_date)
-        .gte('end_date', validated.booking_date)
+    const result = await executeTalentBooking(
+        validated.talent_id,
+        validated.project_id || null,
+        validated.booking_date,
+        validated.end_date || null,
+        validated.rate_type,
+        validated.rate_amount,
+        validated.description || null,
+        validated.location || null,
+        validated.notes || null,
+        user.id,
+    )
 
-    if (existing && existing.length > 0) {
-        return { error: 'Talent is already booked for these dates' }
-    }
-
-    // Calculate total compensation
-    let total_compensation = validated.rate_amount
-    if (validated.rate_type === 'per_day' && validated.end_date) {
-        const start = new Date(validated.booking_date)
-        const end = new Date(validated.end_date)
-        const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1)
-        total_compensation = validated.rate_amount * days
-    }
-
-    const { error } = await supabase.from('talent_bookings').insert({
-        talent_id: validated.talent_id,
-        project_id: validated.project_id || null,
-        booking_date: validated.booking_date,
-        end_date: validated.end_date || null,
-        rate_type: validated.rate_type,
-        rate_amount: validated.rate_amount,
-        total_compensation,
-        description: validated.description || null,
-        location: validated.location || null,
-        notes: validated.notes || null,
-        booked_by: user.id,
-    })
-
-    if (error) return { error: error.message }
+    if (!result.success) return { error: result.error || 'Failed to create booking' }
     revalidatePath('/admin/talents')
     revalidatePath('/admin/talents/bookings')
     return { success: true }

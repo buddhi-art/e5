@@ -13,6 +13,15 @@ export async function checkIn() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, deleted_at')
+    .eq('id', user.id)
+    .single()
+  if (!profile || profile.role !== 'employee' || profile.deleted_at) {
+    return { error: 'Only active employees can record attendance' }
+  }
+
   const today = getNepalDate()
   const now = new Date().toISOString()
 
@@ -48,6 +57,15 @@ export async function checkOut(daySummary: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, deleted_at')
+    .eq('id', user.id)
+    .single()
+  if (!profile || profile.role !== 'employee' || profile.deleted_at) {
+    return { error: 'Only active employees can record attendance' }
+  }
 
   const today = getNepalDate()
   const now = new Date().toISOString()

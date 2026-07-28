@@ -54,6 +54,7 @@ export function ClientReviewClient({
     : []
   const latestRevision = history[0]
   const currentLink = latestRevision ? latestRevision.submittedDriveLink : deliverable.drive_link
+  const isValidReviewLink = typeof currentLink === 'string' && /^https?:\/\//i.test(currentLink)
 
   const handleAction = async (status: ReviewStatus) => {
     if (status === 'REVISION_REQUESTED' && !feedback.trim()) {
@@ -91,10 +92,10 @@ export function ClientReviewClient({
                 Please review the video/asset from the link below.
               </p>
 
-              {currentLink ? (
+              {isValidReviewLink ? (
                 <div className="mt-4">
                   <a
-                    href={currentLink}
+                    href={currentLink as string}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-semibold transition-all border border-primary/20"
@@ -134,7 +135,7 @@ export function ClientReviewClient({
       </Card>
 
       {/* Actions (Only show if link exists and not approved) */}
-      {currentLink && !isApproved && (
+      {isValidReviewLink && !isApproved && (
         <Card className="bg-surface-container-low border-outline-variant/60">
           <CardContent className="p-6 space-y-6">
             <h3 className="text-lg font-bold text-foreground">Your Decision</h3>

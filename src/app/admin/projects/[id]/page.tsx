@@ -11,6 +11,7 @@ import { TaskActionsMenu } from '@/app/admin/tasks/task-actions-menu'
 import { SubtaskCommentSection } from '@/components/subtask-comment-section'
 import { ProjectAssetsCard } from '@/components/project-assets-card'
 import { ProjectDiscussion } from '@/components/project-discussion'
+import { TaskPackageOperationsSummary } from '@/components/task-package-operations-summary'
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient()
@@ -39,22 +40,22 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
     // Fetch all subtask comments for the loaded tasks
     const subtaskIds = (tasks || []).flatMap(t => (t.subtasks || []).map((s: any) => s.id))
-    
+
     let allComments: any[] = []
     if (subtaskIds.length > 0) {
-      const { data } = await supabase
-        .from('subtask_comments')
-        .select('*, profiles(full_name, role)')
-        .in('subtask_id', subtaskIds)
-        .order('created_at', { ascending: true })
-      allComments = data || []
+        const { data } = await supabase
+            .from('subtask_comments')
+            .select('*, profiles(full_name, role)')
+            .in('subtask_id', subtaskIds)
+            .order('created_at', { ascending: true })
+        allComments = data || []
     }
 
     const commentsBySubtask = new Map<string, any[]>()
     for (const comment of allComments) {
-      const existing = commentsBySubtask.get(comment.subtask_id) || []
-      existing.push(comment)
-      commentsBySubtask.set(comment.subtask_id, existing)
+        const existing = commentsBySubtask.get(comment.subtask_id) || []
+        existing.push(comment)
+        commentsBySubtask.set(comment.subtask_id, existing)
     }
 
     // Fetch employees assigned to tasks in this project
@@ -300,13 +301,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                                             })()}
                                                         </h3>
                                                         <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-2">
-                                                             <span>{
-                                                                 task.phase === 'Phase 1' ? 'Phase 1: Concept & Planning' :
-                                                                 task.phase === 'Phase 2' ? 'Phase 2: Videography (Shoot)' :
-                                                                 task.phase === 'Phase 3' ? 'Phase 3: Editing & Design' :
-                                                                 task.phase === 'Phase 4' ? 'Phase 4: QA & Review' :
-                                                                 task.phase === 'Phase 5' ? 'Phase 5: Delivery' : task.phase
-                                                             }</span>
+                                                            <span>{
+                                                                task.phase === 'Phase 1' ? 'Phase 1: Concept & Planning' :
+                                                                    task.phase === 'Phase 2' ? 'Phase 2: Videography (Shoot)' :
+                                                                        task.phase === 'Phase 3' ? 'Phase 3: Editing & Design' :
+                                                                            task.phase === 'Phase 4' ? 'Phase 4: QA & Review' :
+                                                                                task.phase === 'Phase 5' ? 'Phase 5: Delivery' : task.phase
+                                                            }</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2">
@@ -356,6 +357,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                                         />
                                                     </div>
                                                 )}
+
+                                                {/* Canonical Package operations summary for Phase 2 and Phase 3. */}
+                                                <TaskPackageOperationsSummary
+                                                    projectId={task.project_id}
+                                                    phase={task.phase}
+                                                />
 
                                                 {/* Subtask list with comments */}
                                                 {task.subtasks && task.subtasks.length > 0 && (

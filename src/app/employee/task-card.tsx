@@ -9,6 +9,7 @@ import { Clock, Building2, CheckCircle2 } from 'lucide-react'
 import { toggleSubtask, toggleSubSubtask, updateMainTaskStatus } from './actions'
 import { toast } from 'sonner'
 import { SubtaskCommentSection } from '@/components/subtask-comment-section'
+import { TaskLogisticsView } from '@/components/task-logistics-view'
 
 type Comment = {
   id: string
@@ -93,6 +94,12 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
         {task.description && (
           <p className="text-on-surface-variant text-sm whitespace-pre-wrap">{task.description}</p>
         )}
+
+        {/* Logistics Information */}
+        <TaskLogisticsView
+          logistics={task.logistics}
+          phase={task.phase}
+        />
 
         <div className="flex items-center gap-4 text-xs font-medium">
           {task.deadline && (

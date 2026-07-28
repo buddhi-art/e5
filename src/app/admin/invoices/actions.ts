@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { InvoiceSchema, InvoicePaymentSchema, UuidParamSchema, InvoiceStatusUpdateSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { createNotification } from '@/lib/notifications'
+import { executeInvoiceCreation } from '@/lib/supabase/transactions'
 
 export async function createInvoice(formData: FormData) {
     try {
@@ -42,67 +43,36 @@ export async function createInvoice(formData: FormData) {
         const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
         if (!isAuthorized) return { error: 'Permission denied. Only admins or founders can create invoices.' };
 
-        const subtotal = data.items.reduce((sum: number, item: any) => sum + item.quantity * item.unit_price, 0)
-        const discount_amount = data.discount_type === 'percentage'
-            ? (subtotal * data.discount_value) / 100
-            : data.discount_value
-        const amount_after_discount = subtotal - discount_amount
-        const tax_amount = (amount_after_discount * data.tax_rate) / 100
-        const grand_total = amount_after_discount + tax_amount
-        const balance_due = grand_total - data.advance_received
-
         const year = new Date().getFullYear().toString()
-        const { data: invoice_number_res, error: seqError } = await supabase.rpc('generate_invoice_number', { p_year: year })
-        if (seqError) return { error: 'Failed to generate invoice number: ' + seqError.message }
-        const invoice_number = invoice_number_res
+        const { data: invoiceNumber, error: seqError } = await supabase.rpc('generate_invoice_number', { p_year: year })
+        if (seqError || !invoiceNumber) return { error: 'Failed to generate invoice number: ' + (seqError?.message || 'no number returned') }
 
-        const { data: invoice, error: invError } = await supabase
-            .from('invoices')
-            .insert({
-                invoice_number,
-                client_id: data.client_id,
-                project_id: data.project_id || null,
-                title: data.title,
-                description: data.description || null,
-                amount: subtotal,
-                discount_type: data.discount_type,
-                discount_value: data.discount_value,
-                discount_amount,
-                advance_received: data.advance_received,
-                tax_rate: data.tax_rate,
-                tax_amount,
-                grand_total,
-                balance_due,
-                currency: data.currency || 'NPR',
-                issue_date: data.issue_date || new Date().toISOString().split('T')[0],
-                due_date: data.due_date,
-                notes: data.notes || null,
-                created_by: user?.id || null,
-            })
-            .select()
-            .single()
-
-        if (invError) return { error: invError.message }
-
-        const itemInserts = data.items.map((item: any) => ({
-            invoice_id: invoice.id,
+        const result = await executeInvoiceCreation({
+            client_id: data.client_id,
+            project_id: data.project_id || null,
+            invoice_number: invoiceNumber,
+            title: data.title,
+            description: data.description || null,
+            issue_date: data.issue_date || new Date().toISOString().split('T')[0],
+            due_date: data.due_date,
+            status: 'draft',
+            currency: data.currency || 'NPR',
+            tax_rate: data.tax_rate,
+            advance_received: data.advance_received,
+            discount_type: data.discount_type,
+            discount_value: data.discount_value,
+            notes: data.notes || null,
+        }, data.items.map((item: any) => ({
             description: item.description,
             quantity: item.quantity,
             unit_price: item.unit_price,
-            amount: item.quantity * item.unit_price,
-        }))
+            tax_rate: data.tax_rate,
+            discount_rate: data.discount_type === 'percentage' ? data.discount_value : 0,
+        })), user.id)
 
-        const { error: itemsError } = await supabase
-            .from('invoice_items')
-            .insert(itemInserts)
-
-        if (itemsError) {
-            await supabase.from('invoices').update({ deleted_at: new Date().toISOString() }).eq('id', invoice.id)
-            return { error: 'Failed to create invoice items: ' + itemsError.message }
-        }
-
+        if (!result.success || !result.data) return { error: result.error || 'Failed to create invoice' }
         revalidatePath('/admin/invoices')
-        return { success: true, invoiceId: invoice.id }
+        return { success: true, invoiceId: result.data }
     } catch (err: unknown) {
         console.error('Error in createInvoice:', err)
         return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
