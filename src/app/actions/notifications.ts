@@ -157,19 +157,19 @@ export async function getNotifications(): Promise<NotificationItem[]> {
     // Phase 2 DB Notifications
     const { data: dbNotifications } = await supabase
         .from('notifications')
-        .select('*')
+        .select('id, type, title, description, href, created_at')
         .eq('user_id', user.id)
-        .eq('is_read', false)
+        .is('read_at', null)
         .order('created_at', { ascending: false })
         .limit(15)
 
     for (const notif of dbNotifications || []) {
         notifications.push({
             id: `db-${notif.id}`,
-            type: 'system',
+            type: notif.type as NotificationItem['type'],
             title: notif.title,
-            description: notif.message,
-            href: notif.link_url || '#',
+            description: notif.description || '',
+            href: notif.href || '#',
             createdAt: notif.created_at,
             isRead: false
         })
@@ -196,7 +196,7 @@ export async function markNotificationRead(id: string) {
 
     await supabase
         .from('notifications')
-        .update({ is_read: true })
+        .update({ read_at: new Date().toISOString() })
         .eq('id', dbId)
         .eq('user_id', user.id)
 }

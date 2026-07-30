@@ -1,19 +1,11 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { recomputeKpisAction } from '@/app/admin/employees/kpi-actions'
-
+/**
+ * Kept as a stable layout slot while KPI recomputation runs in the scheduled
+ * job. This avoids turning dashboard navigation into a write-heavy action.
+ */
 export function KpiRefresher() {
-    const hasRefreshed = useRef(false)
-
-    useEffect(() => {
-        if (!hasRefreshed.current) {
-            hasRefreshed.current = true
-            recomputeKpisAction().catch(err => {
-                console.error('Failed to recompute KPIs:', err)
-            })
-        }
-    }, [])
-
+    // KPI recomputation is performed by the scheduled cron job. Loading an
+    // admin page must remain a read operation for every employee record.
     return null
 }

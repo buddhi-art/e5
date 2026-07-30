@@ -3,7 +3,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { TaskStatusUpdateSchema, SubtaskToggleSchema } from '@/lib/validations'
+import { TaskStatusUpdateSchema, SubtaskToggleSchema, TaskLogisticsSchema, UpdateTaskPhaseWorkspaceSchema } from '@/lib/validations'
+import { isHandoffReady, isWorkspacePhase, mergeWorkspacePatch, PHASE_HANDOFFS } from '@/lib/phase-workspace'
+import { createNotification } from '@/lib/notifications'
 
 export async function toggleSubtask(subtaskId: string, isCompleted: boolean) {
   const supabase = await createClient()
@@ -100,7 +102,7 @@ async function triggerTaskCompletionNotifications(supabase: any, taskId: string)
   try {
     const { data: completedTask } = await supabase
       .from('tasks')
-      .select('title, phase, project_id, projects(title)')
+      .select('title, phase, project_id, logistics, projects(title)')
       .eq('id', taskId)
       .single()
 
@@ -108,44 +110,107 @@ async function triggerTaskCompletionNotifications(supabase: any, taskId: string)
 
     const projectTitle = (completedTask as any).projects?.title || 'Project'
 
-    // 1. Notify Admins and Founders
-    const { data: admins } = await supabase.from('profiles').select('id').in('role', ['admin', 'founder'])
-    const adminNotifs = (admins || []).map((admin: any) => ({
-      user_id: admin.id,
-      title: 'Task Completed',
-      message: `Task "${completedTask.title}" has been completed for ${projectTitle}.`,
-      link_url: `/admin/projects/${completedTask.project_id}`,
-      is_read: false
-    }))
-    if (adminNotifs.length > 0) {
-      await supabase.from('notifications').insert(adminNotifs)
-    }
+    // 1. Notify admins and founders. Founders are identified by designation,
+    // not a separate role value (the role enum only includes admin/employee).
+    const { data: admins } = await supabase
+      .from('profiles')
+      .select('id')
+      .or('role.eq.admin,designation.eq.Founder')
+    const isDelivery = completedTask.phase === 'Phase 5'
+    const adminNotificationTitle = isDelivery ? 'Project Delivered' : 'Task Completed'
+    const adminNotificationDescription = isDelivery
+      ? `Project delivery task "${completedTask.title}" has been completed for ${projectTitle}.`
+      : `Task "${completedTask.title}" has been completed for ${projectTitle}.`
+    await Promise.all(
+      (admins || []).map((admin: any) =>
+        createNotification(
+          admin.id,
+          'system',
+          adminNotificationTitle,
+          adminNotificationDescription,
+          `/admin/projects/${completedTask.project_id}`,
+        ),
+      ),
+    )
 
-    // 2. Baton Pass: If Videography phase completed, check for assigned Editor in Phase 3
-    const isVideography = completedTask.phase?.includes('Phase 2') || completedTask.title?.toLowerCase().includes('videography') || completedTask.title?.toLowerCase().includes('shoot')
-    if (isVideography) {
-      const { data: editingTasks } = await supabase
+    // 2. Table-driven baton pass for every production transition.
+    const handoff = PHASE_HANDOFFS[completedTask.phase]
+    if (handoff && isHandoffReady(completedTask.phase, completedTask.logistics)) {
+      const { data: nextTasks } = await supabase
         .from('tasks')
         .select('id, assigned_to, title')
         .eq('project_id', completedTask.project_id)
-        .or('phase.ilike.%Phase 3%,title.ilike.%editing%')
+        .eq('phase', handoff.nextPhase)
         .not('assigned_to', 'is', null)
 
-      for (const editTask of editingTasks || []) {
-        if (editTask.assigned_to) {
-          await supabase.from('notifications').insert({
-            user_id: editTask.assigned_to,
-            title: 'Footage Ready! (Baton Pass)',
-            message: `Footage is ready, Editing phase has begun for ${projectTitle}.`,
-            link_url: `/employee`,
-            is_read: false
-          })
-        }
-      }
+      const recipientIds = [...new Set<string>(
+        (nextTasks || [])
+          .map((task: any) => task.assigned_to)
+          .filter((userId: unknown): userId is string => typeof userId === 'string'),
+      )]
+      await Promise.all(
+        recipientIds.map((userId) =>
+          createNotification(
+            userId,
+            'system',
+            handoff.title,
+            `${handoff.message} for ${projectTitle}.`,
+            '/employee',
+          ),
+        ),
+      )
     }
   } catch (err) {
     console.error('Error triggering completion notifications:', err)
   }
+}
+
+export async function updateTaskPhaseWorkspace(taskId: string, patch: unknown) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const parsed = UpdateTaskPhaseWorkspaceSchema.safeParse({ taskId, patch })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
+  const { data: task } = await supabase
+    .from('tasks')
+    .select('assigned_to, phase, logistics')
+    .eq('id', parsed.data.taskId)
+    .maybeSingle()
+
+  if (!task || task.assigned_to !== user.id) return { error: 'Unauthorized' }
+  if (!isWorkspacePhase(task.phase)) return { error: 'This task does not have an employee phase workspace' }
+
+  const patchData = parsed.data.patch
+  const primaryLinkField = task.phase === 'Phase 1'
+    ? 'scriptLink'
+    : task.phase === 'Phase 4'
+      ? 'reviewLink'
+      : 'finalDeliveryLink'
+
+  const invalidPatchKey = Object.keys(patchData).find((key) => {
+    if (key === 'checklist') return false
+    if (key === primaryLinkField) return false
+    return task.phase !== 'Phase 4' || !['qaVerdict', 'qaNotes', 'blockingIssues'].includes(key)
+  })
+  if (invalidPatchKey) return { error: `This field cannot be updated for ${task.phase}` }
+
+  const existing = TaskLogisticsSchema.safeParse(task.logistics ?? {})
+  const merged = mergeWorkspacePatch(existing.success ? existing.data : {}, patchData)
+  const validated = TaskLogisticsSchema.safeParse(merged)
+  if (!validated.success) return { error: validated.error.issues[0].message }
+
+  const { error } = await supabase
+    .from('tasks')
+    .update({ logistics: validated.data })
+    .eq('id', parsed.data.taskId)
+    .eq('assigned_to', user.id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/employee')
+  return { success: true, logistics: validated.data }
 }
 
 export async function updateMainTaskStatus(taskId: string, status: string) {

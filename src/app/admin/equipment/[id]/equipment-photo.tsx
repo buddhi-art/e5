@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { getStorageSignedUrl } from '@/app/actions/storage'
 import { Image as ImageIcon, Search, ScanLine } from 'lucide-react'
 import { lookupByAssetId } from '../actions'
@@ -54,7 +54,9 @@ export function EquipmentPhoto({ imageUrl, name }: { imageUrl: string; name: str
                     <span className="text-xs text-outline">No photo</span>
                 </div>
             ) : (
-                <img src={url} alt={name} className="w-full aspect-square object-cover rounded-xl" />
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden">
+                    <Image src={url} alt={name} fill sizes="400px" className="object-cover" />
+                </div>
             )}
 
             {/* Manual asset-ID lookup fallback for QR failures */}

@@ -9,6 +9,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { Role, isAdminOrFounder, isFounder, hasPermission, Permission, getUserPermissions } from './roles'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 /**
  * Authenticated user data
@@ -150,13 +152,7 @@ export async function protectRoute(path: string, redirectTo: string = '/login'):
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        const response = new Response(null, {
-            status: 302,
-            headers: {
-                Location: redirectTo
-            }
-        })
-        throw response
+        redirect(redirectTo)
     }
 
     // Get user profile
@@ -167,13 +163,7 @@ export async function protectRoute(path: string, redirectTo: string = '/login'):
         .single()
 
     if (!profile || profile.deleted_at) {
-        const response = new Response(null, {
-            status: 302,
-            headers: {
-                Location: redirectTo
-            }
-        })
-        throw response
+        redirect(redirectTo)
     }
 
     // Route-based access control
@@ -182,13 +172,7 @@ export async function protectRoute(path: string, redirectTo: string = '/login'):
     // Founders can access admin routes
     if (isFounder(profile.designation)) {
         if (path.startsWith('/employee')) {
-            const response = new Response(null, {
-                status: 302,
-                headers: {
-                    Location: '/founder'
-                }
-            })
-            throw response
+            redirect('/founder')
         }
         return
     }
@@ -196,13 +180,7 @@ export async function protectRoute(path: string, redirectTo: string = '/login'):
     // Admins can access admin routes
     if (role === 'admin') {
         if (path.startsWith('/employee') || path.startsWith('/founder')) {
-            const response = new Response(null, {
-                status: 302,
-                headers: {
-                    Location: '/admin'
-                }
-            })
-            throw response
+            redirect('/admin')
         }
         return
     }
@@ -210,25 +188,13 @@ export async function protectRoute(path: string, redirectTo: string = '/login'):
     // Employees can only access employee routes
     if (role === 'employee') {
         if (path.startsWith('/admin') || path.startsWith('/founder')) {
-            const response = new Response(null, {
-                status: 302,
-                headers: {
-                    Location: '/employee'
-                }
-            })
-            throw response
+            redirect('/employee')
         }
         return
     }
 
     // Default deny
-    const response = new Response(null, {
-        status: 302,
-        headers: {
-            Location: redirectTo
-        }
-    })
-    throw response
+    redirect(redirectTo)
 }
 
 /**
@@ -251,14 +217,17 @@ export async function logAuditEvent(
     }
 
     try {
+        const requestHeaders = await headers()
+        const forwardedFor = requestHeaders.get('x-forwarded-for')
+        const ipAddress = forwardedFor?.split(',')[0]?.trim() || requestHeaders.get('x-real-ip')
         await supabase.from('audit_logs').insert({
             user_id: currentUserId,
             action,
             entity_type: entityType,
             entity_id: entityId,
             metadata,
-            ip_address: null, // Could be added from request context
-            user_agent: null // Could be added from request context
+            ip_address: ipAddress,
+            user_agent: requestHeaders.get('user-agent')
         })
     } catch (error) {
         console.error('Failed to log audit event:', error)

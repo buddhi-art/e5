@@ -65,22 +65,21 @@ export async function updateSession(request: NextRequest) {
             url.pathname = portal
             return NextResponse.redirect(url)
         } catch {
-            // If profile fetch fails, still allow access — user is authenticated
             const url = request.nextUrl.clone()
-            url.pathname = '/employee'
+            url.pathname = '/login'
             return NextResponse.redirect(url)
         }
     }
 
-    // Portal-based route protection (best-effort — network errors allow through)
+    // Portal-based route protection fails closed when profile lookup is unavailable.
     if (path !== '/login') {
         let portal: string
         try {
             portal = await getPortal(session.user.id, supabase)
         } catch {
-            // Profile fetch failed (edge runtime network issue).
-            // Allow request through rather than causing a redirect loop.
-            return supabaseResponse
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            return NextResponse.redirect(url)
         }
 
         // Founder routes

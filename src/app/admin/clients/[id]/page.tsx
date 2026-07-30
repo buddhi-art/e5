@@ -1,8 +1,9 @@
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { Building2, Phone, MapPin, Globe, Camera, Music2, MessageCircle, ArrowLeft, FolderKanban, CalendarDays } from 'lucide-react'
 import { normalizeUrl } from '@/lib/utils'
 import Link from 'next/link'
@@ -76,7 +77,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <CardContent className="space-y-6">
             <div className="flex justify-center mb-6">
               {client.logo_url ? (
-                <img src={client.logo_url} alt={client.company_name} className="w-32 h-32 rounded-full object-cover bg-surface-container-high border-4 border-outline-variant" />
+                <div className="relative w-32 h-32 rounded-full overflow-hidden bg-surface-container-high border-4 border-outline-variant">
+                  <Image src={client.logo_url} alt={client.company_name} fill sizes="128px" className="object-cover" unoptimized />
+                </div>
               ) : (
                 <div className="w-32 h-32 rounded-full bg-surface-container-high flex items-center justify-center text-outline border-4 border-outline-variant">
                   <Building2 className="w-12 h-12" />

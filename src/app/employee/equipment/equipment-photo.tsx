@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { getStorageSignedUrl } from '@/app/actions/storage'
 import { Image as ImageIcon, Search, ScanLine } from 'lucide-react'
 import { lookupByAssetId } from '@/app/admin/equipment/actions'
@@ -53,7 +53,9 @@ export function EquipmentPhoto({ imageUrl, name }: { imageUrl: string; name: str
  <span className="text-[10px] text-outline">No photo</span>
  </div>
  ) : (
- <img src={url} alt={name} className="w-full aspect-square object-cover rounded-lg" />
+ <div className="relative w-full aspect-square rounded-lg overflow-hidden">
+  <Image src={url} alt={name} fill sizes="400px" className="object-cover" />
+ </div>
  )}
 
  <div className="space-y-1.5">

@@ -24,7 +24,7 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 
 ### 🔐 Auth & Role-Based Routing
 
-* Uses Supabase Auth under the hood with automatic, role-based routing via **`src/middleware.ts`** — a Next.js standard middleware that refreshes SSR sessions on every request and protects routes server-side before any page renders.
+* Uses Supabase Auth under the hood with automatic, role-based routing via **`src/proxy.ts`** — a Next.js proxy (the App Router convention file, formerly named `middleware.ts`) that refreshes SSR sessions on every request and protects routes server-side before any page renders.
 * **Admin Role:** Full dashboard access, global financial metrics, and operational overviews.
 * **Employee Role:** Self-service portal focused strictly on their own check-ins, tasks, leave balances, and profile updates.
 * **Founder Role:** High-level strategic dashboard with project, resource, and financial overviews.
@@ -34,7 +34,7 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 * **The Health Score:** A real-time, weighted ring gauge that scores the entire company's operational health based on attendance, overdue tasks, active cash flow, and equipment status.
 * **Smart Performance Windows:** A unique dual-window approach. Top stat cards show **historical lifetime data** (always cumulative), while the lower domain blocks show **isolated monthly metrics** that reset every month. This keeps performance tracking highly relevant to the current month without losing historical context.
 * Optimized via **Incremental Static Regeneration (ISR)** to auto-refresh the data every 5 minutes, preventing constant, heavy DB reads on complex analytics.
-* **Single RPC Architecture:** The admin dashboard's analytics have been vastly improved by consolidating 35+ parallel database queries into a single, lightning-fast PostgreSQL RPC (`get_admin_dashboard_metrics`).
+* **Parallel Query Architecture:** The admin dashboard fans its analytics out across independent Supabase queries that run concurrently, keeping the initial server render fast without blocking on a single sequential chain.
 * **In-Memory Caching:** Cache-backed category lookups use a 600-second TTL. The admin dashboard uses Next.js ISR with a 5-minute revalidation window.
 
 ### 👥 People, Attendance & Leave
@@ -74,7 +74,7 @@ Built using **Next.js 16**, **React 19**, and **Supabase**.
 * **Atomic Invoice Numbering:** Features robust Postgres sequences to guarantee sequential, collision-free invoice numbering, even under concurrent high load.
 * **Overdue Automation:** A client-side `OverdueChecker` component fires a server action on mount to mark invoices past-due, keeping statuses accurate without a cron job.
 * Tracks localized payment routes like Cash, Bank, eSewa, Khalti, and ConnectIPS.
-* Secure receipt image uploads mapped straight to Supabase Storage buckets (served via short-lived **signed URLs**, never public links).
+* Secure receipt image uploads mapped straight to private Supabase Storage buckets (served via short-lived **signed URLs**; `getSignedUrl` returns null rather than falling back to a public link, so private files are never exposed).
 
 ### 🎭 Talent Roster & Bookings
 
@@ -128,7 +128,7 @@ src/
 
 sentry.client.config.ts        # Sentry init (browser)
 sentry.server.config.ts        # Sentry init (server)
-supabase/migrations/           # Forward migrations only (001 → 028)
+supabase/migrations/           # Forward migrations only (timestamped, 20260101000000 → 20260730000001)
 supabase/rollbacks/            # Manual-use reversal scripts (never auto-applied)
 .github/workflows/             # CI (lint/typecheck/test) + Datadog Synthetics
 ```
@@ -170,7 +170,7 @@ Optional / deployment-time keys (see the example file for the full list): `CRON_
 
 ### 3. Initialize the Database
 
-Apply the numbered forward migrations inside `supabase/migrations/` in order against your Supabase project (the Supabase CLI `supabase db push` / `supabase db reset` handles this for you). They build out the tables, relational indexes, **Row Level Security (RLS)** guardrails, and our **advanced RPC functions**, spanning logical migrations **001 → 028**. Reversal scripts for the schema-changing migrations live **only** in `supabase/rollbacks/` — they are a manual-use archive and are **not** part of the auto-applied migration set (never place them in `supabase/migrations/`, or a `db reset` would undo each migration right after applying it).
+Apply the numbered forward migrations inside `supabase/migrations/` in order against your Supabase project (the Supabase CLI `supabase db push` / `supabase db reset` handles this for you). They build out the tables, relational indexes, **Row Level Security (RLS)** guardrails, and our **advanced RPC functions**, spanning 50 forward migrations from **001** through **20260730000001**. Reversal scripts for the schema-changing migrations live **only** in `supabase/rollbacks/` — they are a manual-use archive and are **not** part of the auto-applied migration set (never place them in `supabase/migrations/`, or a `db reset` would undo each migration right after applying it).
 
 ### 4. Create the Initial Admin Account
 

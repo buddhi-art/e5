@@ -24,6 +24,7 @@ export async function assignTask(formData: FormData) {
       start_date: formData.get('start_date'),
       deadline: formData.get('deadline'),
       subtasksRaw: formData.get('subtasks'),
+      logistics: formData.get('logistics'),
     })
 
     if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
@@ -137,6 +138,7 @@ export async function updateTask(id: string, formData: FormData) {
       start_date: formData.get('start_date'),
       deadline: formData.get('deadline'),
       status: formData.get('status'),
+      logistics: formData.get('logistics'),
     })
 
     if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
@@ -155,6 +157,14 @@ export async function updateTask(id: string, formData: FormData) {
       .eq('id', id)
       .single()
 
+    // Only touch the logistics column when the form actually submitted a
+    // logistics payload. This prevents an edit made from a form without the
+    // phase workspace (or a legacy client) from silently wiping stored data.
+    const logisticsUpdate: Record<string, any> = {}
+    if (formData.get('logistics') !== null) {
+      logisticsUpdate.logistics = data.logistics || null
+    }
+
     const { error: taskError } = await supabase
       .from('tasks')
       .update({
@@ -166,7 +176,7 @@ export async function updateTask(id: string, formData: FormData) {
         status: data.status,
         start_date: data.start_date ? new Date(data.start_date).toISOString() : null,
         deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
-        logistics: data.logistics || null,
+        ...logisticsUpdate,
         ...extraUpdate,
       })
       .eq('id', id)

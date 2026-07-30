@@ -18,6 +18,8 @@ import { toast } from 'sonner'
 import { X, Plus, CalendarIcon } from 'lucide-react'
 import { TaskLogisticsSection } from '@/components/task-logistics-section'
 import { EditingLogisticsSection } from '@/components/editing-logistics-section'
+import { TaskPhaseWorkspaceSection } from '@/components/task-phase-workspace-section'
+import { isWorkspacePhase } from '@/lib/phase-workspace'
 
 export function TaskForm({ projects, employees }: { projects: any[], employees: any[] }) {
   const [loading, setLoading] = useState(false)
@@ -182,6 +184,7 @@ export function TaskForm({ projects, employees }: { projects: any[], employees: 
       {/* Phase-specific package operations are rendered only for their matching task phase. */}
       {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} />}
       {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} />}
+      {isWorkspacePhase(phase) && <TaskPhaseWorkspaceSection key={phase} phase={phase} />}
 
       {/* Subtasks */}
       <div className="space-y-3 p-4 bg-surface-container-low rounded-lg border border-outline-variant">

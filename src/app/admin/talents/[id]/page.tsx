@@ -1,7 +1,8 @@
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { getSignedUrl } from '@/lib/supabase/storage'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -55,12 +56,14 @@ export default async function TalentDetailPage({ params }: { params: Promise<{ i
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 morph-fade-in">
                 <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-surface-container-high overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-surface-container-high overflow-hidden flex items-center justify-center flex-shrink-0 relative">
                         {photoUrl ? (
-                            <img
+                            <Image
                                 src={photoUrl}
                                 alt={talent.full_name}
-                                className="w-full h-full object-cover"
+                                fill
+                                sizes="64px"
+                                className="object-cover"
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-400 to-orange-400 text-white font-bold text-xl">

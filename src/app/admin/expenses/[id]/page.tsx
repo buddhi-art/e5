@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getSignedUrl } from '@/lib/supabase/storage'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -130,8 +131,7 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
               {receiptUrl ? (
                 <div className="space-y-4">
                   <a href={receiptUrl} target="_blank" rel="noreferrer" className="block rounded-lg overflow-hidden border border-outline-variant hover:opacity-90 transition-opacity">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={receiptUrl} alt="Receipt preview" className="w-full object-cover" />
+                    <Image src={receiptUrl} alt="Receipt preview" width={0} height={0} sizes="100vw" style={{ width: '100%', height: 'auto' }} />
                   </a>
                   <Button render={<a href={receiptUrl} target="_blank" rel="noreferrer" />} variant="outline" className="w-full">
                     <ExternalLink className="w-4 h-4 mr-2" />

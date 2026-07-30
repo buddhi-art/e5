@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- package action results will receive generated Supabase types in the schema-typing pass. */
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'

@@ -1,8 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -51,7 +52,9 @@ export function ClientTableClient({ clients, companyNatures, referralSources }: 
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         {client.logo_url ? (
-                                            <img src={client.logo_url} alt={client.company_name} className="w-8 h-8 rounded-full object-cover bg-surface-container-high" />
+                                            <div className="relative w-8 h-8 rounded-full overflow-hidden bg-surface-container-high">
+                                                <Image src={client.logo_url} alt={client.company_name} fill sizes="32px" className="object-cover" unoptimized />
+                                            </div>
                                         ) : (
                                             <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
                                                 <Building2 className="w-4 h-4" />

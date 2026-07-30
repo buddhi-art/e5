@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { getSignedUrl } from '@/lib/supabase/storage'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { MapPin } from 'lucide-react'
 
@@ -50,12 +51,14 @@ export default async function EmployeeTalentsPage() {
                         const signedUrl = photoUrls.get(talent.id)
                         return (
                             <div key={talent.id} className="flex items-start gap-4 p-4 rounded-xl border border-outline-variant bg-surface-container-lowest dark:bg-surface-container-lowest">
-                                <div className="w-16 h-16 rounded-full bg-surface-container-high dark:bg-surface-container overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                <div className="w-16 h-16 rounded-full bg-surface-container-high dark:bg-surface-container overflow-hidden flex-shrink-0 flex items-center justify-center relative">
                                     {signedUrl ? (
-                                        <img
+                                        <Image
                                             src={signedUrl}
                                             alt={talent.full_name}
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            sizes="64px"
+                                            className="object-cover"
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-400 to-orange-400 text-white font-bold text-lg">

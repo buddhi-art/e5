@@ -1,15 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Clock, Building2, CheckCircle2 } from 'lucide-react'
+import { Clock, CheckCircle2 } from 'lucide-react'
 import { toggleSubtask, toggleSubSubtask, updateMainTaskStatus } from './actions'
 import { toast } from 'sonner'
 import { SubtaskCommentSection } from '@/components/subtask-comment-section'
 import { TaskLogisticsView } from '@/components/task-logistics-view'
+import { TaskPhaseActions } from '@/components/employee/task-phase-actions'
+import { isWorkspacePhase, PHASE_LABELS } from '@/lib/phase-workspace'
 
 type Comment = {
   id: string
@@ -53,6 +55,14 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
   const totalSubs = task.subtasks?.length || 0
   const completedSubs = task.subtasks?.filter((s: any) => s.is_completed).length || 0
   const progress = totalSubs === 0 ? (task.status === 'completed' ? 100 : 0) : Math.round((completedSubs / totalSubs) * 100)
+  const workspacePhase = isWorkspacePhase(task.phase) ? task.phase : null
+  const phaseChipClass: Record<string, string> = {
+    'Phase 1': 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30',
+    'Phase 2': 'bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/30',
+    'Phase 3': 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30',
+    'Phase 4': 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30',
+    'Phase 5': 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+  }
 
   return (
     <Card className="bg-surface-container-lowest border-outline-variant/40 card-morph morph-fade-in">
@@ -70,14 +80,10 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
                 return `E5 - ${clientName} - ${projectName} - ${task.title}`;
               })()}
             </CardTitle>
-            <div className="flex items-center gap-2 mt-2 text-sm text-on-surface-variant">
-              <span>{
-                task.phase === 'Phase 1' ? 'Phase 1: Concept & Planning' :
-                  task.phase === 'Phase 2' ? 'Phase 2: Videography (Shoot)' :
-                    task.phase === 'Phase 3' ? 'Phase 3: Editing & Design' :
-                      task.phase === 'Phase 4' ? 'Phase 4: QA & Review' :
-                        task.phase === 'Phase 5' ? 'Phase 5: Delivery' : task.phase
-              }</span>
+            <div className="mt-2 flex items-center gap-2">
+              <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-xs font-medium ${phaseChipClass[task.phase] ?? 'bg-surface-container-high text-on-surface-variant border-outline-variant/40'}`}>
+                {PHASE_LABELS[task.phase] ?? task.phase}
+              </Badge>
             </div>
           </div>
           <Badge variant="outline" className={`
@@ -100,6 +106,14 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
           logistics={task.logistics}
           phase={task.phase}
         />
+
+        {workspacePhase && (
+          <TaskPhaseActions
+            taskId={task.id}
+            phase={workspacePhase}
+            logistics={task.logistics}
+          />
+        )}
 
         <div className="flex items-center gap-4 text-xs font-medium">
           {task.deadline && (

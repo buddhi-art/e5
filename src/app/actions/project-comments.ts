@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from '@/lib/notifications'
 
 export interface ProjectComment {
   id: string
@@ -73,18 +74,17 @@ export async function addProjectComment(projectId: string, text: string) {
     )
 
     if (mentionedUsers.length > 0) {
-      const notifications = mentionedUsers.map(m => ({
-        user_id: m.id,
-        title: 'New Mention',
-        message: `${senderName} mentioned you in a project discussion: "${text.trim().substring(0, 60)}..."`,
-        link_url: m.designation === 'Founder'
+      await Promise.all(mentionedUsers.map(m => createNotification(
+        m.id,
+        'system',
+        'New Mention',
+        `${senderName} mentioned you in a project discussion: "${text.trim().substring(0, 60)}..."`,
+        m.designation === 'Founder'
           ? '/founder/projects'
           : m.role === 'admin'
             ? `/admin/projects/${projectId}`
             : '/employee',
-        is_read: false
-      }))
-      await supabase.from('notifications').insert(notifications)
+      )))
     }
 
     revalidatePath(`/admin/projects/${projectId}`)

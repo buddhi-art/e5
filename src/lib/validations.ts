@@ -206,7 +206,35 @@ export const ExpenseStatusSchema = z.object({
   status: z.enum(['pending', 'approved', 'rejected', 'reimbursed']),
 });
 
+/** A single generic checklist item shared by the Phase 1/4/5 workspaces. */
+export const ChecklistItemSchema = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+  done: z.boolean(),
+});
+
+export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;
+
+/** Lenient URL check: http(s) links only, empty strings normalised away by callers. */
+const httpUrl = z
+  .string()
+  .refine((v) => /^https?:\/\/.+/i.test(v), { message: 'Must be an http(s) link' });
+
+/** One immutable QA review record. The latest entry is the current verdict. */
+export const QaHistoryEntrySchema = z.object({
+  round: z.number().int().min(1),
+  reviewer: z.string().optional(),
+  verdict: z.enum(['passed', 'changes_requested']),
+  notes: z.string().optional(),
+  blockingIssues: z.array(z.string()).optional(),
+  reviewLink: httpUrl.optional(),
+  reviewedAt: z.string(),
+});
+
+export type QaHistoryEntry = z.infer<typeof QaHistoryEntrySchema>;
+
 export const TaskLogisticsSchema = z.object({
+  // --- Phase 2 (shoot) ---
   locationAddress: z.string().optional(),
   locations: z.array(z.string()).optional(),
   shootDate: z.string().optional(),
@@ -215,6 +243,63 @@ export const TaskLogisticsSchema = z.object({
   assignedStaffIds: z.array(z.string()).optional(),
   vehiclesTaken: z.array(z.string()).optional(),
   equipmentsTaken: z.array(z.string()).optional(),
+
+  // --- Shared (Phase 1/4/5 workspaces) ---
+  workspaceVersion: z.number().int().optional(),
+  checklist: z.array(ChecklistItemSchema).optional(),
+
+  // --- Phase 1: Concept & Scripting ---
+  conceptBrief: z.string().optional(),
+  scriptLink: httpUrl.optional(),
+  storyboardLink: httpUrl.optional(),
+  moodboardLink: httpUrl.optional(),
+  referenceLinks: z.array(z.string()).optional(),
+  deliverableFormat: z.string().optional(),
+  targetDuration: z.string().optional(),
+  conceptStatus: z.enum(['drafting', 'internal_review', 'client_review', 'approved']).optional(),
+
+  // --- Phase 4: QA & Revision ---
+  qaReviewer: z.string().optional(),
+  reviewRound: z.number().int().min(0).optional(),
+  qaVerdict: z.enum(['pending', 'passed', 'changes_requested']).optional(),
+  qaNotes: z.string().optional(),
+  blockingIssues: z.array(z.string()).optional(),
+  reviewLink: httpUrl.optional(),
+  qaHistory: z.array(QaHistoryEntrySchema).optional(),
+
+  // --- Phase 5: Delivery ---
+  finalDeliveryLink: httpUrl.optional(),
+  deliveryDate: z.string().optional(),
+  deliveryChannel: z.string().optional(),
+  clientContact: z.string().optional(),
+  archiveLink: httpUrl.optional(),
+  deliveryNotes: z.string().optional(),
+  clientReceiptConfirmed: z.boolean().optional(),
+  clientAcceptanceStatus: z.enum(['pending', 'accepted', 'changes_requested']).optional(),
+}).passthrough(); // preserve unknown/legacy keys (e.g. editing* fields) instead of silently stripping them
+
+export type TaskLogistics = z.infer<typeof TaskLogisticsSchema>;
+
+/**
+ * Employee-side patch for the Phase 1/4/5 workspaces. Deliberately narrow:
+ * only the fields an assignee may change. Admin-owned fields (brief, format,
+ * duration, client contact, archive location, ...) are NOT accepted here —
+ * the server action further merges this patch into the existing logistics
+ * JSON rather than overwriting it.
+ */
+export const UpdateTaskPhaseWorkspaceSchema = z.object({
+  taskId: z.string().uuid(),
+  patch: z.object({
+    checklist: z.array(ChecklistItemSchema).optional(),
+    // Phase-specific primary working links
+    scriptLink: httpUrl.optional().or(z.literal('')),
+    reviewLink: httpUrl.optional().or(z.literal('')),
+    finalDeliveryLink: httpUrl.optional().or(z.literal('')),
+    // Phase 4 QA fields (assignee of the QA task only)
+    qaVerdict: z.enum(['pending', 'passed', 'changes_requested']).optional(),
+    qaNotes: z.string().optional(),
+    blockingIssues: z.array(z.string()).optional(),
+  }).strict(),
 });
 
 export type AssignTaskData = z.infer<typeof AssignTaskSchema>;

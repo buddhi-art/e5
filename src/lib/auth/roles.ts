@@ -6,7 +6,7 @@
  */
 
 // Role definitions
-export type Role = 'admin' | 'employee' | 'founder'
+export type Role = 'admin' | 'employee'
 
 // Special designation for founders (not a role in the enum)
 export const FOUNDER_DESIGNATION = 'Founder'
@@ -110,8 +110,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         'leave:read', 'leave:request', 'leave:cancel',
         'attendance:read', 'attendance:checkin', 'attendance:checkout',
         'kpi:read' // Self only
-    ],
-    founder: [] // Founders get all permissions via special designation
+    ]
 }
 
 /**
@@ -188,12 +187,6 @@ export function isProtectedRoute(path: string, requiredRole: Role): boolean {
 
     if (requiredRole === 'admin') {
         return PROTECTED_ROUTES.admin.some(route =>
-            normalizedPath === route || normalizedPath.startsWith(route + '/')
-        )
-    }
-
-    if (requiredRole === 'founder') {
-        return PROTECTED_ROUTES.founder.some(route =>
             normalizedPath === route || normalizedPath.startsWith(route + '/')
         )
     }

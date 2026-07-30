@@ -992,6 +992,7 @@ export async function getClientsForSelect() {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return []
+        if (!await verifyAdminOrFounder(supabase, user.id)) return []
 
         const { data } = await supabase
             .from('clients')
@@ -1010,6 +1011,7 @@ export async function getEmployeesForSelect() {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return []
+        if (!await verifyAdminOrFounder(supabase, user.id)) return []
 
         const { data } = await supabase
             .from('profiles')
@@ -1340,4 +1342,3 @@ export async function getPendingFounderReviews() {
         throw err
     }
 }
-

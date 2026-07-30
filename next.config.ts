@@ -6,9 +6,18 @@ import path from 'path';
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const allowedOrigins = isDevelopment
   ? ["localhost:3000", "*.github.dev", "*.app.github.dev"]
-  : []
+  : (process.env.NEXT_PUBLIC_SITE_URL ? [new URL(process.env.NEXT_PUBLIC_SITE_URL).host] : [])
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/**',
+      },
+    ],
+  },
   turbopack: {
     root: path.resolve(__dirname),
   },
@@ -21,8 +30,7 @@ const nextConfig: NextConfig = {
   async headers() {
     const cspHeader = [
       "default-src 'self'",
-      // React's development diagnostics require eval; production CSP remains strict.
-      `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
+       `script-src 'self'${isDevelopment ? " 'unsafe-inline' 'unsafe-eval'" : ''}`,
       // Styles: allow self, inline (Tailwind, Framer Motion), and external fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: allow self, data URIs, Supabase storage, and blob URLs (html2canvas)
@@ -30,7 +38,7 @@ const nextConfig: NextConfig = {
       // Fonts: allow self and Google Fonts
       "font-src 'self' https://fonts.gstatic.com",
       // Connect: allow Supabase APIs, Gemini AI proxy, Sentry, and Upstash Redis
-      "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com wss://*.supabase.co https://*.sentry.io https://*.upstash.io",
+       "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com wss://*.supabase.co https://*.sentry.io https://*.upstash.io",
       // Media: allow Supabase storage
       "media-src 'self' https://*.supabase.co",
       // Frame ancestors: deny embedding in iframes (clickjacking protection)
@@ -45,7 +53,7 @@ const nextConfig: NextConfig = {
 
     return [
       {
-        source: "/((?!api/ai-proxy).*)", // Apply to all routes except AI proxy
+         source: "/(.*)",
         headers: [
           {
             key: "Content-Security-Policy",
@@ -68,38 +76,10 @@ const nextConfig: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
-        ],
-      },
-      {
-        // The AI proxy is a JSON API route that never returns HTML, so it gets
-        // a locked-down CSP of its own rather than the app-wide policy (which
-        // permits inline scripts for Next.js). This closes the previously
-        // unprotected attack surface.
-        source: "/api/ai-proxy/:path*",
-        headers: [
-          {
-            key: "Content-Security-Policy",
-            value: "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
+          // HSTS: force HTTPS app-wide (browsers ignore it on plain HTTP/localhost)
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
           },
         ],
       },

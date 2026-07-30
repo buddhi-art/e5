@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+/**
+ * Creates the request-scoped Supabase client used by Server Components and
+ * Server Actions. Database types are intentionally omitted until they are
+ * generated from the deployed schema (`supabase gen types typescript`); an
+ * incomplete hand-written schema is less safe than the SDK's default types.
+ */
 export async function createClient() {
   const cookieStore = await cookies()
 

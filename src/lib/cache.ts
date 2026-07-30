@@ -37,7 +37,9 @@ const globalCache = {
         console.warn('Redis get failed, falling back to node-cache', e)
       }
     }
-    return nodeCache.get(key)
+    const value = nodeCache.get<string>(key)
+    if (value === undefined) return null
+    try { return JSON.parse(value) } catch { return value }
   },
   set: async (key: string, value: any, ttlSeconds: number = DEFAULT_TTL) => {
     // FIX: Serialize objects before storing in Redis
@@ -50,7 +52,7 @@ const globalCache = {
         console.warn('Redis set failed, falling back to node-cache', e)
       }
     }
-    return nodeCache.set(key, value, ttlSeconds)
+    return nodeCache.set(key, serialized, ttlSeconds)
   },
   del: async (key: string) => {
     if (redis) {

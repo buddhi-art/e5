@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus } from 'lucide-react'
@@ -69,12 +70,14 @@ export default async function BookingsPage() {
                                 <tr key={booking.id} className="border-b border-outline-variant hover:bg-surface-container-high">
                                     <td className="p-3">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center">
+                                            <div className="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center relative">
                                                 {booking.talents?.photo_url ? (
-                                                    <img
+                                                    <Image
                                                         src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/talent-photos/${booking.talents.photo_url}`}
                                                         alt={booking.talents.full_name}
-                                                        className="w-full h-full object-cover"
+                                                        fill
+                                                        sizes="32px"
+                                                        className="object-cover"
                                                     />
                                                 ) : (
                                                     <span className="text-xs font-bold">{booking.talents?.full_name?.charAt(0)}</span>

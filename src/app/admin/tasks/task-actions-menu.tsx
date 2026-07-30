@@ -32,6 +32,8 @@ import { toast } from 'sonner'
 import { MoreVertical, Edit, Trash2 } from 'lucide-react'
 import { TaskLogisticsSection } from '@/components/task-logistics-section'
 import { EditingLogisticsSection } from '@/components/editing-logistics-section'
+import { TaskPhaseWorkspaceSection } from '@/components/task-phase-workspace-section'
+import { isWorkspacePhase } from '@/lib/phase-workspace'
 
 export function TaskActionsMenu({ task, projects, employees }: { task: any, projects: any[], employees: any[] }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -193,6 +195,13 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
             {/* Package operations are phase-gated and persist in canonical package tables. */}
             {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} />}
             {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} />}
+            {isWorkspacePhase(phase) && (
+              <TaskPhaseWorkspaceSection
+                key={`${task.id}-${phase}`}
+                phase={phase}
+                initialLogistics={task.phase === phase ? task.logistics : null}
+              />
+            )}
 
             <Button type="submit" className="w-full bg-inverse-surface text-inverse-on-surface hover:bg-inverse-surface/90" disabled={loading}>
               {loading ? 'Saving...' : 'Save Changes'}

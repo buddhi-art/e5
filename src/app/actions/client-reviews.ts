@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import 'server-only'
 import { UuidParamSchema } from '@/lib/validations'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 function getPublicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -25,6 +26,9 @@ export async function submitClientReview(
     if (status !== 'APPROVED' && status !== 'REVISION_REQUESTED') {
       return { error: 'Invalid review status.' }
     }
+
+    const rateLimit = await checkRateLimit(`client-review:${parsedToken.data}`, 5, 60 * 60 * 1000)
+    if (!rateLimit.success) return { error: 'Too many review submissions. Try again later.' }
 
     const trimmedFeedback = feedback?.trim() || null
     if (trimmedFeedback && trimmedFeedback.length > 5000) {

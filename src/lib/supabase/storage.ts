@@ -50,7 +50,8 @@ export function generateStorageFilename(originalName: string): string {
 
 /**
  * Generate a signed URL for a private storage bucket file.
- * Falls back to a public URL if signed URL generation fails.
+ * Returns null on failure — never falls back to a public URL, so private
+ * bucket files (receipts, documents) are never exposed via a public link.
  */
 export async function getSignedUrl(bucket: string, filePath: string, expiresIn = 3600): Promise<string | null> {
     if (!filePath) return null
@@ -63,11 +64,7 @@ export async function getSignedUrl(bucket: string, filePath: string, expiresIn =
 
         if (error || !data) {
             console.error(`Signed URL error for ${bucket}/${filePath}:`, error)
-            // Fallback to public URL
-            const { data: publicData } = supabase.storage
-                .from(bucket)
-                .getPublicUrl(filePath)
-            return publicData?.publicUrl || null
+            return null
         }
 
         return data.signedUrl

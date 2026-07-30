@@ -59,12 +59,18 @@ export async function moveKanbanCard(
                 extraUpdate.completed_at = new Date().toISOString()
             }
 
-            const { error } = await supabase
+            const { data: updatedTask, error } = await supabase
                 .from('tasks')
                 .update(extraUpdate)
                 .eq('id', taskId)
+                .eq('updated_at', current.updated_at)
+                .select('id')
+                .maybeSingle()
 
             if (error) return { error: error.message }
+            if (!updatedTask) {
+                return { error: 'conflict', serverState: current }
+            }
 
             // Notify assignee if status changed to blocked
             if (newStatus === 'blocked' && current.assigned_to) {

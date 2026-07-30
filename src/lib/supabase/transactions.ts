@@ -108,27 +108,7 @@ export async function executeRpcTransaction<T>(
 /**
  * Transaction wrapper for equipment checkout operations
  */
-export async function executeEquipmentCheckout(
-    equipmentId: string,
-    employeeId: string,
-    checkoutDate: string,
-    returnDate: string | null,
-    notes: string | null,
-    userId: string
-): Promise<TransactionResult<string>> {
-    return executeRpcTransaction('atomic_equipment_checkout', {
-        p_equipment_id: equipmentId,
-        p_employee_id: employeeId,
-        p_checkout_date: checkoutDate,
-        p_return_date: returnDate,
-        p_notes: notes,
-        p_checked_out_by: userId
-    })
-}
-
-/**
- * Transaction wrapper for invoice creation with items
- */
+/** Transaction wrapper for atomic invoice creation with items. */
 export async function executeInvoiceCreation(
     invoiceData: {
         client_id: string

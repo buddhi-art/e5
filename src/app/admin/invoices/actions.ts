@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { InvoiceSchema, InvoicePaymentSchema, UuidParamSchema, InvoiceStatusUpdateSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
-import { createNotification } from '@/lib/notifications'
 import { executeInvoiceCreation } from '@/lib/supabase/transactions'
 
 export async function createInvoice(formData: FormData) {
@@ -43,14 +42,10 @@ export async function createInvoice(formData: FormData) {
         const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
         if (!isAuthorized) return { error: 'Permission denied. Only admins or founders can create invoices.' };
 
-        const year = new Date().getFullYear().toString()
-        const { data: invoiceNumber, error: seqError } = await supabase.rpc('generate_invoice_number', { p_year: year })
-        if (seqError || !invoiceNumber) return { error: 'Failed to generate invoice number: ' + (seqError?.message || 'no number returned') }
-
         const result = await executeInvoiceCreation({
             client_id: data.client_id,
             project_id: data.project_id || null,
-            invoice_number: invoiceNumber,
+            invoice_number: '',
             title: data.title,
             description: data.description || null,
             issue_date: data.issue_date || new Date().toISOString().split('T')[0],
@@ -388,23 +383,24 @@ export async function updateOverdueInvoices() {
             const { data: adminUsers } = await supabase
                 .from('profiles')
                 .select('id')
-                .eq('role', 'admin')
+                .or('role.eq.admin,designation.eq.Founder')
                 .is('deleted_at', null)
 
-            for (const inv of overdueInvoices) {
+            const notifications = overdueInvoices.flatMap((inv) => {
                 const companyName = typeof inv.clients === 'object' && inv.clients !== null
                     ? (inv.clients as any)?.company_name
                     : 'Unknown'
-                for (const admin of adminUsers || []) {
-                    await createNotification(
-                        admin.id,
-                        'overdue_invoice',
-                        `Overdue Invoice: ${inv.invoice_number}`,
-                        `${companyName} - ${inv.title || 'No title'}`,
-                        `/admin/invoices/${inv.id}`,
-                        false,
-                    )
-                }
+                return (adminUsers || []).map((admin) => ({
+                    user_id: admin.id,
+                    type: 'overdue_invoice',
+                    title: `Overdue Invoice: ${inv.invoice_number}`,
+                    description: `${companyName} - ${inv.title || 'No title'}`,
+                    href: `/admin/invoices/${inv.id}`,
+                }))
+            })
+            if (notifications.length > 0) {
+                const { error: notificationError } = await supabase.from('notifications').insert(notifications)
+                if (notificationError) console.error('Error creating overdue notifications:', notificationError)
             }
         }
 
