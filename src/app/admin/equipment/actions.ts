@@ -306,7 +306,7 @@ export async function scheduleMaintenance(data: {
     p_vendor: mData.vendor || null,
     p_vendor_phone: mData.vendor_phone || null,
     p_vendor_location: mData.vendor_location || null,
-    p_cost: mData.cost || null,
+    p_cost: mData.cost ?? null,
     p_notes: mData.notes || null,
   })
 

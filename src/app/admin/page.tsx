@@ -168,7 +168,7 @@ async function fetchDashboardData(): Promise<DashboardData> {
       return { pending: pending.count ?? 0, total: total.count ?? 0, todayLeave: todayLeave.data ?? [] }
     })(),
     // Meetings
-    supabase.from('client_meetings').select('id, meeting_date', { count: 'exact', head: true }).is('deleted_at', null),
+    supabase.from('client_meetings').select('id, meeting_date', { count: 'exact' }).is('deleted_at', null),
     // Active clients (projects that aren't completed or on hold)
     supabase.from('projects')
       .select('client_id')
