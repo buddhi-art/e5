@@ -743,9 +743,12 @@
       background-color: var(--md-sys-color-primary-container) !important;
    }
 
-   .bg-amber-500,
-   .bg-amber-500\/10 {
+   .bg-amber-500 {
       background-color: var(--md-sys-color-primary) !important;
+   }
+
+   .bg-amber-500\/10 {
+      background-color: color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent) !important;
    }
 
    .border-amber-200,
@@ -782,9 +785,12 @@
       background-color: var(--md-sys-color-tertiary-container) !important;
    }
 
-   .bg-emerald-500,
-   .bg-emerald-500\/10 {
+   .bg-emerald-500 {
       background-color: var(--md-sys-color-tertiary) !important;
+   }
+
+   .bg-emerald-500\/10 {
+      background-color: color-mix(in srgb, var(--md-sys-color-tertiary) 15%, transparent) !important;
    }
 
    .border-emerald-200,
@@ -831,9 +837,12 @@
       color: var(--md-sys-color-primary) !important;
    }
 
-   .bg-sky-500,
-   .bg-sky-500\/10 {
+   .bg-sky-500 {
       background-color: var(--md-sys-color-primary) !important;
+   }
+
+   .bg-sky-500\/10 {
+      background-color: color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent) !important;
    }
 
    .hover\:bg-sky-600 {
