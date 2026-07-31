@@ -39,13 +39,19 @@ ALTER TABLE project_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE client_reviews ENABLE ROW LEVEL SECURITY;
 
 -- Project Comments Policies
+DROP POLICY IF EXISTS "Authenticated users view project comments" ON project_comments;
 CREATE POLICY "Authenticated users view project comments" ON project_comments FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Authenticated users insert project comments" ON project_comments;
 CREATE POLICY "Authenticated users insert project comments" ON project_comments FOR INSERT WITH CHECK (auth.role() = 'authenticated' AND auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users update own comments" ON project_comments;
 CREATE POLICY "Users update own comments" ON project_comments FOR UPDATE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users delete own comments" ON project_comments;
 CREATE POLICY "Users delete own comments" ON project_comments FOR DELETE USING (auth.uid() = user_id);
 
 -- Client Reviews Policies
+DROP POLICY IF EXISTS "Admins and Founders manage client reviews" ON client_reviews;
 CREATE POLICY "Admins and Founders manage client reviews" ON client_reviews FOR ALL USING (auth.uid() IN (SELECT id FROM profiles WHERE role = 'admin' OR designation = 'Founder'));
+DROP POLICY IF EXISTS "Authenticated view client reviews" ON client_reviews;
 CREATE POLICY "Authenticated view client reviews" ON client_reviews FOR SELECT USING (auth.role() = 'authenticated');
 
 COMMIT;

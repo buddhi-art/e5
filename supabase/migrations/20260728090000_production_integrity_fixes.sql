@@ -4,6 +4,7 @@ BEGIN;
 
 -- Restore scoped task visibility after the logistics migration replaced it with USING (true).
 DROP POLICY IF EXISTS "Tasks viewable by everyone" ON public.tasks;
+DROP POLICY IF EXISTS "Tasks viewable by assigned employees and admins" ON public.tasks;
 CREATE POLICY "Tasks viewable by assigned employees and admins"
   ON public.tasks FOR SELECT
   USING (

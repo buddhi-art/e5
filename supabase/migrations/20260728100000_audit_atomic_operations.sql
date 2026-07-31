@@ -190,6 +190,7 @@ GRANT EXECUTE ON FUNCTION public.atomic_create_invoice_with_items(jsonb, jsonb) 
 
 -- Restrict comment reads to admins/founders and employees assigned to the parent task.
 DROP POLICY IF EXISTS "Subtask comments viewable by everyone" ON public.subtask_comments;
+DROP POLICY IF EXISTS "Assigned users and admins view subtask comments" ON public.subtask_comments;
 CREATE POLICY "Assigned users and admins view subtask comments"
   ON public.subtask_comments FOR SELECT
   USING (
