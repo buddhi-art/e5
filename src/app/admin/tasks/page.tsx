@@ -29,6 +29,10 @@ export default async function TasksPage() {
   const projects = (allProjects || []).filter((p: any) => !p.deleted_at)
 
   // Fetch clients with nested projects and tasks for the Client-Category View
+  // The hierarchy is: client → projects → tasks → subtasks → sub_subtasks
+  // Tasks include logistics JSON for the phase workspace summary.
+  // Subtasks include deliverable_id and assigned_to so the accordion can
+  // show deliverable-linked items and employee assignments inline.
   const { data: clients, error: clientsErr } = await supabase
     .from('clients')
     .select(`
@@ -39,10 +43,30 @@ export default async function TasksPage() {
         title,
         status,
         deleted_at,
+        package_id,
         tasks(
           id,
+          title,
           status,
-          deadline
+          phase,
+          deadline,
+          start_date,
+          assigned_to,
+          logistics,
+          subtasks(
+            id,
+            title,
+            is_completed,
+            deliverable_id,
+            assigned_to,
+            sort_order,
+            status,
+            sub_subtasks(
+              id,
+              title,
+              is_completed
+            )
+          )
         )
       )
     `)
@@ -62,7 +86,7 @@ export default async function TasksPage() {
     <div className="space-y-6">
       <div className="morph-fade-in">
         <h1 className="text-3xl font-bold tracking-tight text-on-surface mb-2">Task Assignment</h1>
-        <p className="text-on-surface-variant">Assign work to your team and track progress.</p>
+        <p className="text-on-surface-variant">Assign work to your team and track deliverables, sub-tasks, and progress — all connected to your project packages.</p>
       </div>
 
       <div className="space-y-6">
@@ -70,7 +94,7 @@ export default async function TasksPage() {
         <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 morph-fade-in morph-delay-2">
           <CardHeader>
             <CardTitle className="text-on-surface">Assign a Task</CardTitle>
-            <CardDescription className="text-on-surface-variant">Delegate work, then manage phase-specific package operations without leaving the task workflow.</CardDescription>
+            <CardDescription className="text-on-surface-variant">Delegate work. Deliverables from the project package auto-link as subtasks — phase time fields are managed in the logistics section below.</CardDescription>
           </CardHeader>
           <CardContent>
             <TaskForm projects={projects || []} employees={employees || []} />
@@ -82,11 +106,11 @@ export default async function TasksPage() {
             <CardTitle className="text-on-surface flex items-center gap-2">
               <FolderKanban className="w-5 h-5 text-primary" /> Client Overview
             </CardTitle>
-            <CardDescription className="text-on-surface-variant">Track active projects and assignments by client.</CardDescription>
+            <CardDescription className="text-on-surface-variant">Expand a client to see projects, tasks, deliverable subtasks, and actionable items — all inline.</CardDescription>
           </CardHeader>
 
           <CardContent>
-            <ClientProjectsAccordion clients={clientOverview as any} />
+            <ClientProjectsAccordion clients={clientOverview as any} employees={employees || []} />
           </CardContent>
         </Card>
       </div>

@@ -15,11 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from 'sonner'
-import { X, Plus, CalendarIcon } from 'lucide-react'
+import { X, Plus, CalendarIcon, Info } from 'lucide-react'
 import { TaskLogisticsSection } from '@/components/task-logistics-section'
 import { EditingLogisticsSection } from '@/components/editing-logistics-section'
 import { TaskPhaseWorkspaceSection } from '@/components/task-phase-workspace-section'
-import { isWorkspacePhase } from '@/lib/phase-workspace'
+import { isWorkspacePhase, PHASE_LABELS } from '@/lib/phase-workspace'
 
 export function TaskForm({ projects, employees }: { projects: any[], employees: any[] }) {
   const [loading, setLoading] = useState(false)
@@ -32,6 +32,13 @@ export function TaskForm({ projects, employees }: { projects: any[], employees: 
   const [projectId, setProjectId] = useState('')
   const [phase, setPhase] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
+
+  // Phases 2 and 3 manage their own start/end times in the package
+  // logistics workspace (shoot_date + start_time/end_time for Phase 2,
+  // editing_date + start_time/end_time for Phase 3). The task-level
+  // start_date and deadline are redundant for those phases, so we hide
+  // them and let the logistics data be the source of truth.
+  const hasPhaseTimeWorkspace = phase === 'Phase 2' || phase === 'Phase 3'
 
   function addSubtask() {
     const trimmed = newSubtask.trim()
@@ -84,7 +91,7 @@ export function TaskForm({ projects, employees }: { projects: any[], employees: 
     if (result?.error) {
       toast.error(result.error)
     } else {
-      toast.success('Task assigned successfully')
+      toast.success('Task assigned successfully. Deliverables auto-linked from the project package.')
       const form = document.getElementById('task-form') as HTMLFormElement
       form.reset()
       setSubtasks([])
@@ -122,7 +129,7 @@ export function TaskForm({ projects, employees }: { projects: any[], employees: 
           <Select value={phase} onValueChange={(val) => setPhase(val || '')}>
             <SelectTrigger className="w-full bg-surface-container-high border-outline-variant text-on-surface">
               <SelectValue placeholder="Select Phase">
-                {phase === 'Phase 1' ? 'Concept & Scripting' : phase === 'Phase 2' ? 'Videography (Shoot)' : phase === 'Phase 3' ? 'Editing & Design' : phase === 'Phase 4' ? 'QA & Revision' : phase === 'Phase 5' ? 'Delivery' : null}
+                {phase ? PHASE_LABELS[phase] : null}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
@@ -152,21 +159,30 @@ export function TaskForm({ projects, employees }: { projects: any[], employees: 
           </Select>
         </div>
 
-        {/* Start Date */}
-        <div className="space-y-2">
-          <Label htmlFor="start_date" className="text-on-surface text-xs uppercase tracking-wider font-medium">Start Date</Label>
-          <div className="relative">
-            <Input id="start_date" name="start_date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="bg-surface-container-high border-outline-variant text-on-surface [color-scheme:dark]" />
+        {/* Deadline — only shown for phases that don't have their own time workspace.
+            Phase 2 (shoot_date + start/end time) and Phase 3 (editing_date + start/end
+            time) manage times in the logistics section below, so the task-level
+            deadline field is hidden to avoid redundancy. */}
+        {!hasPhaseTimeWorkspace && (
+          <div className="space-y-2">
+            <Label htmlFor="deadline" className="text-on-surface text-xs uppercase tracking-wider font-medium">Deadline</Label>
+            <div className="relative">
+              <Input id="deadline" name="deadline" type="datetime-local" className="bg-surface-container-high border-outline-variant text-on-surface [color-scheme:dark]" />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Deadline */}
-        <div className="space-y-2">
-          <Label htmlFor="deadline" className="text-on-surface text-xs uppercase tracking-wider font-medium">Deadline</Label>
-          <div className="relative">
-            <Input id="deadline" name="deadline" type="datetime-local" className="bg-surface-container-high border-outline-variant text-on-surface [color-scheme:dark]" />
+        {/* Info banner: explains that time fields come from the logistics section */}
+        {hasPhaseTimeWorkspace && projectId && (
+          <div className="md:col-span-2 flex items-start gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 text-xs text-on-surface-variant">
+            <Info className="w-3.5 h-3.5 shrink-0 text-primary mt-0.5" />
+            <span>
+              {phase === 'Phase 2'
+                ? 'Shoot date and start/end times are managed in the videography logistics section below — no separate date fields needed here.'
+                : 'Editing date and start/end times are managed in the editing logistics section below — no separate date fields needed here.'}
+            </span>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Main Task Title */}
@@ -181,14 +197,28 @@ export function TaskForm({ projects, employees }: { projects: any[], employees: 
         <Textarea id="description" name="description" placeholder="Additional details, references, or instructions..." className="bg-surface-container-high border-outline-variant text-on-surface min-h-[100px]" />
       </div>
 
-      {/* Phase-specific package operations are rendered only for their matching task phase. */}
+      {/* Phase-specific package operations are rendered only for their matching task phase.
+          Phase 2: videography logistics (shoot location, date, times, staff, equipment)
+          Phase 3: editing logistics (editing date, times, editors, deliverables)
+          Phase 1/4/5: JSONB workspace with checklists and phase-specific fields */}
       {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} />}
       {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} />}
       {isWorkspacePhase(phase) && <TaskPhaseWorkspaceSection key={phase} phase={phase} />}
 
-      {/* Subtasks */}
+      {/* Sub-tasks & Sub-sub-tasks
+          When the project has a linked package, deliverables are auto-linked
+          as subtasks on task creation (handled in the server action). The
+          free-form subtasks below are for any additional manual items the
+          admin wants to add beyond the auto-linked deliverables. */}
       <div className="space-y-3 p-4 bg-surface-container-low rounded-lg border border-outline-variant">
-        <Label className="text-on-surface text-xs uppercase tracking-wider font-medium">Sub-tasks & Sub-sub-tasks</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-on-surface text-xs uppercase tracking-wider font-medium">Additional sub-tasks</Label>
+          {projectId && (
+            <span className="text-[10px] text-on-surface-variant">
+              Deliverables from this project&apos;s package are auto-linked on assignment
+            </span>
+          )}
+        </div>
 
         {subtasks.length > 0 && (
           <div className="space-y-3 mb-3">
@@ -238,7 +268,7 @@ export function TaskForm({ projects, employees }: { projects: any[], employees: 
             value={newSubtask}
             onChange={(e) => setNewSubtask(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSubtask() } }}
-            placeholder="Add a main sub-task..."
+            placeholder="Add a manual sub-task (optional)..."
             className="bg-surface-container-lowest border-outline-variant text-on-surface"
           />
           <Button type="button" onClick={addSubtask} variant="secondary" className="bg-surface-container-high hover:bg-surface-container-high text-on-surface border-outline-variant">

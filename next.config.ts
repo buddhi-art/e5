@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
   async headers() {
     const cspHeader = [
       "default-src 'self'",
-       `script-src 'self'${isDevelopment ? " 'unsafe-inline' 'unsafe-eval'" : ''}`,
+       `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
       // Styles: allow self, inline (Tailwind, Framer Motion), and external fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: allow self, data URIs, Supabase storage, and blob URLs (html2canvas)

@@ -29,11 +29,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from 'sonner'
-import { MoreVertical, Edit, Trash2 } from 'lucide-react'
+import { MoreVertical, Edit, Trash2, Info } from 'lucide-react'
 import { TaskLogisticsSection } from '@/components/task-logistics-section'
 import { EditingLogisticsSection } from '@/components/editing-logistics-section'
 import { TaskPhaseWorkspaceSection } from '@/components/task-phase-workspace-section'
-import { isWorkspacePhase } from '@/lib/phase-workspace'
+import { isWorkspacePhase, PHASE_LABELS } from '@/lib/phase-workspace'
 
 export function TaskActionsMenu({ task, projects, employees }: { task: any, projects: any[], employees: any[] }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -44,6 +44,8 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
   const [phase, setPhase] = useState(task.phase)
   const [assignedTo, setAssignedTo] = useState(task.assigned_to)
   const [status, setStatus] = useState(task.status)
+
+  const hasPhaseTimeWorkspace = phase === 'Phase 2' || phase === 'Phase 3'
 
   async function handleDelete() {
     if (!confirm('Are you sure you want to delete this task? All sub-tasks will be permanently deleted.')) return
@@ -129,7 +131,7 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
                 <Select value={phase} onValueChange={(val) => setPhase(val || '')}>
                   <SelectTrigger className="w-full bg-surface-container-high border-outline-variant text-on-surface">
                     <SelectValue placeholder="Select Phase">
-                      {phase === 'Phase 1' ? 'Concept & Scripting' : phase === 'Phase 2' ? 'Videography (Shoot)' : phase === 'Phase 3' ? 'Editing & Design' : phase === 'Phase 4' ? 'QA & Revision' : phase === 'Phase 5' ? 'Delivery' : null}
+                      {phase ? PHASE_LABELS[phase as keyof typeof PHASE_LABELS] : null}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
@@ -176,10 +178,23 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
                 </Select>
               </div>
 
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="deadline" className="text-on-surface">Deadline</Label>
-                <Input defaultValue={task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : ''} id="deadline" name="deadline" type="datetime-local" className="bg-surface-container-high border-outline-variant text-on-surface [color-scheme:dark]" />
-              </div>
+              {!hasPhaseTimeWorkspace && (
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="deadline" className="text-on-surface">Deadline</Label>
+                  <Input defaultValue={task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : ''} id="deadline" name="deadline" type="datetime-local" className="bg-surface-container-high border-outline-variant text-on-surface [color-scheme:dark]" />
+                </div>
+              )}
+
+              {hasPhaseTimeWorkspace && projectId && (
+                <div className="md:col-span-2 flex items-start gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 text-xs text-on-surface-variant">
+                  <Info className="w-3.5 h-3.5 shrink-0 text-primary mt-0.5" />
+                  <span>
+                    {phase === 'Phase 2'
+                      ? 'Shoot date and start/end times are managed in the videography logistics section below — no separate date fields needed here.'
+                      : 'Editing date and start/end times are managed in the editing logistics section below — no separate date fields needed here.'}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
