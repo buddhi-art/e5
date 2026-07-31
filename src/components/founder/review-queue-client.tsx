@@ -33,7 +33,7 @@ interface ReviewItem {
 
 export function ReviewQueueClient({
   initialReviews,
-  currentUserId
+  currentUserId: _currentUserId
 }: {
   initialReviews: ReviewItem[]
   currentUserId: string

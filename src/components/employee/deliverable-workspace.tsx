@@ -40,7 +40,7 @@ interface DeliverableItem {
 
 export function DeliverableWorkspace({
   deliverables,
-  currentUserId,
+  currentUserId: _currentUserId,
   onRefresh
 }: {
   deliverables: DeliverableItem[]
