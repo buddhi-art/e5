@@ -8,7 +8,6 @@ import {
 import { toast } from 'sonner'
 import { approveDeliverable, requestDeliverableRevision } from '@/app/admin/packages/actions'
 import { ProjectAssetsCard } from '@/components/project-assets-card'
-import { ProjectDiscussion } from '@/components/project-discussion'
 
 interface ReviewItem {
   id: string
@@ -174,16 +173,12 @@ export function ReviewQueueClient({
               {/* Project Assets Card */}
               {rev.packages?.projects && (
                 <div className="mt-4 px-4 pb-4 space-y-4">
-                  <ProjectAssetsCard 
+                  <ProjectAssetsCard
                     projectId={rev.packages.projects.id}
                     isAdmin={true}
                     initialRawFootage={rev.packages.projects.raw_footage_link}
                     initialBrandAssets={rev.packages.projects.brand_assets_link}
                     initialClientBrief={rev.packages.projects.client_brief_notes}
-                  />
-                  <ProjectDiscussion 
-                    projectId={rev.packages.projects.id}
-                    currentUserId={currentUserId}
                   />
                 </div>
               )}

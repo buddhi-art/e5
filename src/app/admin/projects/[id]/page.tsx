@@ -10,7 +10,6 @@ import { ProjectActionsMenu } from '../project-actions-menu'
 import { TaskActionsMenu } from '@/app/admin/tasks/task-actions-menu'
 import { SubtaskCommentSection } from '@/components/subtask-comment-section'
 import { ProjectAssetsCard } from '@/components/project-assets-card'
-import { ProjectDiscussion } from '@/components/project-discussion'
 import { TaskPackageOperationsSummary } from '@/components/task-package-operations-summary'
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -409,8 +408,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                             )}
                         </CardContent>
                     </Card>
-
-                    <ProjectDiscussion projectId={project.id} currentUserId={user.id} />
                 </div>
 
                 {/* Sidebar info */}

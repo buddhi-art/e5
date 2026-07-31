@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { TaskCard } from './task-card'
 import { getAssignedDeliverablesForEmployee } from '@/app/admin/packages/actions'
 import { DeliverableWorkspace } from '@/components/employee/deliverable-workspace'
-import { ProjectDiscussion } from '@/components/project-discussion'
 
 export default async function EmployeeDashboard() {
   const supabase = await createClient()
@@ -70,12 +69,6 @@ export default async function EmployeeDashboard() {
 
   // Fetch assigned package deliverables
   const deliverables = await getAssignedDeliverablesForEmployee()
-  const assignedProjects = Array.from(new Map(
-    visibleTasks
-      .map(task => task.projects)
-      .filter((project): project is { id: string; title: string } => Boolean(project?.id))
-      .map(project => [project.id, project])
-  ).values())
 
   return (
     <div className="space-y-8">
@@ -105,23 +98,6 @@ export default async function EmployeeDashboard() {
           </h2>
           <DeliverableWorkspace deliverables={deliverables} currentUserId={user.id} />
         </div>
-      )}
-
-      {assignedProjects.length > 0 && (
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-lg font-bold text-foreground">Project Discussions</h2>
-            <p className="text-xs text-on-surface-variant mt-1">Messages from admins and your project team. Reply here or mention a teammate with @.</p>
-          </div>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {assignedProjects.map(project => (
-              <div key={project.id} className="space-y-2">
-                <h3 className="text-sm font-semibold text-foreground">{project.title}</h3>
-                <ProjectDiscussion projectId={project.id} currentUserId={user.id} />
-              </div>
-            ))}
-          </div>
-        </section>
       )}
 
       {visibleTasks.length > 0 ? (
