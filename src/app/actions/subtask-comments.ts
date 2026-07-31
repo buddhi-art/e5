@@ -46,38 +46,3 @@ export async function addSubtaskComment(subtaskId: string, content: string) {
     return { success: true, comment }
 }
 
-export async function getSubtaskComments(subtaskId: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return { error: 'Not authenticated', comments: [] }
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, designation, deleted_at')
-        .eq('id', user.id)
-        .single()
-    if (!profile || profile.deleted_at) return { error: 'Not authorized', comments: [] }
-
-    const { data: subtask } = await supabase
-        .from('subtasks')
-        .select('task_id, tasks!inner(assigned_to)')
-        .eq('id', subtaskId)
-        .maybeSingle()
-    const task = Array.isArray(subtask?.tasks) ? subtask.tasks[0] : subtask?.tasks
-    const canRead = profile.role === 'admin' || profile.designation === 'Founder' || task?.assigned_to === user.id
-    if (!canRead) return { error: 'You are not assigned to this task', comments: [] }
-
-    const { data, error } = await supabase
-        .from('subtask_comments')
-        .select(`
-      *,
-      profiles ( full_name, role )
-    `)
-        .eq('subtask_id', subtaskId)
-        .order('created_at', { ascending: true })
-
-    if (error) return { error: error.message, comments: [] }
-
-    return { comments: data || [], error: null }
-}

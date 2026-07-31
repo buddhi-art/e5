@@ -74,34 +74,7 @@ export async function createInvoice(formData: FormData) {
     }
 }
 
-export async function updateInvoiceStatus(invoiceId: string, status: string) {
-    try {
-        const supabase = await createClient()
 
-        // FIX: Validate status with enum
-        const parsed = InvoiceStatusUpdateSchema.safeParse({ invoiceId, status });
-        if (!parsed.success) return { error: 'Invalid invoice status' };
-
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { error: 'Unauthorized' }
-
-        const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
-        if (!isAuthorized) return { error: 'Permission denied.' };
-
-        const { error } = await supabase
-            .from('invoices')
-            .update({ status, updated_at: new Date().toISOString() })
-            .eq('id', invoiceId)
-
-        if (error) return { error: error.message }
-        revalidatePath('/admin/invoices')
-        revalidatePath(`/admin/invoices/${invoiceId}`)
-        return { success: true }
-    } catch (err: unknown) {
-        console.error('Error in updateInvoiceStatus:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
-    }
-}
 
 export async function recordPayment(formData: FormData) {
     try {

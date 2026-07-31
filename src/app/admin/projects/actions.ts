@@ -246,58 +246,7 @@ export async function setProjectBudget(projectId: string, formData: FormData) {
   }
 }
 
-export async function getProjectFinancials(projectId: string) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Unauthorized' }
-    const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
-    if (!isAuthorized) return { error: 'Permission denied.' }
 
-    // Get budget
-    const { data: budget } = await supabase
-      .from('project_budgets')
-      .select('*')
-      .eq('project_id', projectId)
-      .single()
-
-    // Sum approved expenses for project
-    const { data: expensesData } = await supabase
-      .from('expenses')
-      .select('amount')
-      .eq('project_id', projectId)
-      .in('status', ['approved', 'reimbursed'])
-      .is('deleted_at', null)
-
-    const total_expenses = expensesData?.reduce((sum, e) => sum + Number(e.amount), 0) || 0
-
-    // Sum invoice grand_totals for project
-    const { data: invoiceData } = await supabase
-      .from('invoices')
-      .select('grand_total, paid_amount')
-      .eq('project_id', projectId)
-      .is('deleted_at', null)
-
-    const total_invoiced = invoiceData?.reduce((sum, inv) => sum + Number(inv.grand_total), 0) || 0
-    const total_paid = invoiceData?.reduce((sum, inv) => sum + Number(inv.paid_amount || 0), 0) || 0
-
-    // Calculate profit/margin
-    const profit = total_invoiced - total_expenses
-    const margin = total_invoiced > 0 ? (profit / total_invoiced) * 100 : 0
-
-    return {
-      budget,
-      total_expenses,
-      total_invoiced,
-      total_paid,
-      profit,
-      margin,
-    }
-  } catch (err: unknown) {
-    console.error('Error in getProjectFinancials:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
-  }
-}
 
 export async function updateProjectStatus(projectId: string, status: string) {
   try {
