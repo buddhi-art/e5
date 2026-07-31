@@ -167,7 +167,7 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
               </div>
               <div className="space-y-2">
                 {locations.map((location, index) => (
-                  <div key={`${index}-${location}`} className="flex items-center gap-2">
+                  <div key={index} className="flex items-center gap-2">
                     <div className="relative min-w-0 flex-1">
                       <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-primary" />
                       <input value={location} onChange={(event) => setLocations(locations.map((value, valueIndex) => valueIndex === index ? event.target.value : value))} placeholder="Venue name or Google Maps link" className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest py-2 pl-9 pr-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/40" />

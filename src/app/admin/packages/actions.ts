@@ -4,11 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { PackageSchema, PackagePaymentSchema, PackageItemSchema } from '@/lib/validations'
-import {
-    calculatePackageItemTotal,
-    formatGeneratedProjectTitle,
-    getPackageItemProjectCount,
-} from '@/lib/package-items'
+import { calculatePackageItemTotal, formatGeneratedProjectTitle, getPackageItemProjectCount } from '@/lib/package-items'
+import { createNotification } from '@/lib/notifications'
 import { z } from 'zod'
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>
@@ -730,6 +727,16 @@ export async function updateLogistics(packageId: string, data: {
             .map(location => location.trim())
             .filter((location, index, all) => location.length > 0 && all.indexOf(location) === index)
 
+        // Fetch previous logistics to check for newly assigned staff
+        const { data: previousLogistics } = await supabase
+            .from('package_logistics')
+            .select('assigned_staff_ids')
+            .eq('package_id', packageId)
+            .maybeSingle()
+
+        const previousStaffIds = previousLogistics?.assigned_staff_ids || []
+        const newStaffIds = (data.assignedStaffIds || []).filter(id => !previousStaffIds.includes(id))
+
         const { error } = await supabase
             .from('package_logistics')
             .upsert({
@@ -752,6 +759,27 @@ export async function updateLogistics(packageId: string, data: {
             actor_id: user.id,
             action: `Updated logistics, ${locations.length} shoot location(s), equipment & staff assignments`
         })
+
+        // Fetch package title for notification
+        const { data: pkgData } = await supabase
+            .from('packages')
+            .select('title')
+            .eq('id', packageId)
+            .single()
+
+        // Notify newly assigned staff
+        if (newStaffIds.length > 0) {
+            for (const staffId of newStaffIds) {
+                await createNotification(
+                    staffId,
+                    'shoot_assigned',
+                    `Assigned to Shoot: ${pkgData?.title || 'Package'}`,
+                    `You have been assigned to a videography shoot on ${data.shootDate ? new Date(data.shootDate).toLocaleDateString() : 'an upcoming date'} at ${locations[0] || 'TBD'}.`,
+                    '/employee',
+                    true
+                )
+            }
+        }
 
         revalidatePath(`/admin/packages/${packageId}`)
         revalidatePath('/admin/tasks')
@@ -776,6 +804,16 @@ export async function updatePostProduction(packageId: string, data: {
         if (!user) return { error: 'Unauthorized' }
         if (!await verifyAdminOrFounder(supabase, user.id)) return { error: 'Permission denied.' }
 
+        // Fetch previous editors to check for newly assigned ones
+        const { data: previousPostProd } = await supabase
+            .from('package_post_prod')
+            .select('assigned_editor_ids')
+            .eq('package_id', packageId)
+            .maybeSingle()
+
+        const previousEditorIds = previousPostProd?.assigned_editor_ids || []
+        const newEditorIds = (data.assignedEditorIds || []).filter(id => !previousEditorIds.includes(id))
+
         const { error } = await supabase
             .from('package_post_prod')
             .upsert({
@@ -796,6 +834,27 @@ export async function updatePostProduction(packageId: string, data: {
             actor_id: user.id,
             action: 'Updated editing logistics, editor assignments, and revision notes',
         })
+
+        // Fetch package title for notification
+        const { data: pkgData } = await supabase
+            .from('packages')
+            .select('title')
+            .eq('id', packageId)
+            .single()
+
+        // Notify newly assigned editors
+        if (newEditorIds.length > 0) {
+            for (const editorId of newEditorIds) {
+                await createNotification(
+                    editorId,
+                    'editing_assigned',
+                    `Assigned to Editing: ${pkgData?.title || 'Package'}`,
+                    `You have been assigned to edit on ${data.editingDate ? new Date(data.editingDate).toLocaleDateString() : 'an upcoming date'}.`,
+                    '/employee',
+                    true
+                )
+            }
+        }
 
         revalidatePath(`/admin/packages/${packageId}`)
         revalidatePath('/admin/tasks')

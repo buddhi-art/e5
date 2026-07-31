@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { AlertTriangle, Bell, CalendarOff, Clock, FileText, RefreshCw } from 'lucide-react'
+import { AlertTriangle, Bell, CalendarOff, Clock, FileText, RefreshCw, Briefcase, Camera, Edit2 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { getNotifications, markNotificationRead, type NotificationItem } from '@/app/actions/notifications'
@@ -12,6 +12,9 @@ const typeConfig: Record<string, { icon: LucideIcon; className: string }> = {
   overdue_task: { icon: AlertTriangle, className: 'text-m3-error bg-m3-error-subtle' },
   overdue_invoice: { icon: FileText, className: 'text-primary bg-primary-container' },
   pending_payment: { icon: Clock, className: 'text-m3-info bg-m3-info-subtle' },
+  task_assigned: { icon: Briefcase, className: 'text-primary bg-primary-container' },
+  shoot_assigned: { icon: Camera, className: 'text-primary bg-primary-container' },
+  editing_assigned: { icon: Edit2, className: 'text-primary bg-primary-container' },
   system: { icon: Bell, className: 'text-m3-info bg-m3-info-subtle' },
 }
 
