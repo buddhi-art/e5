@@ -1,19 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { EquipmentForm } from '../../equipment-form'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function EditEquipmentPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdminOrFounder()
   const resolvedParams = await params
 
-  // Verify admin access
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
   // Fetch equipment
   const { data: equipment, error } = await supabase

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { ClientRecordSchema, ClientMeetingSchema, UuidParamSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
+import { captureActionError } from '@/lib/action-error'
 
 export async function createClientRecord(formData: FormData) {
   try {
@@ -88,8 +89,7 @@ export async function createClientRecord(formData: FormData) {
     revalidatePath('/admin/clients')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in createClientRecord:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('createClientRecord', err) }
   }
 }
 
@@ -178,8 +178,7 @@ export async function updateClientRecord(clientId: string, formData: FormData) {
     revalidatePath(`/admin/clients/${clientId}`)
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in updateClientRecord:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('updateClientRecord', err) }
   }
 }
 
@@ -203,8 +202,7 @@ export async function archiveClient(clientId: string) {
     revalidatePath('/admin/projects')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in archiveClient:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('archiveClient', err) }
   }
 }
 
@@ -270,8 +268,7 @@ export async function deleteClient(clientId: string) {
     revalidatePath('/admin/projects')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in deleteClient:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('deleteClient', err) }
   }
 }
 
@@ -297,7 +294,6 @@ export async function restoreClient(clientId: string) {
     revalidatePath('/admin/projects')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in restoreClient:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('restoreClient', err) }
   }
 }

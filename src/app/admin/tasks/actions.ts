@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { AssignTaskSchema, UpdateTaskSchema, UuidParamSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { createNotification } from '@/lib/notifications'
+import { captureActionError } from '@/lib/action-error'
 
 export async function assignTask(formData: FormData) {
   try {
@@ -167,8 +168,7 @@ export async function assignTask(formData: FormData) {
     revalidatePath('/admin/calendar')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in assignTask:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('assignTask', err) }
   }
 }
 
@@ -256,8 +256,7 @@ export async function updateTask(id: string, formData: FormData) {
     revalidatePath('/admin/calendar')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in updateTask:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('updateTask', err) }
   }
 }
 
@@ -284,8 +283,7 @@ export async function deleteTask(id: string) {
     revalidatePath('/admin/calendar')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in deleteTask:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('deleteTask', err) }
   }
 }
 
@@ -409,8 +407,7 @@ export async function syncDeliverableSubtasks(projectId: string) {
     revalidatePath(`/admin/projects/${projectId}`)
     return { success: true, synced: syncedCount }
   } catch (err: unknown) {
-    console.error('Error in syncDeliverableSubtasks:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) }
+    return { error: await captureActionError('syncDeliverableSubtasks', err) }
   }
 }
 

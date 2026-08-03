@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { captureActionError } from '@/lib/action-error'
 
 export async function getEmployeeKpiBreakdown(employeeId: string) {
     try {
@@ -20,8 +21,7 @@ export async function getEmployeeKpiBreakdown(employeeId: string) {
 
         return { data }
     } catch (err: unknown) {
-        console.error('Error in getEmployeeKpiBreakdown:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('getEmployeeKpiBreakdown', err) }
     }
 }
 

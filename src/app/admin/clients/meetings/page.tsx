@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -8,14 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CalendarDays, ArrowLeft, Plus } from 'lucide-react'
 import { format } from 'date-fns'
 import { ClientMeetingDialog } from '../[id]/client-meeting-dialog'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function ClientMeetingsPage() {
-    const supabase = await createClient()
+    const { supabase } = await requireAdminOrFounder()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
     // Fetch all meetings with client info & all clients for scheduling
     const [{ data: meetings }, { data: allClients }] = await Promise.all([

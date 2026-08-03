@@ -5,6 +5,7 @@ import { PageTransition } from '@/components/page-transition'
 import { KpiRefresher } from '@/components/kpi-refresher'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { isFounder } from '@/lib/auth/roles'
 
 export default async function AdminLayout({
   children,
@@ -30,7 +31,7 @@ export default async function AdminLayout({
   }
 
   // Founder designation — founder portal
-  if (profile.designation === 'Founder') {
+  if (isFounder(profile.designation)) {
     redirect('/founder')
   }
 

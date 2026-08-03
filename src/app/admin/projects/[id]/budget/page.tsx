@@ -1,20 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { BudgetForm } from './budget-form'
 import { BudgetChart } from './budget-chart'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function ProjectBudgetPage({ params }: { params: Promise<{ id: string }> }) {
- const supabase = await createClient()
+ const { supabase } = await requireAdminOrFounder()
  const resolvedParams = await params
 
- const { data: { user } } = await supabase.auth.getUser()
- if (!user) redirect('/login')
- const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
- if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
  const { data: project } = await supabase
  .from('projects')

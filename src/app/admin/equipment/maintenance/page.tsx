@@ -1,18 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, PenTool } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MaintenanceList } from './maintenance-list'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function MaintenancePage() {
-  const supabase = await createClient()
+  const { supabase } = await requireAdminOrFounder()
 
-  // Verify admin access
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
   // Fetch maintenance records
   const { data: records, error } = await supabase

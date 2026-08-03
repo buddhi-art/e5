@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { UuidParamSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
+import { captureActionError } from '@/lib/action-error'
 
 export type ProjectPackage = { id: string; name: string }
 
@@ -22,8 +23,7 @@ export async function listPackages(): Promise<{ data: ProjectPackage[]; error?: 
     if (error) return { data: [], error: error.message }
     return { data: (data || []) as ProjectPackage[] }
   } catch (err: unknown) {
-    console.error('Error in listPackages:', err)
-    return { data: [], error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { data: [], error: await captureActionError('listPackages', err) }
   }
 }
 
@@ -53,8 +53,7 @@ export async function createPackage(name: string): Promise<{ data?: ProjectPacka
 
     return { data: data as ProjectPackage }
   } catch (err: unknown) {
-    console.error('Error in createPackage:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('createPackage', err) }
   }
 }
 
@@ -77,7 +76,6 @@ export async function deletePackage(id: string): Promise<{ success?: boolean; er
     if (error) return { error: error.message }
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in deletePackage:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('deletePackage', err) }
   }
 }

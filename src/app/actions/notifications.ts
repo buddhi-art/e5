@@ -2,6 +2,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { type Role, isAdminOrFounder } from '@/lib/auth/roles'
 
 export interface NotificationItem {
     id: string
@@ -26,10 +27,13 @@ export async function getNotifications(): Promise<NotificationItem[]> {
 
     // Founders (designation = 'Founder') see the same notifications as admins.
     // There is no 'founder' role value — the user_role enum is ('admin', 'employee').
-    const isAdminOrFounder = profile?.role === 'admin' || profile?.designation === 'Founder'
+    const canSeeAdminNotifications = isAdminOrFounder(
+        (profile?.role as Role) ?? 'employee',
+        profile?.designation ?? null
+    )
     const notifications: NotificationItem[] = []
 
-    if (isAdminOrFounder) {
+    if (canSeeAdminNotifications) {
         // Pending leave requests
         const { data: pendingLeaves } = await supabase
             .from('leave_requests')

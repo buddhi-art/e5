@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { InvoiceSchema, InvoicePaymentSchema, UuidParamSchema, InvoiceStatusUpdateSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { executeInvoiceCreation } from '@/lib/supabase/transactions'
+import { captureActionError } from '@/lib/action-error'
 
 export async function createInvoice(formData: FormData) {
     try {
@@ -69,8 +70,7 @@ export async function createInvoice(formData: FormData) {
         revalidatePath('/admin/invoices')
         return { success: true, invoiceId: result.data }
     } catch (err: unknown) {
-        console.error('Error in createInvoice:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('createInvoice', err) }
     }
 }
 
@@ -141,8 +141,7 @@ export async function recordPayment(formData: FormData) {
         revalidatePath(`/admin/invoices/${data.invoice_id}`)
         return { success: true }
     } catch (err: unknown) {
-        console.error('Error in recordPayment:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('recordPayment', err) }
     }
 }
 
@@ -173,8 +172,7 @@ export async function sendInvoice(invoiceId: string) {
         revalidatePath(`/admin/invoices/${invoiceId}`)
         return { success: true }
     } catch (err: unknown) {
-        console.error('Error in sendInvoice:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('sendInvoice', err) }
     }
 }
 
@@ -199,8 +197,7 @@ export async function deleteInvoice(invoiceId: string) {
         revalidatePath('/admin/invoices')
         return { success: true }
     } catch (err: unknown) {
-        console.error('Error in deleteInvoice:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('deleteInvoice', err) }
     }
 }
 
@@ -298,8 +295,7 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
         revalidatePath(`/admin/invoices/${invoiceId}`)
         return { success: true }
     } catch (err: unknown) {
-        console.error('Error in updateInvoice:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('updateInvoice', err) }
     }
 }
 
@@ -381,7 +377,6 @@ export async function updateOverdueInvoices() {
         revalidatePath('/admin')
         return { success: true }
     } catch (err: unknown) {
-        console.error('Exception in updateOverdueInvoices:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('updateOverdueInvoices', err) }
     }
 }

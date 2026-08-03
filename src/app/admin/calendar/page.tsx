@@ -1,16 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, format, subMonths, addMonths } from 'date-fns'
 import { ProductionCalendar } from './production-calendar'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function CalendarPage() {
-    const supabase = await createClient()
+    const { supabase } = await requireAdminOrFounder()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
     const now = new Date()
     const rangeStart = format(startOfWeek(startOfMonth(subMonths(now, 1))), 'yyyy-MM-dd')

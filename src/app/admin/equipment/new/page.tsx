@@ -1,17 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { EquipmentForm } from '../equipment-form'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function NewEquipmentPage() {
-  const supabase = await createClient()
+  await requireAdminOrFounder()
 
-  // Verify admin access
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">

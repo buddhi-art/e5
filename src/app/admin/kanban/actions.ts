@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { createNotification } from '@/lib/notifications'
+import { captureActionError } from '@/lib/action-error'
 
 const MoveKanbanCardSchema = z.object({
     taskId: z.string().uuid(),
@@ -114,8 +115,7 @@ export async function moveKanbanCard(
         revalidatePath('/admin/kanban')
         return { success: true }
     } catch (err: unknown) {
-        console.error('moveKanbanCard error:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('moveKanbanCard error', err) }
     }
 }
 

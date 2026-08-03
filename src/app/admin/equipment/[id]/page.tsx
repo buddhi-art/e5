@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Edit, PenTool, ClipboardCheck, ArrowRightLeft, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,16 +6,12 @@ import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { EquipmentPhoto } from './equipment-photo'
 import { EquipmentDetailActions } from './equipment-detail-actions'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdminOrFounder()
   const resolvedParams = await params
 
-  // Verify access
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
   // Fetch equipment
   const { data: equipment, error } = await supabase

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { type Role, isAdminOrFounder } from '@/lib/auth/roles'
 
 export async function addSubtaskComment(subtaskId: string, content: string) {
     if (!content.trim()) {
@@ -26,7 +27,9 @@ export async function addSubtaskComment(subtaskId: string, content: string) {
         .eq('id', subtaskId)
         .maybeSingle()
     const task = Array.isArray(subtask?.tasks) ? subtask.tasks[0] : subtask?.tasks
-    const canComment = profile.role === 'admin' || profile.designation === 'Founder' || task?.assigned_to === user.id
+    const canComment =
+        isAdminOrFounder((profile.role as Role) ?? 'employee', profile.designation ?? null) ||
+        task?.assigned_to === user.id
     if (!canComment) return { error: 'You are not assigned to this task' }
 
     const { data: comment, error } = await supabase

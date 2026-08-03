@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { EmployeeProfileSchema } from '@/lib/validations'
+import { captureActionError } from '@/lib/action-error'
 
 export async function updateEmployeeProfile(formData: FormData) {
   try {
@@ -72,7 +73,6 @@ export async function updateEmployeeProfile(formData: FormData) {
     revalidatePath('/admin/employees')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in updateEmployeeProfile:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('updateEmployeeProfile', err) }
   }
 }

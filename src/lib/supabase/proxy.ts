@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isFounder } from '@/lib/auth/roles'
 
 /**
  * Lightweight auth check that avoids fetch calls from edge runtime.
@@ -127,7 +128,7 @@ async function getPortal(
         return '/login'
     }
 
-    if (profile?.designation === 'Founder') {
+    if (isFounder(profile?.designation ?? null)) {
         return '/founder'
     }
 

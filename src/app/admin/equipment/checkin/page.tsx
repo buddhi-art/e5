@@ -1,18 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { CheckinForm } from './checkin-form'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function CheckinEquipmentPage({ searchParams }: { searchParams: Promise<{ equipment_id?: string }> }) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdminOrFounder()
   const resolvedParams = await searchParams
 
-  // Verify admin access
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/employee/dashboard')
 
   // Fetch currently checked out equipment
   const { data: checkouts } = await supabase

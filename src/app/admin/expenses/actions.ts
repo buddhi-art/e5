@@ -7,6 +7,7 @@ import { CreateExpenseSchema, ExpenseStatusSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { validateFileUpload, generateStorageFilename, ALLOWED_DOCUMENT_TYPES } from '@/lib/supabase/storage'
 import { createNotification } from '@/lib/notifications'
+import { captureActionError } from '@/lib/action-error'
 
 export async function addExpenseCategory(name: string) {
     try {
@@ -90,8 +91,7 @@ export async function createExpense(formData: FormData) {
         revalidatePath('/employee/expenses')
         return { success: true }
     } catch (err: unknown) {
-        console.error('Error in createExpense:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('createExpense', err) }
     }
 }
 
@@ -144,8 +144,7 @@ export async function updateExpenseStatus(expenseId: string, status: string) {
         revalidatePath('/employee/expenses')
         return { success: true }
     } catch (err: unknown) {
-        console.error('Error in updateExpenseStatus:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('updateExpenseStatus', err) }
     }
 }
 
@@ -183,7 +182,6 @@ export async function deleteExpense(expenseId: string) {
         revalidatePath('/employee/expenses')
         return { success: true }
     } catch (err: unknown) {
-        console.error('Error in deleteExpense:', err)
-        return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+        return { error: await captureActionError('deleteExpense', err) }
     }
 }

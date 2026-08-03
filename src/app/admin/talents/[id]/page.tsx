@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createClient } from '@/lib/supabase/server'
 import { getSignedUrl } from '@/lib/supabase/storage'
-import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -9,14 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TalentDetailActions } from './talent-detail-actions'
 import { BookingStatusActions } from './booking-status-actions'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function TalentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') redirect('/employee/dashboard')
+    const { supabase } = await requireAdminOrFounder()
 
     const { data: talent, error } = await supabase
         .from('talents')

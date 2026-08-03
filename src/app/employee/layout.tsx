@@ -4,6 +4,7 @@ import { TopNav } from '@/components/top-nav'
 import { PageTransition } from '@/components/page-transition'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { isFounder } from '@/lib/auth/roles'
 
 export default async function EmployeeLayout({
   children,
@@ -29,7 +30,7 @@ export default async function EmployeeLayout({
   }
 
   // Founder — founder portal
-  if (profile.designation === 'Founder') {
+  if (isFounder(profile.designation)) {
     redirect('/founder')
   }
 

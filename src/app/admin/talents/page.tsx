@@ -1,18 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 import { TalentsGrid } from './talents-grid'
 
 export default async function TalentsPage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (profile?.role !== 'admin') redirect('/employee/dashboard')
+    const { supabase } = await requireAdminOrFounder()
 
     const { data: talents, error } = await supabase
         .from('talents')

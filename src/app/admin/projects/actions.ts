@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { CreateProjectSchema, ProjectBudgetSchema, ProjectStatusSchema, UuidParamSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
+import { captureActionError } from '@/lib/action-error'
 
 export async function createProject(formData: FormData) {
   try {
@@ -42,8 +43,7 @@ export async function createProject(formData: FormData) {
     revalidatePath(`/admin/clients/${data.client_id}`)
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in createProject:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('createProject', err) }
   }
 }
 
@@ -85,8 +85,7 @@ export async function updateProject(projectId: string, formData: FormData) {
     revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in updateProject:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('updateProject', err) }
   }
 }
 
@@ -116,8 +115,7 @@ export async function updateProjectAssets(projectId: string, data: { raw_footage
     revalidatePath(`/employee/projects/${projectId}`)
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in updateProjectAssets:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('updateProjectAssets', err) }
   }
 }
 
@@ -145,8 +143,7 @@ export async function archiveProject(projectId: string) {
     revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in archiveProject:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('archiveProject', err) }
   }
 }
 
@@ -174,8 +171,7 @@ export async function deleteProject(projectId: string) {
     revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in deleteProject:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('deleteProject', err) }
   }
 }
 
@@ -203,8 +199,7 @@ export async function restoreProject(projectId: string) {
     revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in restoreProject:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('restoreProject', err) }
   }
 }
 
@@ -241,8 +236,7 @@ export async function setProjectBudget(projectId: string, formData: FormData) {
     revalidatePath(`/admin/projects`)
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in setProjectBudget:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('setProjectBudget', err) }
   }
 }
 
@@ -272,8 +266,7 @@ export async function updateProjectStatus(projectId: string, status: string) {
     revalidatePath('/founder/projects')
     return { success: true }
   } catch (err: unknown) {
-    console.error('Error in updateProjectStatus:', err)
-    return { error: (err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred' }
+    return { error: await captureActionError('updateProjectStatus', err) }
   }
 }
 
