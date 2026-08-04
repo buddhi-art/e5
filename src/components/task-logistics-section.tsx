@@ -56,9 +56,10 @@ interface PackageLogisticsResult {
 
 interface TaskLogisticsSectionProps {
   projectId: string
+  onLogisticsChange?: (logistics: Record<string, unknown> | null) => void
 }
 
-export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
+export function TaskLogisticsSection({ projectId, onLogisticsChange }: TaskLogisticsSectionProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingRevision, setSavingRevision] = useState(false)
@@ -77,6 +78,25 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
   const [revisionDate, setRevisionDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [revisionStaffIds, setRevisionStaffIds] = useState<string[]>([])
 
+  // Notify parent of current logistics state so form can include it on submit
+  const notifyParent = useCallback((overrides?: {
+    locations?: string[]; shootDate?: string; startTime?: string; endTime?: string
+    staffIds?: string[]; vehicles?: string[]; equipment?: string[]
+  }) => {
+    if (!onLogisticsChange) return
+    const l = {
+      locationAddress: (overrides?.locations ?? locations)[0] ?? '',
+      locations: overrides?.locations ?? locations,
+      shootDate: overrides?.shootDate ?? shootDate,
+      startTime: overrides?.startTime ?? startTime,
+      endTime: overrides?.endTime ?? endTime,
+      assignedStaffIds: overrides?.staffIds ?? staffIds,
+      vehiclesTaken: overrides?.vehicles ?? vehicles,
+      equipmentsTaken: overrides?.equipment ?? equipment,
+    }
+    onLogisticsChange(l)
+  }, [onLogisticsChange, locations, shootDate, startTime, endTime, staffIds, vehicles, equipment])
+
   const loadPackageData = useCallback(async () => {
     if (!projectId) return
     setLoading(true)
@@ -90,18 +110,36 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
 
     const logistics = result.logistics || {}
     setPackageData(result)
-    setLocations(
-      Array.isArray(logistics.locations) && logistics.locations.length > 0
-        ? logistics.locations
-        : logistics.location_address ? [logistics.location_address] : [''],
-    )
-    setShootDate(logistics.shoot_date || '')
-    setStartTime(logistics.start_time || '')
-    setEndTime(logistics.end_time || '')
-    setStaffIds(logistics.assigned_staff_ids || [])
-    setVehicles(logistics.vehicles_taken || [])
-    setEquipment(logistics.equipments_taken || [])
-  }, [projectId])
+    const newLocations = Array.isArray(logistics.locations) && logistics.locations.length > 0
+      ? logistics.locations
+      : logistics.location_address ? [logistics.location_address] : ['']
+    const newShootDate = logistics.shoot_date || ''
+    const newStartTime = logistics.start_time || ''
+    const newEndTime = logistics.end_time || ''
+    const newStaffIds = logistics.assigned_staff_ids || []
+    const newVehicles = logistics.vehicles_taken || []
+    const newEquipment = logistics.equipments_taken || []
+    setLocations(newLocations)
+    setShootDate(newShootDate)
+    setStartTime(newStartTime)
+    setEndTime(newEndTime)
+    setStaffIds(newStaffIds)
+    setVehicles(newVehicles)
+    setEquipment(newEquipment)
+    // Notify parent immediately after loading so it has the latest data
+    if (onLogisticsChange) {
+      onLogisticsChange({
+        locationAddress: newLocations[0] ?? '',
+        locations: newLocations,
+        shootDate: newShootDate,
+        startTime: newStartTime,
+        endTime: newEndTime,
+        assignedStaffIds: newStaffIds,
+        vehiclesTaken: newVehicles,
+        equipmentsTaken: newEquipment,
+      })
+    }
+  }, [projectId, onLogisticsChange])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -109,6 +147,13 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
     }, 0)
     return () => window.clearTimeout(timer)
   }, [loadPackageData])
+
+  // Keep the parent form in sync whenever any logistics field changes
+  // so that clicking "Assign Task" always submits the latest logistics data.
+  useEffect(() => {
+    notifyParent()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locations, shootDate, startTime, endTime, staffIds, vehicles, equipment])
 
   const packageId = packageData?.package?.id
   const employees = packageData?.employees || []

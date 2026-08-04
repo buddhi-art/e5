@@ -244,6 +244,14 @@ export const TaskLogisticsSchema = z.object({
   vehiclesTaken: z.array(z.string()).optional(),
   equipmentsTaken: z.array(z.string()).optional(),
 
+  // --- Phase 3 (editing / post-production) ---
+  editingLocation: z.string().optional(),
+  editingDate: z.string().optional(),
+  editingStartTime: z.string().optional(),
+  editingEndTime: z.string().optional(),
+  assignedEditorIds: z.array(z.string()).optional(),
+  editingNotes: z.string().optional(),
+
   // --- Shared (Phase 1/4/5 workspaces) ---
   workspaceVersion: z.number().int().optional(),
   checklist: z.array(ChecklistItemSchema).optional(),
@@ -276,7 +284,7 @@ export const TaskLogisticsSchema = z.object({
   deliveryNotes: z.string().optional(),
   clientReceiptConfirmed: z.boolean().optional(),
   clientAcceptanceStatus: z.enum(['pending', 'accepted', 'changes_requested']).optional(),
-}).passthrough(); // preserve unknown/legacy keys (e.g. editing* fields) instead of silently stripping them
+}).passthrough(); // preserve unknown/legacy keys instead of silently stripping them
 
 export type TaskLogistics = z.infer<typeof TaskLogisticsSchema>;
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { assignTask } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +29,10 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([])
   const [newSubtask, setNewSubtask] = useState('')
   const [newSubSubtask, setNewSubSubtask] = useState<{ [key: number]: string }>({})
+
+  // Logistics data passed up from Phase 2 / Phase 3 sub-sections so we can
+  // include it in the task record when the admin clicks "Assign Task".
+  const logisticsRef = useRef<Record<string, unknown> | null>(null)
 
   // State for Selects
   const [projectId, setProjectId] = useState('')
@@ -87,6 +91,12 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
     formData.set('assigned_to', assignedTo)
     formData.set('subtasks', JSON.stringify(subtasks))
 
+    // Inject logistics collected from the Phase 2/3 sub-section into formData
+    // so the server action persists it on the task record.
+    if (logisticsRef.current && Object.keys(logisticsRef.current).length > 0) {
+      formData.set('logistics', JSON.stringify(logisticsRef.current))
+    }
+
     setLoading(true)
     const result = await assignTask(formData)
 
@@ -100,6 +110,7 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
       setProjectId('')
       setPhase('')
       setAssignedTo('')
+      logisticsRef.current = null
     }
     setLoading(false)
   }
@@ -203,8 +214,8 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
           Phase 2: videography logistics (shoot location, date, times, staff, equipment)
           Phase 3: editing logistics (editing date, times, editors, deliverables)
           Phase 1/4/5: JSONB workspace with checklists and phase-specific fields */}
-      {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} />}
-      {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} />}
+      {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} onLogisticsChange={(l) => { logisticsRef.current = l }} />}
+      {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} onLogisticsChange={(l) => { logisticsRef.current = l }} />}
       {isWorkspacePhase(phase) && <TaskPhaseWorkspaceSection key={phase} phase={phase} />}
 
       {/* Sub-tasks & Sub-sub-tasks

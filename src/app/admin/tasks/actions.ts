@@ -165,6 +165,7 @@ export async function assignTask(formData: FormData) {
 
     revalidatePath('/admin/tasks')
     revalidatePath('/admin/calendar')
+    revalidatePath('/employee')
     return { success: true }
   } catch (err: unknown) {
     return { error: await captureActionError('assignTask', err) }

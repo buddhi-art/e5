@@ -47,6 +47,7 @@ interface PackageDetailsResult {
 
 interface EditingLogisticsSectionProps {
   projectId: string
+  onLogisticsChange?: (logistics: Record<string, unknown> | null) => void
 }
 
 const deliveryStatuses = [
@@ -56,7 +57,7 @@ const deliveryStatuses = [
   { value: 'approved', label: 'Approved' },
 ] as const
 
-export function EditingLogisticsSection({ projectId }: EditingLogisticsSectionProps) {
+export function EditingLogisticsSection({ projectId, onLogisticsChange }: EditingLogisticsSectionProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [packageData, setPackageData] = useState<PackageDetailsResult | null>(null)
@@ -87,7 +88,18 @@ export function EditingLogisticsSection({ projectId }: EditingLogisticsSectionPr
     setEditingEndTime(postProduction.editing_end_time || '')
     setEditorIds(postProduction.assigned_editor_ids || [])
     setEditingNotes(postProduction.client_revision_notes || '')
-  }, [projectId])
+    // Notify parent immediately with loaded data
+    if (onLogisticsChange) {
+      onLogisticsChange({
+        editingLocation: postProduction.editing_location || '',
+        editingDate: postProduction.editing_date || '',
+        editingStartTime: postProduction.editing_start_time || '',
+        editingEndTime: postProduction.editing_end_time || '',
+        assignedEditorIds: postProduction.assigned_editor_ids || [],
+        editingNotes: postProduction.client_revision_notes || '',
+      })
+    }
+  }, [projectId, onLogisticsChange])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -95,6 +107,20 @@ export function EditingLogisticsSection({ projectId }: EditingLogisticsSectionPr
     }, 0)
     return () => window.clearTimeout(timer)
   }, [loadPackageData])
+
+  // Keep the parent form in sync whenever any editing logistics field changes
+  useEffect(() => {
+    if (!onLogisticsChange) return
+    onLogisticsChange({
+      editingLocation,
+      editingDate,
+      editingStartTime,
+      editingEndTime,
+      assignedEditorIds: editorIds,
+      editingNotes,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingLocation, editingDate, editingStartTime, editingEndTime, editorIds, editingNotes])
 
   const packageId = packageData?.package?.id
   const employees = packageData?.employees || []
