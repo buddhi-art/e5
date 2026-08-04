@@ -1369,6 +1369,120 @@ export async function getAssignedDeliverablesForEmployee() {
     }
 }
 
+/**
+ * Fetch on-site logistics assignments (shoots and editing sessions) for the
+ * current employee.
+ *
+ * Videography staff (`package_logistics.assigned_staff_ids`) and editing staff
+ * (`package_post_prod.assigned_editor_ids`) are stored on the package workspace
+ * tables, NOT on `tasks.assigned_to`. Because the employee dashboard only reads
+ * `tasks` and `package_deliverables`, these assignments were previously
+ * invisible to the assigned employee — they received a notification but the
+ * shoot/edit never appeared in their task list. This surfaces them.
+ */
+export async function getAssignedLogisticsForEmployee() {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return []
+
+        const [shootsResult, editsResult] = await Promise.all([
+            supabase
+                .from('package_logistics')
+                .select(`
+                    package_id,
+                    shoot_date,
+                    start_time,
+                    end_time,
+                    locations,
+                    location_address,
+                    equipments_taken,
+                    vehicles_taken,
+                    updated_at,
+                    packages!inner ( id, package_number, title, deleted_at, clients ( id, company_name ) )
+                `)
+                .contains('assigned_staff_ids', [user.id])
+                .order('shoot_date', { ascending: true }),
+            supabase
+                .from('package_post_prod')
+                .select(`
+                    package_id,
+                    editing_date,
+                    editing_start_time,
+                    editing_end_time,
+                    editing_location,
+                    client_revision_notes,
+                    updated_at,
+                    packages!inner ( id, package_number, title, deleted_at, clients ( id, company_name ) )
+                `)
+                .contains('assigned_editor_ids', [user.id])
+                .order('editing_date', { ascending: true }),
+        ])
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pkgOf = (row: any) => Array.isArray(row.packages) ? row.packages[0] : row.packages
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const clientName = (pkg: any) => {
+            const c = Array.isArray(pkg?.clients) ? pkg.clients[0] : pkg?.clients
+            return c?.company_name || 'Client'
+        }
+
+        const shoots = (shootsResult.data || [])
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((row: any) => !pkgOf(row)?.deleted_at)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .map((row: any) => {
+                const pkg = pkgOf(row)
+                const locations: string[] = Array.isArray(row.locations) ? row.locations : []
+                return {
+                    kind: 'shoot' as const,
+                    id: `shoot-${row.package_id}`,
+                    packageId: row.package_id,
+                    packageNumber: pkg?.package_number ?? null,
+                    packageTitle: pkg?.title ?? 'Package',
+                    clientName: clientName(pkg),
+                    date: row.shoot_date ?? null,
+                    startTime: row.start_time ?? null,
+                    endTime: row.end_time ?? null,
+                    location: locations[0] || row.location_address || null,
+                    locations,
+                    equipment: Array.isArray(row.equipments_taken) ? row.equipments_taken : [],
+                    vehicles: Array.isArray(row.vehicles_taken) ? row.vehicles_taken : [],
+                    notes: null as string | null,
+                }
+            })
+
+        const edits = (editsResult.data || [])
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((row: any) => !pkgOf(row)?.deleted_at)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .map((row: any) => {
+                const pkg = pkgOf(row)
+                return {
+                    kind: 'editing' as const,
+                    id: `edit-${row.package_id}`,
+                    packageId: row.package_id,
+                    packageNumber: pkg?.package_number ?? null,
+                    packageTitle: pkg?.title ?? 'Package',
+                    clientName: clientName(pkg),
+                    date: row.editing_date ?? null,
+                    startTime: row.editing_start_time ?? null,
+                    endTime: row.editing_end_time ?? null,
+                    location: row.editing_location ?? null,
+                    locations: row.editing_location ? [row.editing_location] : [],
+                    equipment: [] as string[],
+                    vehicles: [] as string[],
+                    notes: row.client_revision_notes ?? null,
+                }
+            })
+
+        return [...shoots, ...edits]
+    } catch (err: unknown) {
+        await captureActionError('getAssignedLogisticsForEmployee', err)
+        return []
+    }
+}
+
 export async function getPendingFounderReviews() {
     try {
         const supabase = await createClient()

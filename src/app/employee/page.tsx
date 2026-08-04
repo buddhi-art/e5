@@ -5,8 +5,9 @@ import Link from 'next/link'
 type SupabaseRow = Record<string, any>
 import { createClient } from '@/lib/supabase/server'
 import { TaskCard } from './task-card'
-import { getAssignedDeliverablesForEmployee } from '@/app/admin/packages/actions'
+import { getAssignedDeliverablesForEmployee, getAssignedLogisticsForEmployee } from '@/app/admin/packages/actions'
 import { DeliverableWorkspace } from '@/components/employee/deliverable-workspace'
+import { AssignedLogistics, type AssignedLogisticsItem } from '@/components/employee/assigned-logistics'
 
 export default async function EmployeeDashboard() {
   const supabase = await createClient()
@@ -73,6 +74,11 @@ export default async function EmployeeDashboard() {
   // Fetch assigned package deliverables
   const deliverables = await getAssignedDeliverablesForEmployee()
 
+  // Fetch on-site logistics assignments (videography shoots + editing sessions).
+  // These live on package_logistics / package_post_prod, not on tasks.assigned_to,
+  // so they must be fetched and rendered separately or the assignee never sees them.
+  const logistics = (await getAssignedLogisticsForEmployee()) as AssignedLogisticsItem[]
+
   return (
     <div className="space-y-8">
       <div className="morph-fade-in flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -103,6 +109,19 @@ export default async function EmployeeDashboard() {
         </div>
       )}
 
+      {/* On-site logistics assignments (shoots + editing sessions) */}
+      {logistics.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <span>Shoots &amp; Editing Sessions</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
+              {logistics.length} assigned
+            </span>
+          </h2>
+          <AssignedLogistics items={logistics} />
+        </div>
+      )}
+
       {visibleTasks.length > 0 ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {visibleTasks.map((task, i) => (
@@ -112,7 +131,7 @@ export default async function EmployeeDashboard() {
             </div>
           ))}
         </div>
-      ) : (
+      ) : (logistics.length === 0 && deliverables.length === 0) && (
         <div className="text-center py-16 rounded-2xl bg-surface-container-lowest elevation-1 ring-1 ring-outline-variant/40 card-morph morph-fade-in">
           <div className="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center mx-auto mb-4">
             <svg className="w-7 h-7 text-on-surface-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
