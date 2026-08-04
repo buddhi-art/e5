@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useTransition } from 'react'
@@ -10,11 +9,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { scheduleMaintenance } from '../../actions'
 
+interface EquipmentOption {
+  id: string
+  name: string
+  serial_number: string | null
+}
+
 export function MaintenanceForm({
   equipment,
   initialEquipmentId
 }: {
-  equipment: any[],
+  equipment: EquipmentOption[],
   initialEquipmentId?: string
 }) {
   const router = useRouter()

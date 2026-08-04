@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useTransition } from 'react'
@@ -9,11 +8,20 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { checkInEquipment } from '../actions'
 
+interface ActiveCheckout {
+  id: string
+  equipment_id: string
+  equipment?: { name: string; serial_number: string | null } | null
+  checked_out_by_profile?: { full_name: string } | null
+}
+
+export type { ActiveCheckout }
+
 export function CheckinForm({ 
   activeCheckouts,
   initialCheckoutId 
 }: { 
-  activeCheckouts: any[],
+  activeCheckouts: ActiveCheckout[],
   initialCheckoutId?: string
 }) {
   const router = useRouter()

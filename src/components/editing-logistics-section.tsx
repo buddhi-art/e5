@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- package action results will receive generated Supabase types in the schema-typing pass. */
+// Package action results will receive generated Supabase types in the schema-typing pass.
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
@@ -11,6 +11,39 @@ import {
   updateDeliverableStatus,
   updatePostProduction,
 } from '@/app/admin/packages/actions'
+
+interface PackageEmployee {
+  id: string
+  full_name: string
+  designation: string | null
+}
+
+interface PackageDeliverable {
+  id: string
+  title: string
+  status: string
+  revision_count: number
+  drive_link: string | null
+  project_id: string | null
+  assigned_employee_id: string | null
+}
+
+interface PostProductionData {
+  editing_location?: string
+  editing_date?: string
+  editing_start_time?: string
+  editing_end_time?: string
+  assigned_editor_ids?: string[]
+  client_revision_notes?: string
+}
+
+interface PackageDetailsResult {
+  package?: { id: string; package_number: string }
+  postProd?: PostProductionData
+  employees?: PackageEmployee[]
+  deliverables?: PackageDeliverable[]
+  error?: string
+}
 
 interface EditingLogisticsSectionProps {
   projectId: string
@@ -26,7 +59,7 @@ const deliveryStatuses = [
 export function EditingLogisticsSection({ projectId }: EditingLogisticsSectionProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [packageData, setPackageData] = useState<any>(null)
+  const [packageData, setPackageData] = useState<PackageDetailsResult | null>(null)
   const [editingLocation, setEditingLocation] = useState('')
   const [editingDate, setEditingDate] = useState('')
   const [editingStartTime, setEditingStartTime] = useState('')
@@ -152,7 +185,7 @@ export function EditingLogisticsSection({ projectId }: EditingLogisticsSectionPr
           <div>
             <div className="mb-1.5 flex items-end justify-between gap-3"><label className="text-xs font-semibold text-on-surface-variant">Assigned editors</label><span className="text-[10px] text-on-surface-variant">Select everyone responsible for post-production.</span></div>
             <div className="grid max-h-52 grid-cols-1 gap-2 overflow-y-auto rounded-xl border border-outline-variant bg-surface-container-lowest p-3 pr-4 sm:grid-cols-2">
-              {employees.map((employee: any) => {
+              {employees.map((employee: PackageEmployee) => {
                 const selected = editorIds.includes(employee.id)
                 return <button key={employee.id} type="button" onClick={() => toggleEditor(employee.id)} className={`flex min-w-0 items-center justify-between rounded-lg border px-2.5 py-2 text-left transition-colors ${selected ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant/60 text-on-surface-variant hover:bg-surface-container-high'}`}><span className="min-w-0"><span className="block truncate text-xs font-semibold text-foreground">{employee.full_name}</span><span className="block truncate text-[10px]">{employee.designation || 'Team member'}</span></span>{selected && <CheckCircle2 className="ml-2 h-4 w-4 shrink-0" />}</button>
               })}
@@ -166,14 +199,14 @@ export function EditingLogisticsSection({ projectId }: EditingLogisticsSectionPr
         <aside className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4 xl:col-span-5">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between"><div><h4 className="text-xs font-semibold text-foreground">Deliverable workflow</h4><p className="mt-1 text-[11px] leading-relaxed text-on-surface-variant">Add deliverables, assign editors, and advance each through its review status.</p></div><span className="w-fit rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">{deliverables.length} item{deliverables.length === 1 ? '' : 's'}</span></div>
           <div className="mt-3 flex gap-2"><input value={newDeliverable} onChange={(event) => setNewDeliverable(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void addDeliverable() } }} placeholder="e.g. Product reel 01" className="min-w-0 flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-2.5 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary/40" /><button type="button" onClick={() => void addDeliverable()} disabled={addingDeliverable} className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">{addingDeliverable ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />} Add</button></div>
-          <div className="mt-3 max-h-[30rem] space-y-2 overflow-y-auto pr-1">{deliverables.length === 0 ? <p className="py-6 text-center text-xs italic text-on-surface-variant">No deliverables created yet.</p> : deliverables.map((deliverable: any) => <DeliverableRow key={deliverable.id} deliverable={deliverable} employees={employees} onAssigneeChange={changeDeliverableAssignee} onStatusChange={changeDeliverableStatus} />)}</div>
+          <div className="mt-3 max-h-[30rem] space-y-2 overflow-y-auto pr-1">{deliverables.length === 0 ? <p className="py-6 text-center text-xs italic text-on-surface-variant">No deliverables created yet.</p> : deliverables.map((deliverable: PackageDeliverable) => <DeliverableRow key={deliverable.id} deliverable={deliverable} employees={employees} onAssigneeChange={changeDeliverableAssignee} onStatusChange={changeDeliverableStatus} />)}</div>
         </aside>
       </div>
     </section>
   )
 }
 
-function DeliverableRow({ deliverable, employees, onAssigneeChange, onStatusChange }: { deliverable: any, employees: any[], onAssigneeChange: (id: string, employeeId: string) => void, onStatusChange: (id: string, status: typeof deliveryStatuses[number]['value']) => void }) {
+function DeliverableRow({ deliverable, employees, onAssigneeChange, onStatusChange }: { deliverable: PackageDeliverable, employees: PackageEmployee[], onAssigneeChange: (id: string, employeeId: string) => void, onStatusChange: (id: string, status: typeof deliveryStatuses[number]['value']) => void }) {
   const legacyStatusMap: Record<string, typeof deliveryStatuses[number]['value']> = {
     UNASSIGNED: 'not_started',
     ASSIGNED: 'in_editing',
@@ -185,7 +218,7 @@ function DeliverableRow({ deliverable, employees, onAssigneeChange, onStatusChan
   const normalizedStatus = deliveryStatuses.some((status) => status.value === deliverable.status)
     ? deliverable.status
     : legacyStatusMap[deliverable.status] || 'not_started'
-  return <article className="rounded-lg border border-outline-variant/60 bg-surface-container-low p-3"><div className="flex min-w-0 items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-semibold text-foreground">{deliverable.title}</p><div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-on-surface-variant">{deliverable.revision_count > 0 && <span>Revision {deliverable.revision_count}</span>}{deliverable.drive_link && <a href={deliverable.drive_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><Link2 className="h-3 w-3" /> Drive file</a>}{deliverable.project_id && <a href={`/admin/projects/${deliverable.project_id}`} className="inline-flex items-center gap-1 text-primary hover:underline"><FolderKanban className="h-3 w-3" /> Project</a>}</div></div></div><div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2"><select value={deliverable.assigned_employee_id || ''} onChange={(event) => onAssigneeChange(deliverable.id, event.target.value)} className="input-field"><option value="">Unassigned editor</option>{employees.map((employee: any) => <option key={employee.id} value={employee.id}>{employee.full_name}</option>)}</select><select value={normalizedStatus} onChange={(event) => onStatusChange(deliverable.id, event.target.value as typeof deliveryStatuses[number]['value'])} className="input-field">{deliveryStatuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select></div></article>
+  return <article className="rounded-lg border border-outline-variant/60 bg-surface-container-low p-3"><div className="flex min-w-0 items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-semibold text-foreground">{deliverable.title}</p><div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-on-surface-variant">{deliverable.revision_count > 0 && <span>Revision {deliverable.revision_count}</span>}{deliverable.drive_link && <a href={deliverable.drive_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><Link2 className="h-3 w-3" /> Drive file</a>}{deliverable.project_id && <a href={`/admin/projects/${deliverable.project_id}`} className="inline-flex items-center gap-1 text-primary hover:underline"><FolderKanban className="h-3 w-3" /> Project</a>}</div></div></div><div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2"><select value={deliverable.assigned_employee_id || ''} onChange={(event) => onAssigneeChange(deliverable.id, event.target.value)} className="input-field"><option value="">Unassigned editor</option>{employees.map((employee: PackageEmployee) => <option key={employee.id} value={employee.id}>{employee.full_name}</option>)}</select><select value={normalizedStatus} onChange={(event) => onStatusChange(deliverable.id, event.target.value as typeof deliveryStatuses[number]['value'])} className="input-field">{deliveryStatuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select></div></article>
 }
 
 function LoadingState({ label }: { label: string }) { return <div className="flex items-center justify-center gap-2 rounded-2xl border border-outline-variant bg-surface-container-low p-6 text-sm text-on-surface-variant"><Loader2 className="h-4 w-4 animate-spin text-primary" />{label}</div> }

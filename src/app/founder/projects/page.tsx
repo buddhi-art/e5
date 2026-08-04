@@ -1,20 +1,20 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ProjectForm } from '@/app/admin/projects/project-form'
 import { ProjectStatusSelect } from '@/app/admin/projects/project-status-select'
 import { ProjectActionsMenu } from '@/app/admin/projects/project-actions-menu'
-import { Archive, FolderKanban, CheckCircle, Clock, AlertTriangle, User } from 'lucide-react'
+import { Archive, FolderKanban } from 'lucide-react'
+
+/* ── Local row types for Supabase results ── */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseRow = Record<string, any>
 
 export const revalidate = 300
 
 export default async function FounderProjectsPage() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
     const { data: allProjects, error } = await supabase
         .from('projects')
@@ -34,8 +34,8 @@ export default async function FounderProjectsPage() {
     if (error) console.error('Projects fetch error:', error.message)
 
     // Split active vs archived
-    const activeProjects = (allProjects || []).filter((p: any) => !p.deleted_at)
-    const archivedProjects = (allProjects || []).filter((p: any) => !!p.deleted_at)
+    const activeProjects = (allProjects || []).filter((p: SupabaseRow) => !p.deleted_at)
+    const archivedProjects = (allProjects || []).filter((p: SupabaseRow) => !!p.deleted_at)
 
     const { data: clients, error: clientsErr } = await supabase
         .from('clients')
@@ -47,13 +47,13 @@ export default async function FounderProjectsPage() {
     const typedClients = (clients || []) as { id: string; company_name: string }[]
 
     // Compute stats per active project
-    const activeProjectStats = activeProjects.map((project: any) => {
+    const activeProjectStats = activeProjects.map((project: SupabaseRow) => {
         const tasks = project.tasks || []
         const totalTasks = tasks.length
-        const completedTasks = tasks.filter((t: any) => t.status === 'completed').length
-        const inProgressTasks = tasks.filter((t: any) => t.status === 'in_progress').length
-        const overdueTasks = tasks.filter((t: any) => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'completed').length
-        const assignees = [...new Set(tasks.filter((t: any) => t.profiles?.full_name).map((t: any) => t.profiles.full_name))]
+        const completedTasks = tasks.filter((t: SupabaseRow) => t.status === 'completed').length
+        const inProgressTasks = tasks.filter((t: SupabaseRow) => t.status === 'in_progress').length
+        const overdueTasks = tasks.filter((t: SupabaseRow) => t.deadline && new Date(t.deadline as string) < new Date() && t.status !== 'completed').length
+        const assignees = [...new Set(tasks.filter((t: SupabaseRow) => t.profiles?.full_name).map((t: SupabaseRow) => t.profiles.full_name))]
         return { ...project, totalTasks, completedTasks, inProgressTasks, overdueTasks, assignees }
     })
 
@@ -101,7 +101,7 @@ export default async function FounderProjectsPage() {
                                         </TableHeader>
                                         <TableBody>
                                             {activeProjectStats && activeProjectStats.length > 0 ? (
-                                                activeProjectStats.map((project: any) => (
+                                                activeProjectStats.map((project: SupabaseRow) => (
                                                     <TableRow key={project.id} className="border-outline-variant/50 hover:bg-surface-container-high transition-colors">
                                                         <TableCell className="font-medium text-on-surface">{project.title}</TableCell>
                                                         <TableCell className="text-on-surface">{project.clients?.company_name || 'Unknown'}</TableCell>
@@ -124,7 +124,8 @@ export default async function FounderProjectsPage() {
                                                             <ProjectStatusSelect projectId={project.id} currentStatus={project.status} />
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                            <ProjectActionsMenu project={project} clients={typedClients} />
+                                                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                                            <ProjectActionsMenu project={project as any} clients={typedClients} />
                                                         </TableCell>
                                                     </TableRow>
                                                 ))
@@ -137,7 +138,7 @@ export default async function FounderProjectsPage() {
                                 <TabsContent value="archived" className="mt-0">
                                     {archivedProjects && archivedProjects.length > 0 ? (
                                         <div className="space-y-3">
-                                            {archivedProjects.map((project: any) => (
+                                            {archivedProjects.map((project: SupabaseRow) => (
                                                 <div key={project.id} className="flex items-center justify-between p-3 shape-medium bg-surface-container-low border border-outline-variant/50 card-morph">
                                                     <div className="flex items-center gap-3">
                                                         <Archive className="w-4 h-4 text-outline shrink-0" />
@@ -146,7 +147,8 @@ export default async function FounderProjectsPage() {
                                                             <div className="text-xs text-outline">{project.clients?.company_name || 'Unknown'} &middot; Archived {new Date(project.deleted_at).toLocaleDateString()}</div>
                                                         </div>
                                                     </div>
-                                                    <ProjectActionsMenu project={project} clients={typedClients} />
+                                                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                                    <ProjectActionsMenu project={project as any} clients={typedClients} />
                                                 </div>
                                             ))}
                                         </div>

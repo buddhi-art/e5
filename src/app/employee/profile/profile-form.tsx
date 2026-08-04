@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -10,7 +9,15 @@ import { toast } from 'sonner'
 import { Globe, Camera, Music2, MessageCircle, Lock, ExternalLink } from 'lucide-react'
 import { normalizeUrl } from '@/lib/utils'
 
-export function ProfileForm({ profile }: { profile: any }) {
+/* ── Local types ── */
+interface ProfileData {
+    full_name?: string | null; email?: string | null; designation?: string | null
+    contact_email?: string | null; phone_number?: string | null; joining_date?: string | null
+    location?: string | null; dob?: string | null; cv_url?: string | null
+    social_urls?: Record<string, string>
+}
+
+export function ProfileForm({ profile }: { profile: ProfileData }) {
     const [loading, setLoading] = useState(false)
 
     // Editable fields — use state so UI updates immediately after save

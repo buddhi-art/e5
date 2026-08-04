@@ -1,10 +1,24 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus } from 'lucide-react'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
+
+type BookingRow = {
+  id: string
+  talent_id: string
+  project_id: string | null
+  booking_date: string
+  end_date: string | null
+  rate_type: string
+  rate_amount: number
+  total_compensation: number
+  status: string
+  description?: string | null
+  talents: { full_name: string; talent_type: string; photo_url: string | null } | null
+  projects: { title: string; id: string } | null
+}
 
 export default async function BookingsPage() {
     const { supabase } = await requireAdminOrFounder()
@@ -61,7 +75,7 @@ export default async function BookingsPage() {
                             </tr>
                         </thead>
                         <tbody className="bg-surface-container-lowest">
-                            {bookings.map((booking: any) => (
+                            {bookings.map((booking: BookingRow) => (
                                 <tr key={booking.id} className="border-b border-outline-variant hover:bg-surface-container-high">
                                     <td className="p-3">
                                         <div className="flex items-center gap-2">

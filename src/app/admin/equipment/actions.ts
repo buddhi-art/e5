@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { EquipmentSchema, MaintenanceSchema, UuidParamSchema, EquipmentCheckInSchema, MaintenanceStatusSchema } from '@/lib/validations'
+import { EquipmentSchema, MaintenanceSchema, UuidParamSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { validateFileUpload, generateStorageFilename, ALLOWED_IMAGE_TYPES } from '@/lib/supabase/storage'
 import { createNotification } from '@/lib/notifications'
@@ -102,7 +101,7 @@ export async function updateEquipment(id: string, formData: FormData) {
   if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
   const data = parsed.data
 
-  const updates: any = {
+  const updates: Record<string, unknown> = {
     name: data.name, brand: data.brand || null, model: data.model || null, serial_number: data.serial_number || null,
     category: data.category, purchase_date: data.purchase_date || null, purchase_price: data.purchase_price, current_value: data.current_value,
     location: data.location || null, notes: data.notes || null,

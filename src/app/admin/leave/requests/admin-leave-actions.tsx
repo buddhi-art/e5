@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -10,7 +9,12 @@ import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 
-export function AdminLeaveActions({ request }: { request: any }) {
+interface LeaveActionRequest {
+    id: string
+    status: string
+}
+
+export function AdminLeaveActions({ request }: { request: LeaveActionRequest }) {
   const [loading, setLoading] = useState(false)
   const [rejectOpen, setRejectOpen] = useState(false)
   const [rejectNotes, setRejectNotes] = useState('')

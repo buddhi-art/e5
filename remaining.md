@@ -1,8 +1,8 @@
 # Remaining Work — E5 Chronicles
 
-Status of the audit-driven cleanup. Tasks 1–2 are **done and verified** (typecheck clean,
-105/105 tests pass). Everything below is what's left. Line numbers are accurate as of
-this writing; re-grep before editing since earlier edits shift them.
+Status of the audit-driven cleanup. Correctness and hygiene items are **done and verified**
+(`npm run lint && npm run typecheck && npm test` passes; 105/105 tests pass). The only
+remaining item is the optional readability split in section 8.
 
 Baseline to keep green after every change:
 ```
@@ -29,7 +29,7 @@ npm run lint && npm run typecheck && npm test
 
 ---
 
-## 3. Route remaining caught errors to Sentry (IN PROGRESS)
+## ✅ 3. Route remaining caught errors to Sentry — DONE
 
 Helper already exists: `captureActionError(context, caught)` in
 [src/lib/action-error.ts](e5-chronicles/src/lib/action-error.ts) — logs a structured line
@@ -73,7 +73,7 @@ Route to Sentry only if you want visibility on them:
 
 ---
 
-## 4. Add `.catch` to signed-URL call sites
+## ✅ 4. Add `.catch` to signed-URL call sites — DONE
 
 Three `.then(...)` without `.catch`. Mirror the correct pattern already in
 [src/components/storage-image.tsx:42-56](e5-chronicles/src/components/storage-image.tsx#L42)
@@ -88,20 +88,27 @@ unhandled rejection and a stuck "Loading…" state.
 
 ---
 
-## 5. Parallelize independent sequential queries
+## ✅ 5. Parallelize independent sequential queries — DONE (lint/typecheck clean)
 
-Request waterfalls (independent queries `await`ed in series). Wrap in `Promise.all`.
-NOTE: this is **not** N+1 — do not try to "join" these; e.g. `designations` is a form
-lookup list, not a relation on `profiles`.
-- [src/app/admin/employees/page.tsx:16-32](e5-chronicles/src/app/admin/employees/page.tsx#L16)
-  — active employees, archived employees, designations (3 independent queries).
-- Sweep other list pages for the same shape:
-  `grep -rn "await supabase" src/app/admin/*/page.tsx` and look for consecutive
-  independent awaits with no data dependency between them.
+- `employees/page.tsx` — already parallelized (3 queries).
+- `clients/page.tsx` — 4 queries → Promise.all
+- `invoices/page.tsx` — 2 queries → Promise.all
+- `expenses/page.tsx` — 2 queries → Promise.all
+- `leave/requests/page.tsx` — 2 queries → Promise.all
+- `projects/page.tsx` — 2 queries → Promise.all
+- `tasks/page.tsx` — 3 queries → Promise.all
+- `invoices/new/page.tsx` — 2 queries → Promise.all
+- `expenses/new/page.tsx` — 2 queries → Promise.all
+- `equipment/checkout/page.tsx` — 3 queries → Promise.all
+- `leave/calendar/page.tsx` — 2 queries → Promise.all
+
+Skipped: [id] detail pages (queries depend on prior data), single-query pages
+(`checkin`, `bookings`, `maintenance`), and pages with no DB queries (`talents/new`,
+`equipment/new`).
 
 ---
 
-## 6. Centralize magic status strings
+## ✅ 6. Centralize magic status strings — DONE
 
 ~119 occurrences of `'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'cancelled'`
 across ~8 files (heaviest: `src/app/admin/invoices/`). No `src/lib/constants/` dir exists.
@@ -112,29 +119,24 @@ define the canonical value sets — reuse/derive from them rather than inventing
 - expense status — :206 `['pending','approved','rejected','reimbursed']`
 - project status — :400, package status — :514, payment_status — :515
 
-Suggested: create `src/lib/constants/statuses.ts` exporting `const` objects (or `z.infer`
-types off the existing enums) and replace the string literals in comparisons/switches.
-Lowest priority — behaviour is already correct; this is typo-safety only.
+Implemented in `src/lib/constants/statuses.ts` with schema-derived types and shared
+status/payment constants used across the relevant admin invoice, expense, project, and
+package flows. Behaviour remains unchanged.
 
 ---
 
-## 7. Remove blanket eslint-disable headers, fix hidden `any` / dead imports
+## ✅ 7. Remove blanket eslint-disable headers, fix hidden `any` / dead imports — DONE
 
-- **98 files** carry a whole-file `/* eslint-disable ... */` header (run
-  `grep -rln "^/\* eslint-disable" src` for the current list).
-- `eslint.config.mjs` sets `no-explicit-any` to `error`, but the headers void it —
-  ~229 `any` annotations and dead imports hide behind them.
-- Do this **file-by-file**: remove the header, run `npm run lint` on that file, fix what
-  surfaces (type the `any`s properly, delete unused imports), keep tests green. Do NOT bulk-
-  delete all headers at once — you'll get an unreviewable wall of errors.
-- Known dead imports to catch: `ShieldAlert`, `Printer` in
-  `src/app/admin/packages/[id]/page.tsx`.
-- Standing lint warning to clear: `InvoiceStatusUpdateSchema` unused in
-  [src/app/admin/invoices/actions.ts:6](e5-chronicles/src/app/admin/invoices/actions.ts#L6).
+- Whole-file headers were removed file-by-file from production source; only the three
+  existing test-file headers remain.
+- Hidden explicit `any` annotations were replaced with local interfaces, schema-derived
+  types, `unknown`, or narrow boundary casts where the Supabase client is intentionally
+  untyped.
+- Removed the known dead imports `ShieldAlert`, `Printer`, and `InvoiceStatusUpdateSchema`.
 
 ---
 
-## 8. (Optional, larger) Split the two very large files
+## 8. (Optional, larger) Split the two very large files — DEFERRED
 
 Not required for correctness — readability only. Threshold in the original audit ("150
 lines") is arbitrary and not a repo convention.

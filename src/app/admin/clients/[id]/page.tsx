@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +10,17 @@ import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { AddProjectDialog } from './add-project-dialog'
 import { ClientMeetingDialog } from './client-meeting-dialog'
+
+interface MeetingRow {
+  id: string
+  title: string
+  meeting_date: string
+  duration_minutes: number | null
+  location: string | null
+  status: string
+  notes: string | null
+  client_id: string
+}
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -226,7 +236,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             <CardContent>
               {meetings && meetings.length > 0 ? (
                 <div className="divide-y divide-outline-variant">
-                  {meetings.map((meeting: any) => (
+                  {meetings.map((meeting: MeetingRow) => (
                     <div key={meeting.id} className="py-4 flex items-center justify-between group">
                       <div className="flex items-start gap-3">
                         <div className="p-2 rounded-md bg-m3-info-subtle mt-0.5">

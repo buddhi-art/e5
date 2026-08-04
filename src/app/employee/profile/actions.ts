@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -52,7 +51,7 @@ export async function updateEmployeeProfile(formData: FormData) {
     }
 
     // Only update fields the employee is allowed to change
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       location: data.location || null,
       dob: data.dob || null,
       cv_url: data.cvUrl || null,

@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createClient } from '@/lib/supabase/server'
-import { Camera, CheckCircle, Clock, AlertTriangle, User, Wrench } from 'lucide-react'
+import { Camera, CheckCircle, User, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 

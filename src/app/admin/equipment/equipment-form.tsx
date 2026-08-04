@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
@@ -25,9 +24,9 @@ export function EquipmentForm({ initialData }: { initialData?: Equipment }) {
   const [purchasePrice, setPurchasePrice] = useState(initialData?.purchase_price ? String(initialData.purchase_price) : '')
   const [currentValue, setCurrentValue] = useState(initialData?.current_value ? String(initialData.current_value) : '')
   const [location, setLocation] = useState(initialData?.location || '')
-  const [vendorName, setVendorName] = useState((initialData as any)?.vendor_name || '')
-  const [vendorPhone, setVendorPhone] = useState((initialData as any)?.vendor_phone || '')
-  const [vendorLocation, setVendorLocation] = useState((initialData as any)?.vendor_location || '')
+  const [vendorName, setVendorName] = useState(initialData?.vendor_name || '')
+  const [vendorPhone, setVendorPhone] = useState(initialData?.vendor_phone || '')
+  const [vendorLocation, setVendorLocation] = useState(initialData?.vendor_location || '')
   const [notes, setNotes] = useState(initialData?.notes || '')
 
   const [categories, setCategories] = useState<string[]>([

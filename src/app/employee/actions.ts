@@ -1,5 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
+
+/* ── Local row types for Supabase results ── */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseRow = Record<string, any>
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -49,9 +52,9 @@ export async function toggleSubtask(subtaskId: string, isCompleted: boolean) {
       if (allDone) newStatus = 'completed'
       else if (someDone) newStatus = 'in_progress'
 
-      const taskUpdate: Record<string, any> = { status: newStatus }
+      const taskUpdate: Record<string, unknown> = { status: newStatus }
       if (newStatus === 'completed') {
-        taskUpdate.completed_at = new Date().toISOString()
+        taskUpdate['completed_at'] = new Date().toISOString()
       }
       await supabase.from('tasks').update(taskUpdate).eq('id', subtask.task_id)
 
@@ -98,6 +101,7 @@ export async function toggleSubSubtask(subSubtaskId: string, isCompleted: boolea
   return { success: true }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function triggerTaskCompletionNotifications(supabase: any, taskId: string) {
   try {
     const { data: completedTask } = await supabase
@@ -108,7 +112,7 @@ async function triggerTaskCompletionNotifications(supabase: any, taskId: string)
 
     if (!completedTask) return
 
-    const projectTitle = (completedTask as any).projects?.title || 'Project'
+    const projectTitle = (completedTask as SupabaseRow).projects?.title || 'Project'
 
     // 1. Notify admins and founders. Founders are identified by designation,
     // not a separate role value (the role enum only includes admin/employee).
@@ -122,7 +126,7 @@ async function triggerTaskCompletionNotifications(supabase: any, taskId: string)
       ? `Project delivery task "${completedTask.title}" has been completed for ${projectTitle}.`
       : `Task "${completedTask.title}" has been completed for ${projectTitle}.`
     await Promise.all(
-      (admins || []).map((admin: any) =>
+      (admins || []).map((admin: SupabaseRow) =>
         createNotification(
           admin.id,
           'system',
@@ -145,7 +149,7 @@ async function triggerTaskCompletionNotifications(supabase: any, taskId: string)
 
       const recipientIds = [...new Set<string>(
         (nextTasks || [])
-          .map((task: any) => task.assigned_to)
+          .map((task: SupabaseRow) => task.assigned_to)
           .filter((userId: unknown): userId is string => typeof userId === 'string'),
       )]
       await Promise.all(
@@ -233,9 +237,9 @@ export async function updateMainTaskStatus(taskId: string, status: string) {
     return { error: 'Unauthorized' }
   }
 
-  const taskUpdate: Record<string, any> = { status: data.status }
+  const taskUpdate: Record<string, unknown> = { status: data.status }
   if (data.status === 'completed') {
-    taskUpdate.completed_at = new Date().toISOString()
+    taskUpdate['completed_at'] = new Date().toISOString()
   }
 
   const { error } = await supabase

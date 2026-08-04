@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
@@ -37,7 +36,7 @@ export function BudgetChart({ consumed, remaining }: BudgetChartProps) {
  ))}
  </Pie>
  <Tooltip 
- formatter={(value: any) => `${Number(value).toLocaleString()} NPR`}
+          formatter={(value) => `${Number(value).toLocaleString()} NPR`}
  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
  />
  <Legend verticalAlign="bottom" height={36} iconType="circle" />

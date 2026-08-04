@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,8 +12,23 @@ import {
 import { MoreHorizontal } from 'lucide-react'
 import { updateMaintenanceStatus } from '../actions'
 import { toast } from 'sonner'
+import type { MaintenanceStatus } from '@/types/equipment'
 
-export function MaintenanceList({ initialRecords }: { initialRecords: any[] }) {
+type MaintenanceRecord = {
+  id: string
+  equipment_id: string
+  description: string
+  scheduled_date: string
+  completed_date: string | null
+  cost: number | null
+  vendor: string | null
+  status: MaintenanceStatus
+  notes: string | null
+  created_at: string
+  equipment: { name: string; category: string; serial_number: string | null } | null
+}
+
+export function MaintenanceList({ initialRecords }: { initialRecords: MaintenanceRecord[] }) {
   const [tab, setTab] = useState<'scheduled' | 'in_progress' | 'completed'>('scheduled')
 
   const filteredRecords = initialRecords.filter(r => r.status === tab)

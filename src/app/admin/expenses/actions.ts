@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -61,8 +60,7 @@ export async function createExpense(formData: FormData) {
                 .upload(filePath, receipt)
 
             if (uploadError) {
-                console.error('Upload error:', uploadError)
-                return { error: 'Failed to upload receipt image.' }
+                return { error: await captureActionError('createExpense:receiptUpload', uploadError) }
             }
 
             // Store the storage path, not the public URL (receipts bucket is private)
@@ -106,7 +104,7 @@ export async function updateExpenseStatus(expenseId: string, status: string) {
         const parsed = ExpenseStatusSchema.safeParse({ expenseId, status })
         if (!parsed.success) return { error: parsed.error.issues[0].message }
 
-        const updateData: Record<string, any> = { status: parsed.data.status }
+        const updateData: Record<string, string | null> = { status: parsed.data.status }
         if (parsed.data.status === 'approved' || parsed.data.status === 'reimbursed') {
             updateData.approved_by = user.id
         }

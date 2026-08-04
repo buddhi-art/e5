@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use server'
 
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { z } from 'zod'
-import { UuidParamSchema } from '@/lib/validations'
 import { createNotification } from '@/lib/notifications'
 
-async function checkAdmin(supabase: any) {
+async function checkAdmin(supabase: SupabaseClient) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   const isAuthorized = await verifyAdminOrFounder(supabase, user.id);

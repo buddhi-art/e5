@@ -1,10 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { getSignedUrl } from '@/lib/supabase/storage'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { MapPin } from 'lucide-react'
+
+/* ── Local row types for Supabase results ── */
+interface TalentRow { id: string; full_name: string; stage_name?: string | null; talent_type: string; location?: string | null; skills?: string[] | null; photo_url?: string | null }
 
 export default async function EmployeeTalentsPage() {
     const supabase = await createClient()
@@ -47,7 +49,7 @@ export default async function EmployeeTalentsPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {talents.map((talent: any) => {
+                    {talents.map((talent: TalentRow) => {
                         const signedUrl = photoUrls.get(talent.id)
                         return (
                             <div key={talent.id} className="flex items-start gap-4 p-4 rounded-xl border border-outline-variant bg-surface-container-lowest dark:bg-surface-container-lowest">

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, ExternalLink, Calendar, User, FolderKanban, DollarSign } from 'lucide-react'
 import { ExpenseActions } from './expense-actions'
+import { EXPENSE_STATUS_LABELS, type ExpenseStatus } from '@/lib/constants/statuses'
 
 export default async function ExpenseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -40,11 +41,11 @@ export default async function ExpenseDetailPage({ params }: { params: Promise<{ 
     : null
 
   function getStatusBadge(status: string) {
-    switch (status) {
-      case 'approved': return <Badge className="bg-m3-success">Approved</Badge>
-      case 'reimbursed': return <Badge variant="secondary" className="bg-m3-info-subtle text-m3-info border-m3-info border">Reimbursed</Badge>
-      case 'rejected': return <Badge variant="destructive">Rejected</Badge>
-      case 'pending': return <Badge variant="outline" className="text-m3-warning border-m3-warning">Pending</Badge>
+    switch (status as ExpenseStatus) {
+      case 'approved': return <Badge className="bg-m3-success">{EXPENSE_STATUS_LABELS.approved}</Badge>
+      case 'reimbursed': return <Badge variant="secondary" className="bg-m3-info-subtle text-m3-info border-m3-info border">{EXPENSE_STATUS_LABELS.reimbursed}</Badge>
+      case 'rejected': return <Badge variant="destructive">{EXPENSE_STATUS_LABELS.rejected}</Badge>
+      case 'pending': return <Badge variant="outline" className="text-m3-warning border-m3-warning">{EXPENSE_STATUS_LABELS.pending}</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }

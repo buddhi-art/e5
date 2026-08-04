@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -13,26 +12,18 @@ export const revalidate = 300
 export default async function EmployeesPage() {
   const supabase = await createClient()
 
-  const { data: activeEmployees, error: activeErr } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("role", "employee")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
+  const [activeResult, archivedResult, designationsResult] = await Promise.all([
+    supabase.from("profiles").select("*").eq("role", "employee").is("deleted_at", null).order("created_at", { ascending: false }),
+    supabase.from("profiles").select("*").eq("role", "employee").not("deleted_at", "is", null).order("deleted_at", { ascending: false }),
+    supabase.from("designations").select("name").order("name"),
+  ])
 
-  const { data: archivedEmployees, error: archivedErr } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("role", "employee")
-    .not("deleted_at", "is", null)
-    .order("deleted_at", { ascending: false })
-
-  const { data: designationsData } = await supabase
-    .from("designations")
-    .select("name")
-    .order("name")
+  const { data: activeEmployees, error: activeErr } = activeResult
+  const { data: archivedEmployees, error: archivedErr } = archivedResult
+  const { data: designationsData } = designationsResult
 
   const designations = designationsData?.map(d => d.name) || []
+  type ArchivedEmployee = NonNullable<typeof archivedEmployees>[number]
 
   if (activeErr) console.error('Active employees error:', activeErr.message)
   if (archivedErr) console.error('Archived employees error:', archivedErr.message)
@@ -73,7 +64,7 @@ export default async function EmployeesPage() {
                 <TabsContent value="archived" className="mt-0">
                   {archivedEmployees && archivedEmployees.length > 0 ? (
                     <div className="space-y-3">
-                      {archivedEmployees.map((employee: any) => (
+                      {archivedEmployees.map((employee: ArchivedEmployee) => (
                         <div key={employee.id} className="flex items-center justify-between p-3 shape-medium bg-surface-container-low border border-outline-variant/50 card-morph">
                           <div className="flex items-center gap-3">
                             <Archive className="w-4 h-4 text-outline shrink-0" />

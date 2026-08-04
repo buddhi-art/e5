@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { AttendanceForm } from './attendance-form'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Clock, FileText } from 'lucide-react'
+import { FileText } from 'lucide-react'
 
 export default async function EmployeeAttendancePage() {
  const supabase = await createClient()
@@ -52,11 +51,6 @@ export default async function EmployeeAttendancePage() {
  return `${hours}h ${minutes}m`
  }
 
- function truncateSummary(text: string | null, maxLen = 80): string {
- if (!text) return ''
- if (text.length <= maxLen) return text
- return text.slice(0, maxLen) + '...'
- }
 
  return (
  <div className="space-y-6">

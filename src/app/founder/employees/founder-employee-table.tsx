@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -7,8 +6,18 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Search, Phone, MapPin } from 'lucide-react'
 
+interface RosterEmployee {
+    id: string
+    full_name: string
+    designation: string | null
+    phone_number: string | null
+    location: string | null
+    joining_date: string | null
+    created_at: string
+}
+
 // Read-only roster for founders — no edit/delete actions, view only.
-export function FounderEmployeeTable({ employees }: { employees: any[] }) {
+export function FounderEmployeeTable({ employees }: { employees: RosterEmployee[] }) {
     const [search, setSearch] = useState('')
 
     const filtered = employees.filter(emp => {

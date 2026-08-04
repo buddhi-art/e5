@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { BudgetForm } from './budget-form'
 import { BudgetChart } from './budget-chart'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
+
+type ProjectExpense = { id: string; description: string; expense_date: string; category: string; amount: number | string; status: string }
 
 export default async function ProjectBudgetPage({ params }: { params: Promise<{ id: string }> }) {
  const { supabase } = await requireAdminOrFounder()
@@ -80,7 +80,7 @@ export default async function ProjectBudgetPage({ params }: { params: Promise<{ 
  <h3 className="font-semibold text-on-surface">Project Expenses</h3>
  </div>
  <div className="divide-y divide-outline-variant" >
- {projectExpenses.map((exp: any) => (
+ {projectExpenses.map((exp: ProjectExpense) => (
  <div key={exp.id} className="px-6 py-3 flex items-center justify-between">
  <div>
  <p className="text-sm font-medium text-on-surface">{exp.description}</p>

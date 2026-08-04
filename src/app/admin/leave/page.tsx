@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 
 // Layer 2: ISR — Cache for 5 minutes
@@ -78,7 +77,7 @@ export default async function AdminLeaveDashboard() {
 
  {/* Pending request cards shown prominently */}
  {pendingRequests && pendingRequests.length > 0 && (
- <DashboardPendingRequests requests={pendingRequests as any} />
+  <DashboardPendingRequests requests={(pendingRequests ?? []) as unknown as Parameters<typeof DashboardPendingRequests>[0]['requests']} />
  )}
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

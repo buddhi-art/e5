@@ -1,10 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { RequestLeaveForm } from './request-leave-form'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+
+/* ── Local row types ── */
+interface BalanceRow { leave_types: { id: string; name: string; is_paid: boolean }; remaining_days: number }
 
 export default async function RequestLeavePage() {
  const supabase = await createClient()
@@ -22,7 +24,7 @@ export default async function RequestLeavePage() {
  .gt('remaining_days', 0)
 
  // Map to a format suitable for the form
- const availableTypes = balances?.map((b: any) => ({
+  const availableTypes = balances?.map((b: BalanceRow) => ({
  id: b.leave_types.id,
  name: b.leave_types.name,
  remaining_days: b.remaining_days,

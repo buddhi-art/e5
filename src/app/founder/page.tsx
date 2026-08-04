@@ -1,5 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
+
+/* ── Local row types for Supabase results ── */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseRow = Record<string, any>
 import globalCache from '@/lib/cache'
 import { FounderDashboardClient } from './founder-dashboard-client'
 
@@ -38,8 +41,8 @@ interface FounderDashboardData {
     clientCount: number
     totalMeetings: number
     month: string
-    recentTasks: any[]
-    todayAttendance: any[]
+    recentTasks: SupabaseRow[]
+    todayAttendance: SupabaseRow[]
     expenseByCategory: { category: string; total: number }[]
     monthlyRevenueData: { month: string; revenue: number }[]
     topClients: { company_name: string; revenue: number }[]
@@ -202,8 +205,8 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
         : 100
 
     const projects = allProjects || []
-    const activeProjectsCount = projects.filter((p: any) => p.status === 'in_progress' || p.status === 'not_started').length
-    const completedProjectsCount = projects.filter((p: any) => p.status === 'completed').length
+    const activeProjectsCount = projects.filter((p: SupabaseRow) => p.status === 'in_progress' || (p.status as string) === 'not_started').length
+    const completedProjectsCount = projects.filter((p: SupabaseRow) => p.status === 'completed').length
     const totalProjects = projects.length
     const projectHealthPercent = totalProjects > 0
         ? Math.round((activeProjectsCount / totalProjects) * 100)
@@ -223,13 +226,13 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
 
     const totalReceivableVal = invoiceList
         .filter(i => i.status === 'sent' || i.status === 'overdue' || i.status === 'partially_paid')
-        .reduce((s: number, inv: any) => s + (Number(inv.grand_total) - Number(inv.paid_amount || 0)), 0)
+        .reduce((s: number, inv: SupabaseRow) => s + (Number(inv.grand_total as number) - Number((inv.paid_amount as number) || 0)), 0)
 
-    const revenueThisMonthVal = (thisMonthInvoices || []).reduce((s: number, i: any) => s + Number(i.grand_total || 0), 0)
-    const revenueLastMonthVal = (lastMonthInvoices || []).reduce((s: number, i: any) => s + Number(i.grand_total || 0), 0)
+    const revenueThisMonthVal = (thisMonthInvoices || []).reduce((s: number, i: SupabaseRow) => s + Number(i.grand_total as number || 0), 0)
+    const revenueLastMonthVal = (lastMonthInvoices || []).reduce((s: number, i: SupabaseRow) => s + Number(i.grand_total as number || 0), 0)
 
-    const totalExpensesVal = (expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0)
-    const totalBudget = (projectBudgets || []).reduce((s: number, b: any) => s + Number(b.budget_amount || 0), 0)
+    const totalExpensesVal = (expenses || []).reduce((s: number, e: SupabaseRow) => s + Number(e.amount as number || 0), 0)
+    const totalBudget = (projectBudgets || []).reduce((s: number, b: SupabaseRow) => s + Number(b.budget_amount as number || 0), 0)
     const budgetUtilizationVal = totalBudget > 0 ? Math.round((totalExpensesVal / totalBudget) * 100) : 0
 
     // Expense by category (this month)
@@ -254,7 +257,7 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
     // Top clients by revenue
     const clientRevenueMap = new Map<string, number>()
     for (const inv of invoicesByClient || []) {
-        const name = (inv as any).clients?.company_name || 'Unknown'
+        const name = ((inv as SupabaseRow).clients as { company_name?: string } | null)?.company_name || 'Unknown'
         clientRevenueMap.set(name, (clientRevenueMap.get(name) || 0) + Number(inv.grand_total || 0))
     }
     const topClients = Array.from(clientRevenueMap.entries())
@@ -262,7 +265,7 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5)
 
-    const monthlyInvoicesPaidVal = (thisMonthInvoices || []).filter((i: any) => i.status === 'paid').length
+    const monthlyInvoicesPaidVal = (thisMonthInvoices || []).filter((i: SupabaseRow) => i.status === 'paid').length
     const monthlyInvoicesTotalVal = (thisMonthInvoices || []).length
 
     // Performance & Bottleneck Analytics
@@ -272,16 +275,19 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
     let lateCount = 0
     const phaseTimes: Record<string, { totalDays: number, count: number }> = {}
 
-    tasksData.forEach((t: any) => {
+    tasksData.forEach((t: SupabaseRow) => {
         if (t.status === 'completed' && t.completed_at && t.deadline) {
-            const compDate = new Date(t.completed_at)
-            const deadDate = new Date(t.deadline)
+            const compDate = new Date(t.completed_at as string)
+            const deadDate = new Date(t.deadline as string)
             if (compDate < deadDate) earlyCount++
             else if (compDate.toDateString() === deadDate.toDateString()) onTimeCount++
             else lateCount++
         }
         if (t.status === 'completed' && t.completed_at && t.created_at && t.phase) {
-            const days = (new Date(t.completed_at).getTime() - new Date(t.created_at).getTime()) / (1000 * 3600 * 24)
+            const days = (new Date(t.completed_at as string).getTime() - new Date(t.created_at as string).getTime()) / (1000 * 3600 * 24)
+            if (!phaseTimes[t.phase as string]) phaseTimes[t.phase as string] = { totalDays: 0, count: 0 }
+            phaseTimes[t.phase as string].totalDays += days
+            phaseTimes[t.phase as string].count += 1
             if (!phaseTimes[t.phase]) phaseTimes[t.phase] = { totalDays: 0, count: 0 }
             phaseTimes[t.phase].totalDays += days
             phaseTimes[t.phase].count += 1

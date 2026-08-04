@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Transaction Management System for Supabase
  *
@@ -6,6 +5,7 @@
  * multiple related records. Handles deadlocks with retry logic.
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from './server'
 
 /**
@@ -34,12 +34,12 @@ export interface TransactionResult<T> {
  * @returns Transaction result
  */
 export async function executeTransaction<T>(
-    operation: (supabase: any) => Promise<T>,
+    operation: (supabase: SupabaseClient) => Promise<T>,
     options: TransactionOptions = {}
 ): Promise<TransactionResult<T>> {
     const { maxRetries = 3, retryDelay = 100 } = options
     let attempts = 0
-    let lastError: any
+    let lastError: unknown
 
     while (attempts < maxRetries) {
         attempts++
@@ -60,7 +60,8 @@ export async function executeTransaction<T>(
             console.error(`Transaction attempt ${attempts} failed:`, error)
 
             // Check if this is a deadlock error (PostgreSQL error code 40P01)
-            if (error && typeof error === 'object' && 'code' in error && error.code === '40P01') {
+            const err = error as { code?: string; message?: string } | null
+            if (err && err.code === '40P01') {
                 // Deadlock detected, wait before retrying
                 if (attempts < maxRetries) {
                     await new Promise(resolve => setTimeout(resolve, retryDelay))
@@ -76,7 +77,7 @@ export async function executeTransaction<T>(
     console.error(`Transaction failed after ${attempts} attempts:`, lastError)
     return {
         success: false,
-        error: lastError?.message || 'Transaction failed',
+        error: (lastError as { message?: string } | null)?.message || 'Transaction failed',
         attempts
     }
 }
@@ -91,7 +92,7 @@ export async function executeTransaction<T>(
  */
 export async function executeRpcTransaction<T>(
     rpcName: string,
-    params: Record<string, any>,
+    params: Record<string, unknown>,
     options: TransactionOptions = {}
 ): Promise<TransactionResult<T>> {
     return executeTransaction(async (supabase) => {

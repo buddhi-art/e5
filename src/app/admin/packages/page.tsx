@@ -1,18 +1,32 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
-  Package, Plus, Search, Filter, Calendar, DollarSign,
-  CheckCircle2, Clock, Trash2, Eye, Edit, ChevronLeft, ChevronRight,
-  TrendingUp, AlertCircle, RefreshCw, Loader2, X
+  Package, Plus, Search, CheckCircle2, Clock, Trash2, Eye,
+  ChevronLeft, ChevronRight,
+  TrendingUp, AlertCircle, Loader2, X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getPackagesList, getPackageDashboardMetrics, deletePackage } from './actions'
+import {
+  PACKAGE_PAYMENT_STATUSES,
+  PACKAGE_PAYMENT_STATUS_LABELS,
+  type PackagePaymentStatus,
+} from '@/lib/constants/statuses'
+
+interface PackageRow {
+  id: string
+  package_number: string
+  title: string
+  grand_total: number
+  payment_status: string
+  creation_date: string
+  clients: { company_name: string } | null
+}
 
 export default function PackagesListPage() {
-  const [packages, setPackages] = useState<any[]>([])
+  const [packages, setPackages] = useState<PackageRow[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
@@ -26,7 +40,6 @@ export default function PackagesListPage() {
 
   // Search & Filters
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('all')
   const [paymentStatus, setPaymentStatus] = useState('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -37,18 +50,18 @@ export default function PackagesListPage() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  async function loadMetrics() {
+  const loadMetrics = useCallback(async () => {
     const res = await getPackageDashboardMetrics()
     if (res.metrics) {
       setMetrics(res.metrics)
     }
-  }
+  }, [])
 
-  async function loadPackages() {
+  const loadPackages = useCallback(async () => {
     setLoading(true)
     const res = await getPackagesList({
       search,
-      status,
+      status: 'all',
       paymentStatus,
       startDate,
       endDate,
@@ -64,15 +77,17 @@ export default function PackagesListPage() {
 
     setPackages(res.data || [])
     setTotalCount(res.total || 0)
-  }
+  }, [search, paymentStatus, startDate, endDate, page])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadMetrics()
-  }, [])
+  }, [loadMetrics])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPackages()
-  }, [search, status, paymentStatus, startDate, endDate, page])
+  }, [loadPackages])
 
   async function ConfirmDelete() {
     if (!deleteTargetId) return
@@ -186,9 +201,9 @@ export default function PackagesListPage() {
               className="w-full px-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
             >
               <option value="all">All Payment Statuses</option>
-              <option value="unpaid">Unpaid</option>
-              <option value="partially_paid">Partially Paid</option>
-              <option value="paid">Fully Paid</option>
+              {PACKAGE_PAYMENT_STATUSES.map(s => (
+                <option key={s} value={s}>{PACKAGE_PAYMENT_STATUS_LABELS[s]}</option>
+              ))}
             </select>
           </div>
 
@@ -265,8 +280,8 @@ export default function PackagesListPage() {
                             ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                             : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
                         }`}>
-                          {pkg.payment_status === 'paid' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                          {(pkg.payment_status || 'unpaid').replace('_', ' ').toUpperCase()}
+                          {(pkg.payment_status as PackagePaymentStatus) === 'paid' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                          {PACKAGE_PAYMENT_STATUS_LABELS[(pkg.payment_status as PackagePaymentStatus) || 'unpaid'].toUpperCase()}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center text-on-surface-variant font-mono">

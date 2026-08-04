@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -13,7 +12,12 @@ import { Save } from "lucide-react"
 import { toast } from 'sonner'
 import { createExpense } from '@/app/admin/expenses/actions'
 
-export function EmployeeExpenseForm({ projects }: { projects: any[] }) {
+interface EmployeeProjectOption {
+  id: string
+  title: string
+}
+
+export function EmployeeExpenseForm({ projects }: { projects: EmployeeProjectOption[] }) {
  const router = useRouter()
  const [loading, setLoading] = useState(false)
  const [projectId, setProjectId] = useState('none')
@@ -85,7 +89,7 @@ export function EmployeeExpenseForm({ projects }: { projects: any[] }) {
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="none">None</SelectItem>
- {projects.map((p: any) => (
+  {projects.map((p) => (
  <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
  ))}
  </SelectContent>

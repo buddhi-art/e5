@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -6,6 +5,10 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus } from 'lucide-react'
 import { CancelLeaveButton } from './cancel-leave-button'
+
+/* ── Local row types ── */
+interface LeaveBalanceRow { id: string; remaining_days: number; total_days: number; leave_types?: { name: string } | null }
+interface LeaveRequestRow { id: string; start_date: string; end_date: string; total_days: number; status: string; leave_types?: { name: string } | null }
 
 export default async function EmployeeLeavePage() {
  const supabase = await createClient()
@@ -55,7 +58,7 @@ export default async function EmployeeLeavePage() {
  <h2 className="text-xl font-semibold mb-4 text-on-surface">Leave Balances ({currentYear})</h2>
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
  {balances && balances.length > 0 ? (
- balances.map((bal: any) => (
+  balances.map((bal: LeaveBalanceRow) => (
  <div key={bal.id} className="bg-surface-container-lowest dark:bg-surface-container-lowest border border-outline-variant p-4 rounded-xl shadow-sm">
  <h3 className="text-sm font-medium text-outline mb-1">{bal.leave_types?.name}</h3>
  <div className="flex items-end gap-2">
@@ -88,7 +91,7 @@ export default async function EmployeeLeavePage() {
  </TableHeader>
  <TableBody>
  {requests && requests.length > 0 ? (
- requests.map((req: any) => (
+  requests.map((req: LeaveRequestRow) => (
  <TableRow key={req.id}>
  <TableCell className="font-medium">{req.leave_types?.name}</TableCell>
  <TableCell className="text-outline">

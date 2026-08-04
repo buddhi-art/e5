@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useTransition } from 'react'
@@ -10,15 +9,19 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { checkOutEquipment } from '../actions'
 
+type SelectableEquipment = { id: string; name: string; serial_number?: string | null }
+type SelectableEmployee = { id: string; full_name: string }
+type SelectableProject = { id: string; title: string }
+
 export function CheckoutForm({
   equipment,
   employees,
   projects,
   initialEquipmentId
 }: {
-  equipment: any[],
-  employees: any[],
-  projects: any[],
+  equipment: SelectableEquipment[],
+  employees: SelectableEmployee[],
+  projects: SelectableProject[],
   initialEquipmentId?: string
 }) {
   const router = useRouter()

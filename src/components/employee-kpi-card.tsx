@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { getEmployeeKpiBreakdown } from '@/app/admin/employees/kpi-actions'
 import { cn } from '@/lib/utils'
-import { Gauge, CalendarCheck, CheckSquare, Clock, History } from 'lucide-react'
+import { Gauge, CalendarCheck, CheckSquare, Clock, History, type LucideIcon } from 'lucide-react'
 
 interface KpiBreakdown {
  total_score: number
@@ -42,7 +41,7 @@ function ScoreRing({ score, size = 80, strokeWidth = 6 }: { score: number; size?
  )
 }
 
-function SubScoreBar({ label, score, max, icon: Icon, color }: { label: string; score: number; max: number; icon: any; color: string }) {
+function SubScoreBar({ label, score, max, icon: Icon, color }: { label: string; score: number; max: number; icon: LucideIcon; color: string }) {
  const pct = max > 0 ? Math.min(Math.round((score / max) * 100), 100) : 0
  const barColor = pct >= 80 ? 'bg-m3-success' : pct >= 60 ? 'bg-m3-warning' : 'bg-m3-error'
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getSignedUrl } from '@/lib/supabase/storage'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -8,6 +7,35 @@ import { Badge } from '@/components/ui/badge'
 import { TalentDetailActions } from './talent-detail-actions'
 import { BookingStatusActions } from './booking-status-actions'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
+
+type BookingWithProject = {
+  id: string
+  talent_id: string
+  project_id: string | null
+  booking_date: string
+  end_date: string | null
+  rate_type: string
+  rate_amount: number
+  total_compensation: number
+  status: string
+  description: string | null
+  location: string | null
+  notes: string | null
+  booked_by: string | null
+  created_at: string
+  projects: { title: string; id: string } | null
+}
+
+type ProjectHistoryWithProject = {
+  id: string
+  talent_id: string
+  project_id: string | null
+  role: string
+  feedback: string | null
+  rating: number | null
+  created_at: string
+  projects: { title: string; id: string } | null
+}
 
 export default async function TalentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
@@ -108,7 +136,7 @@ export default async function TalentDetailPage({ params }: { params: Promise<{ i
                             <p className="text-sm text-outline py-4 text-center">No bookings yet.</p>
                         ) : (
                             <div className="space-y-3">
-                                {bookings.map((booking: any) => (
+                                {bookings.map((booking: BookingWithProject) => (
                                     <div key={booking.id} className="flex justify-between items-start p-3 rounded-lg bg-surface-container border border-outline-variant card-morph">
                                         <div>
                                             <p className="font-medium text-sm text-on-surface">
@@ -148,7 +176,7 @@ export default async function TalentDetailPage({ params }: { params: Promise<{ i
                             <p className="text-sm text-outline py-4 text-center">No past project history.</p>
                         ) : (
                             <div className="space-y-3">
-                                {projectHistory.map((ph: any) => (
+                                {projectHistory.map((ph: ProjectHistoryWithProject) => (
                                     <div key={ph.id} className="flex justify-between items-start p-3 rounded-lg bg-surface-container border border-outline-variant card-morph">
                                         <div>
                                             <p className="font-medium text-sm text-on-surface">

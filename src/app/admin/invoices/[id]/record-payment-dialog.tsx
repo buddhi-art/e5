@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -19,8 +18,18 @@ import {
 import { CreditCard } from 'lucide-react'
 import { recordPayment } from '../actions'
 import { toast } from 'sonner'
+import type { InvoiceStatus } from '@/lib/constants/statuses'
 
-export function RecordPaymentDialog({ invoice }: { invoice: any }) {
+interface InvoiceForPayment {
+  id: string
+  grand_total: number
+  paid_amount: number
+  invoice_number: string
+  status: string
+  currency: string
+}
+
+export function RecordPaymentDialog({ invoice }: { invoice: InvoiceForPayment }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -45,7 +54,7 @@ export function RecordPaymentDialog({ invoice }: { invoice: any }) {
     setLoading(false)
   }
 
-  if (balanceDue <= 0 && invoice.status === 'paid') return null
+  if (balanceDue <= 0 && (invoice.status as InvoiceStatus) === 'paid' as InvoiceStatus) return null
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

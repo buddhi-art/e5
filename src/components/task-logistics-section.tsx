@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- package action results will receive generated Supabase types in the schema-typing pass. */
+// Package action results will receive generated Supabase types in the schema-typing pass.
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
@@ -10,6 +10,50 @@ import {
   updateLogistics,
 } from '@/app/admin/packages/actions'
 
+interface PackageLogisticsData {
+  location_address?: string
+  locations?: string[]
+  shoot_date?: string
+  start_time?: string
+  end_time?: string
+  assigned_staff_ids?: string[]
+  vehicles_taken?: string[]
+  equipments_taken?: string[]
+  revision_count?: number
+}
+
+interface PackageLogisticsEmployee {
+  id: string
+  full_name: string
+  designation: string | null
+  role?: string
+  social_urls?: { vehicle?: string; vehicle_details?: string }
+}
+
+interface PackageLogisticsEquipment {
+  id: string
+  name: string
+  model?: string | null
+  category?: string
+  status?: string
+}
+
+interface PackageLogisticsSiteVisit {
+  id: string
+  visit_date: string
+  reason: string
+  location_address?: string | null
+  profiles?: { full_name?: string } | { full_name?: string }[] | null
+}
+
+interface PackageLogisticsResult {
+  package?: { id: string; package_number: string }
+  logistics?: PackageLogisticsData
+  employees?: PackageLogisticsEmployee[]
+  equipmentList?: PackageLogisticsEquipment[]
+  siteVisits?: PackageLogisticsSiteVisit[]
+}
+
 interface TaskLogisticsSectionProps {
   projectId: string
 }
@@ -18,7 +62,7 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingRevision, setSavingRevision] = useState(false)
-  const [packageData, setPackageData] = useState<any>(null)
+  const [packageData, setPackageData] = useState<PackageLogisticsResult | null>(null)
   const [locations, setLocations] = useState<string[]>([''])
   const [shootDate, setShootDate] = useState('')
   const [startTime, setStartTime] = useState('')
@@ -148,7 +192,7 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
             <Truck className="h-4 w-4 text-primary" />
             Videography &amp; On-Site Logistics
           </h3>
-          <p className="mt-1 text-xs text-on-surface-variant">Changes save directly to package {packageData.package.package_number}, shared by its linked project tasks.</p>
+          <p className="mt-1 text-xs text-on-surface-variant">Changes save directly to package {packageData.package?.package_number ?? '…'}, shared by its linked project tasks.</p>
         </div>
         <span className="w-fit rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
           {revisionCount === 0 ? 'First shoot pending' : `${revisionCount} extra visit${revisionCount === 1 ? '' : 's'}`}
@@ -189,7 +233,7 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
 
           <SelectionPanel title="On-site staff / videographers" hint="Select everyone attending the shoot.">
             <div className="grid max-h-48 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
-              {employees.map((employee: any) => {
+              {employees.map((employee: PackageLogisticsEmployee) => {
                 const selected = staffIds.includes(employee.id)
                 const vehicleInfo = employee.social_urls?.vehicle_details || (employee.social_urls?.vehicle === 'yes' ? 'Owns vehicle' : '')
                 return <SelectionButton key={employee.id} selected={selected} onClick={() => toggleId(employee.id, staffIds, setStaffIds)} name={employee.full_name} detail={`${employee.designation || 'Team member'}${vehicleInfo ? ` · ${vehicleInfo}` : ''}`} />
@@ -198,8 +242,8 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
           </SelectionPanel>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <TagManager title="Equipment" icon={Camera} values={equipment} setValues={setEquipment} input={equipmentInput} setInput={setEquipmentInput} placeholder="Add custom equipment" selectOptions={equipmentList.map((item: any) => `${item.name}${item.model ? ` (${item.model})` : ''}`)} selectLabel="Select studio equipment" onAdd={() => addUniqueValue(equipmentInput, equipment, setEquipment, () => setEquipmentInput(''))} />
-            <TagManager title="Vehicles & transport" icon={Truck} values={vehicles} setValues={setVehicles} input={vehicleInput} setInput={setVehicleInput} placeholder="Add vehicle or transport detail" selectOptions={employees.filter((employee: any) => employee.social_urls?.vehicle === 'yes' || employee.social_urls?.vehicle_details).map((employee: any) => employee.social_urls?.vehicle_details ? `${employee.full_name} — ${employee.social_urls.vehicle_details}` : `${employee.full_name}'s vehicle`)} selectLabel="Select team vehicle" onAdd={() => addUniqueValue(vehicleInput, vehicles, setVehicles, () => setVehicleInput(''))} />
+            <TagManager title="Equipment" icon={Camera} values={equipment} setValues={setEquipment} input={equipmentInput} setInput={setEquipmentInput} placeholder="Add custom equipment" selectOptions={equipmentList.map((item: PackageLogisticsEquipment) => `${item.name}${item.model ? ` (${item.model})` : ''}`)} selectLabel="Select studio equipment" onAdd={() => addUniqueValue(equipmentInput, equipment, setEquipment, () => setEquipmentInput(''))} />
+            <TagManager title="Vehicles & transport" icon={Truck} values={vehicles} setValues={setVehicles} input={vehicleInput} setInput={setVehicleInput} placeholder="Add vehicle or transport detail" selectOptions={employees.filter((employee: PackageLogisticsEmployee) => employee.social_urls?.vehicle === 'yes' || employee.social_urls?.vehicle_details).map((employee: PackageLogisticsEmployee) => employee.social_urls?.vehicle_details ? `${employee.full_name} — ${employee.social_urls.vehicle_details}` : `${employee.full_name}'s vehicle`)} selectLabel="Select team vehicle" onAdd={() => addUniqueValue(vehicleInput, vehicles, setVehicles, () => setVehicleInput(''))} />
           </div>
 
           <div className="flex justify-end border-t border-outline-variant/50 pt-3">
@@ -213,12 +257,12 @@ export function TaskLogisticsSection({ projectId }: TaskLogisticsSectionProps) {
           <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4">
             <div className="flex items-start justify-between gap-3"><div><h4 className="flex items-center gap-1.5 text-xs font-semibold text-foreground"><RotateCcw className="h-4 w-4 text-primary" /> Site revision tracker</h4><p className="mt-1 text-[11px] leading-relaxed text-on-surface-variant">Log every additional site trip after the original shoot.</p></div><span className="font-mono text-2xl font-semibold text-foreground">{revisionCount}</span></div>
             <button type="button" onClick={() => setRevisionOpen(!revisionOpen)} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-500/20 dark:text-amber-400"><Plus className="h-3.5 w-3.5" /> Log extra site visit</button>
-            {revisionOpen && <div className="mt-3 space-y-3 border-t border-outline-variant/50 pt-3"><textarea value={revisionReason} onChange={(event) => setRevisionReason(event.target.value)} placeholder="Reason for this extra visit" className="min-h-20 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary/40" /><input type="date" value={revisionDate} onChange={(event) => setRevisionDate(event.target.value)} className="input-field" /><div className="grid max-h-32 grid-cols-2 gap-1 overflow-y-auto rounded-lg border border-outline-variant bg-surface-container-low p-2">{employees.map((employee: any) => <button key={employee.id} type="button" onClick={() => toggleId(employee.id, revisionStaffIds, setRevisionStaffIds)} className={`rounded-md px-2 py-1.5 text-left text-[11px] ${revisionStaffIds.includes(employee.id) ? 'bg-primary/10 text-primary' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>{employee.full_name}</button>)}</div><button type="button" disabled={savingRevision} onClick={logRevision} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">{savingRevision && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Save site visit</button></div>}
+            {revisionOpen && <div className="mt-3 space-y-3 border-t border-outline-variant/50 pt-3"><textarea value={revisionReason} onChange={(event) => setRevisionReason(event.target.value)} placeholder="Reason for this extra visit" className="min-h-20 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary/40" /><input type="date" value={revisionDate} onChange={(event) => setRevisionDate(event.target.value)} className="input-field" /><div className="grid max-h-32 grid-cols-2 gap-1 overflow-y-auto rounded-lg border border-outline-variant bg-surface-container-low p-2">{employees.map((employee: PackageLogisticsEmployee) => <button key={employee.id} type="button" onClick={() => toggleId(employee.id, revisionStaffIds, setRevisionStaffIds)} className={`rounded-md px-2 py-1.5 text-left text-[11px] ${revisionStaffIds.includes(employee.id) ? 'bg-primary/10 text-primary' : 'text-on-surface-variant hover:bg-surface-container-high'}`}>{employee.full_name}</button>)}</div><button type="button" disabled={savingRevision} onClick={logRevision} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">{savingRevision && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Save site visit</button></div>}
           </div>
 
           <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4">
             <h4 className="flex items-center gap-1.5 text-xs font-semibold text-foreground"><History className="h-4 w-4 text-primary" /> Recent visit history</h4>
-            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">{siteVisits.length === 0 ? <p className="py-3 text-center text-xs italic text-on-surface-variant">No additional site visits logged.</p> : siteVisits.map((visit: any) => <div key={visit.id} className="rounded-lg border border-outline-variant/50 bg-surface-container-low p-2.5 text-xs"><div className="flex justify-between gap-2 text-[11px] text-on-surface-variant"><span>{visit.visit_date}</span><span>{visit.profiles?.full_name || 'Admin'}</span></div><p className="mt-1 font-medium text-foreground">{visit.reason}</p>{visit.location_address && <p className="mt-1 truncate text-[11px] text-on-surface-variant">{visit.location_address}</p>}</div>)}</div>
+            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">{siteVisits.length === 0 ? <p className="py-3 text-center text-xs italic text-on-surface-variant">No additional site visits logged.</p> : siteVisits.map((visit: PackageLogisticsSiteVisit) => <div key={visit.id} className="rounded-lg border border-outline-variant/50 bg-surface-container-low p-2.5 text-xs"><div className="flex justify-between gap-2 text-[11px] text-on-surface-variant"><span>{visit.visit_date}</span><span>{(visit.profiles as { full_name?: string } | null)?.full_name || 'Admin'}</span></div><p className="mt-1 font-medium text-foreground">{visit.reason}</p>{visit.location_address && <p className="mt-1 truncate text-[11px] text-on-surface-variant">{visit.location_address}</p>}</div>)}</div>
           </div>
         </aside>
       </div>

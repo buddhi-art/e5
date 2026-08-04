@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useState, useCallback } from 'react'
@@ -12,7 +11,7 @@ const COLUMN_ORDER: KanbanColumnType[] = ['pending', 'in_progress', 'completed',
 export function KanbanClient({ initialTasks }: { initialTasks: KanbanTask[] }) {
     const [tasks, setTasks] = useState<KanbanTask[]>(initialTasks)
     const [draggedTask, setDraggedTask] = useState<KanbanTask | null>(null)
-    const [moving, setMoving] = useState<string | null>(null)
+    const [_moving, setMoving] = useState<string | null>(null)
 
     const tasksByStatus = (status: string) =>
         tasks.filter((t) => t.status === status)

@@ -10,21 +10,18 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-
-type ProjectStatus = 'not_started' | 'in_progress' | 'completed' | 'on_hold'
-
-const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
-    { value: 'not_started', label: 'Not Started' },
-    { value: 'in_progress', label: 'In Progress' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'on_hold', label: 'On Hold' },
-]
+import {
+    PROJECT_STATUSES,
+    PROJECT_STATUS_LABELS,
+    type ProjectStatus,
+} from '@/lib/constants/statuses'
 
 const STATUS_STYLES: Record<ProjectStatus, string> = {
     not_started: 'text-on-surface-variant bg-surface-container-high border-outline-variant',
     in_progress: 'text-m3-info bg-m3-info-subtle border-m3-info',
-    completed: 'text-m3-success bg-m3-success-subtle border-m3-success',
     on_hold: 'text-m3-warning bg-m3-warning-subtle border-m3-warning',
+    completed: 'text-m3-success bg-m3-success-subtle border-m3-success',
+    cancelled: 'text-destructive bg-destructive/20 border-destructive',
 }
 
 export function ProjectStatusSelect({ projectId, currentStatus }: { projectId: string; currentStatus: string }) {
@@ -52,9 +49,9 @@ export function ProjectStatusSelect({ projectId, currentStatus }: { projectId: s
                 <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-surface-container-lowest border-outline-variant text-on-surface">
-                {STATUS_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                        {opt.label}
+                {PROJECT_STATUSES.map(s => (
+                    <SelectItem key={s} value={s} className="text-xs">
+                        {PROJECT_STATUS_LABELS[s]}
                     </SelectItem>
                 ))}
             </SelectContent>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -112,7 +111,7 @@ export async function updateTalent(id: string, formData: FormData) {
     if (!parsed.success) return { error: 'Validation failed: ' + parsed.error.issues[0].message }
     const data = parsed.data
 
-    const updates: Record<string, any> = {
+    const updates: Record<string, unknown> = {
         full_name: data.full_name,
         stage_name: data.stage_name || null,
         talent_type: data.talent_type,

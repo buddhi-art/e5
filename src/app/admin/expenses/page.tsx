@@ -10,27 +10,30 @@ import { Plus } from 'lucide-react'
 export default async function ExpensesPage() {
   const supabase = await createClient()
 
-  // Fetch expenses
-  const { data: expenses, error } = await supabase
-    .from('expenses')
-    .select(`
-      *,
-      projects(title),
-      clients(company_name),
-      submitted_by_profile:profiles!expenses_submitted_by_fkey(full_name),
-      approved_by_profile:profiles!expenses_approved_by_fkey(full_name)
-    `)
-    .is('deleted_at', null)
-    .order('expense_date', { ascending: false })
+  // Fetch expenses and projects in parallel
+  const [expensesResult, projectsResult] = await Promise.all([
+    supabase
+      .from('expenses')
+      .select(`
+        *,
+        projects(title),
+        clients(company_name),
+        submitted_by_profile:profiles!expenses_submitted_by_fkey(full_name),
+        approved_by_profile:profiles!expenses_approved_by_fkey(full_name)
+      `)
+      .is('deleted_at', null)
+      .order('expense_date', { ascending: false }),
+    supabase
+      .from('projects')
+      .select('id, title')
+      .is('deleted_at', null)
+      .order('title', { ascending: true }),
+  ])
+
+  const { data: expenses, error } = expensesResult
+  const { data: projects } = projectsResult
 
   if (error) console.error('Expenses fetch error:', error.message)
-
-  // Fetch projects for filter
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('id, title')
-    .is('deleted_at', null)
-    .order('title', { ascending: true })
 
   return (
     <div className="space-y-6 card-morph morph-fade-in">

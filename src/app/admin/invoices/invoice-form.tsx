@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
@@ -14,13 +13,41 @@ import { toast } from 'sonner'
 import { createInvoice, updateInvoice, getProjectDates } from './actions'
 
 type InvoiceItem = {
- id: string
- description: string
- quantity: number
- unit_price: number
+  id: string
+  description: string
+  quantity: number
+  unit_price: number
 }
 
-export function InvoiceForm({ clients, projects, initialData }: { clients: any[], projects: any[], initialData?: any }) {
+interface ClientOption {
+  id: string
+  company_name: string
+  billing_address?: string | null
+  tax_id?: string | null
+}
+interface ProjectOption {
+  id: string
+  title: string
+  client_id: string
+}
+interface InvoiceInitialData {
+  id: string
+  client_id: string
+  project_id?: string | null
+  currency?: string
+  tax_rate?: number
+  discount_type?: string
+  discount_value?: number
+  advance_received?: number
+  issue_date?: string
+  due_date?: string
+  title?: string
+  description?: string | null
+  notes?: string | null
+  invoice_items?: InvoiceItem[]
+}
+
+export function InvoiceForm({ clients, projects, initialData }: { clients: ClientOption[], projects: ProjectOption[], initialData?: InvoiceInitialData }) {
  const router = useRouter()
  const [loading, setLoading] = useState(false)
  const [clientId, setClientId] = useState(initialData?.client_id || '')
@@ -33,7 +60,7 @@ export function InvoiceForm({ clients, projects, initialData }: { clients: any[]
  const [issueDate, setIssueDate] = useState(initialData?.issue_date || new Date().toISOString().split('T')[0])
  const [dueDate, setDueDate] = useState(initialData?.due_date || '')
 
- const [items, setItems] = useState<InvoiceItem[]>(initialData?.invoice_items?.map((item: any) => ({
+  const [items, setItems] = useState<InvoiceItem[]>(initialData?.invoice_items?.map((item) => ({
  id: item.id,
  description: item.description,
  quantity: item.quantity,
@@ -86,7 +113,7 @@ export function InvoiceForm({ clients, projects, initialData }: { clients: any[]
  setItems(items.filter(item => item.id !== id))
  }
 
- function updateItem(id: string, field: keyof InvoiceItem, value: any) {
+  function updateItem(id: string, field: keyof InvoiceItem, value: string | number) {
  setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item))
  }
 
@@ -122,9 +149,9 @@ export function InvoiceForm({ clients, projects, initialData }: { clients: any[]
  if (result?.error) {
  toast.error(result.error)
  setLoading(false)
- } else if ('invoiceId' in (result || {})) {
- toast.success('Invoice created successfully')
- router.push(`/admin/invoices/${(result as any).invoiceId}`)
+  } else if (result && 'invoiceId' in result) {
+  toast.success('Invoice created successfully')
+  router.push(`/admin/invoices/${(result as { invoiceId: string }).invoiceId}`)
  } else {
  toast.success(initialData ? 'Invoice updated successfully' : 'Invoice created successfully as Draft')
  router.push('/admin/invoices')
@@ -217,7 +244,7 @@ export function InvoiceForm({ clients, projects, initialData }: { clients: any[]
 
  <div className="space-y-2">
  <Label>Description (Optional)</Label>
- <Textarea name="description" defaultValue={initialData?.description} placeholder="Additional details..." className="bg-surface-container-high min-h-[80px]" />
+  <Textarea name="description" defaultValue={initialData?.description ?? undefined} placeholder="Additional details..." className="bg-surface-container-high min-h-[80px]" />
  </div>
  </CardContent>
  </Card>
@@ -291,7 +318,7 @@ export function InvoiceForm({ clients, projects, initialData }: { clients: any[]
  <CardTitle>Notes</CardTitle>
  </CardHeader>
  <CardContent>
- <Textarea name="notes" defaultValue={initialData?.notes} placeholder="Terms and conditions, payment details..." className="bg-surface-container-high min-h-[100px]" />
+  <Textarea name="notes" defaultValue={initialData?.notes ?? undefined} placeholder="Terms and conditions, payment details..." className="bg-surface-container-high min-h-[100px]" />
  </CardContent>
  </Card>
  </div>

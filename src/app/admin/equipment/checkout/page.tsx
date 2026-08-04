@@ -8,27 +8,29 @@ export default async function CheckoutEquipmentPage({ searchParams }: { searchPa
   const resolvedParams = await searchParams
 
 
-  // Fetch available equipment
-  const { data: equipment } = await supabase
-    .from('equipment')
-    .select('id, name, serial_number, category')
-    .eq('status', 'available')
-    .is('deleted_at', null)
-    .order('name')
+  // Fetch available equipment, employees, and active projects in parallel
+  const [equipmentResult, employeesResult, projectsResult] = await Promise.all([
+    supabase
+      .from('equipment')
+      .select('id, name, serial_number, category')
+      .eq('status', 'available')
+      .is('deleted_at', null)
+      .order('name'),
+    supabase
+      .from('profiles')
+      .select('id, full_name')
+      .order('full_name'),
+    supabase
+      .from('projects')
+      .select('id, title')
+      .not('status', 'eq', 'completed')
+      .is('deleted_at', null)
+      .order('title'),
+  ])
 
-  // Fetch employees
-  const { data: employees } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .order('full_name')
-
-  // Fetch active projects
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('id, title')
-    .not('status', 'eq', 'completed')
-    .is('deleted_at', null)
-    .order('title')
+  const { data: equipment } = equipmentResult
+  const { data: employees } = employeesResult
+  const { data: projects } = projectsResult
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">

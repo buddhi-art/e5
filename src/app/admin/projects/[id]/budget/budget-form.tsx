@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -12,7 +11,14 @@ import { Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { setProjectBudget } from '../../actions'
 
-export function BudgetForm({ projectId, initialBudget }: { projectId: string; initialBudget: any }) {
+interface ProjectBudget {
+  budget_amount: number
+  contingency_percent: number
+  notes: string | null
+  updated_at?: string
+}
+
+export function BudgetForm({ projectId, initialBudget }: { projectId: string; initialBudget: ProjectBudget | null }) {
  const router = useRouter()
  const [loading, setLoading] = useState(false)
 

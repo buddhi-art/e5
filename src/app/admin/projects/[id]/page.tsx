@@ -1,15 +1,50 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, FolderKanban, DollarSign, Users, Calendar, Clock, Plus, CheckSquare } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowLeft, FolderKanban, DollarSign, Calendar, Clock, Plus, CheckSquare } from 'lucide-react'
 import { ProjectActionsMenu } from '../project-actions-menu'
 import { TaskActionsMenu } from '@/app/admin/tasks/task-actions-menu'
 import { SubtaskCommentSection } from '@/components/subtask-comment-section'
 import { ProjectAssetsCard } from '@/components/project-assets-card'
 import { TaskPackageOperationsSummary } from '@/components/task-package-operations-summary'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
+
+interface SubtaskRow {
+  id: string
+  title: string
+  is_completed: boolean
+  sub_subtasks: SubSubtaskRow[]
+}
+
+interface SubSubtaskRow {
+  id: string
+  title: string
+  is_completed: boolean
+}
+
+interface TaskRow {
+  id: string
+  title: string
+  phase: string
+  status: string
+  deadline: string | null
+    assigned_to: string
+
+  project_id: string
+  profiles: { full_name: string } | null
+  projects: { title: string } | null
+  subtasks: SubtaskRow[]
+}
+
+interface CommentRow {
+  id: string
+  subtask_id: string
+  author_id: string
+  content: string
+  created_at: string
+  profiles: { full_name: string; role: string } | null
+}
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { supabase } = await requireAdminOrFounder()
@@ -33,9 +68,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         .order('created_at', { ascending: false })
 
     // Fetch all subtask comments for the loaded tasks
-    const subtaskIds = (tasks || []).flatMap(t => (t.subtasks || []).map((s: any) => s.id))
+    const taskRows = (tasks || []) as unknown as TaskRow[]
+    const subtaskIds = taskRows.flatMap(t => (t.subtasks || []).map(s => s.id))
 
-    let allComments: any[] = []
+    let allComments: CommentRow[] = []
     if (subtaskIds.length > 0) {
         const { data } = await supabase
             .from('subtask_comments')
@@ -45,7 +81,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         allComments = data || []
     }
 
-    const commentsBySubtask = new Map<string, any[]>()
+    const commentsBySubtask = new Map<string, CommentRow[]>()
     for (const comment of allComments) {
         const existing = commentsBySubtask.get(comment.subtask_id) || []
         existing.push(comment)
@@ -53,7 +89,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     }
 
     // Fetch employees assigned to tasks in this project
-    const assignedEmployeeIds = [...new Set((tasks || []).map(t => t.assigned_to).filter(Boolean))]
+    const assignedEmployeeIds = [...new Set(taskRows.map(t => t.assigned_to).filter((id): id is string => Boolean(id)))]
     const { data: employees } = await supabase.from('profiles').select('*').eq('role', 'employee')
 
     // Fetch budget data
@@ -256,7 +292,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                 <div className="space-y-4">
                                     {/* Overall Project Sub-task & Task Checklist Progress Bar */}
                                     {(() => {
-                                        const completedTaskCount = tasks.filter((t: any) => t.status === 'completed').length
+                                        const completedTaskCount = tasks.filter((t: TaskRow) => t.status === 'completed').length
                                         const overallTaskProgress = totalTasks > 0 ? Math.round((completedTaskCount / totalTasks) * 100) : 0
                                         return (
                                             <div className="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant/60 space-y-2">
@@ -274,8 +310,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                         )
                                     })()}
 
-                                    {tasks.map((task: any) => {
-                                        const completedSubs = task.subtasks?.filter((s: any) => s.is_completed).length || 0
+                                    {taskRows.map((task: TaskRow) => {
+                                        const completedSubs = task.subtasks?.filter((s: SubtaskRow) => s.is_completed).length || 0
                                         const totalSubs = task.subtasks?.length || 0
                                         const progress = totalSubs === 0 ? (task.status === 'completed' ? 100 : 0) : Math.round((completedSubs / totalSubs) * 100)
 
@@ -355,13 +391,13 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                                 {/* Canonical Package operations summary for Phase 2 and Phase 3. */}
                                                 <TaskPackageOperationsSummary
                                                     projectId={task.project_id}
-                                                    phase={task.phase}
+                                                    phase={task.phase ?? ''}
                                                 />
 
                                                 {/* Subtask list with comments */}
                                                 {task.subtasks && task.subtasks.length > 0 && (
                                                     <div className="mt-3 space-y-2">
-                                                        {task.subtasks.map((st: any) => {
+                                                        {task.subtasks.map((st: SubtaskRow) => {
                                                             const subComments = commentsBySubtask.get(st.id) || []
                                                             return (
                                                                 <div key={st.id} className="pl-3 border-l-2 border-outline-variant">
@@ -377,7 +413,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
                                                                     {st.sub_subtasks && st.sub_subtasks.length > 0 && (
                                                                         <div className="pl-4 py-1 space-y-1">
-                                                                            {st.sub_subtasks.map((sst: any) => (
+                                                                            {st.sub_subtasks.map((sst: SubSubtaskRow) => (
                                                                                 <div key={sst.id} className="flex items-center gap-2">
                                                                                     <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${sst.is_completed ? 'bg-m3-success' : 'bg-surface-container-highest'}`} />
                                                                                     <span className={`text-[11px] ${sst.is_completed ? 'text-outline line-through' : 'text-on-surface-variant'}`}>

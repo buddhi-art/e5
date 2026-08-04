@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Image as ImageIcon } from 'lucide-react'
@@ -13,14 +12,14 @@ export default async function EmployeeEquipmentPage() {
  if (!user) redirect('/login')
 
  // Fetch equipment
- const { data: equipment, error: eqError } = await supabase
+ const { data: equipment } = await supabase
  .from('equipment')
  .select('*')
  .is('deleted_at', null)
  .order('name')
 
  // Fetch checkouts for the current user that are still active
- const { data: myCheckouts, error: checkoutError } = await supabase
+ const { data: myCheckouts } = await supabase
  .from('equipment_checkouts')
  .select('equipment_id, checked_out_at, expected_return_at')
  .eq('checked_out_by', user.id)

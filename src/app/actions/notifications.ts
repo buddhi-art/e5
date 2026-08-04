@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -46,10 +45,10 @@ export async function getNotifications(): Promise<NotificationItem[]> {
         for (const leave of pendingLeaves || []) {
             const name = Array.isArray(leave.profiles)
                 ? leave.profiles[0]?.full_name
-                : (leave.profiles as any)?.full_name
+                : (leave.profiles as { full_name?: string } | null)?.full_name
             const leaveType = Array.isArray(leave.leave_types)
                 ? leave.leave_types[0]?.name
-                : (leave.leave_types as any)?.name
+                : (leave.leave_types as { name?: string } | null)?.name
             notifications.push({
                 id: `leave-${leave.id}`,
                 type: 'leave_request',
@@ -74,7 +73,7 @@ export async function getNotifications(): Promise<NotificationItem[]> {
         for (const task of overdueTasks || []) {
             const name = Array.isArray(task.profiles)
                 ? task.profiles[0]?.full_name
-                : (task.profiles as any)?.full_name
+                : (task.profiles as { full_name?: string } | null)?.full_name
             notifications.push({
                 id: `task-${task.id}`,
                 type: 'overdue_task',
@@ -98,7 +97,7 @@ export async function getNotifications(): Promise<NotificationItem[]> {
         for (const inv of overdueInvoices || []) {
             const companyName = Array.isArray(inv.clients)
                 ? inv.clients[0]?.company_name
-                : (inv.clients as any)?.company_name
+                : (inv.clients as { company_name?: string } | null)?.company_name
             notifications.push({
                 id: `inv-${inv.id}`,
                 type: 'overdue_invoice',
@@ -146,7 +145,7 @@ export async function getNotifications(): Promise<NotificationItem[]> {
         for (const leave of myLeaves || []) {
             const leaveType = Array.isArray(leave.leave_types)
                 ? leave.leave_types[0]?.name
-                : (leave.leave_types as any)?.name
+                : (leave.leave_types as { name?: string } | null)?.name
             notifications.push({
                 id: `eleave-${leave.id}`,
                 type: 'leave_request',

@@ -7,6 +7,7 @@ import { PackageSchema, PackagePaymentSchema, PackageItemSchema } from '@/lib/va
 import { calculatePackageItemTotal, formatGeneratedProjectTitle, getPackageItemProjectCount } from '@/lib/package-items'
 import { createNotification } from '@/lib/notifications'
 import { z } from 'zod'
+import { captureActionError } from '@/lib/action-error'
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 
@@ -161,7 +162,7 @@ export async function getPackagesList(params: {
 
         return { data: data || [], total: count || 0 }
     } catch (err: unknown) {
-        return { data: [], total: 0, error: (err instanceof Error ? err.message : String(err)) }
+        return { data: [], total: 0, error: await captureActionError('getPackagesList', err) }
     }
 }
 
@@ -195,7 +196,7 @@ export async function getPackageDashboardMetrics() {
             }
         }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('getPackageDashboardMetrics', err) }
     }
 }
 
@@ -377,7 +378,7 @@ export async function createPackage(formData: FormData) {
         revalidatePath('/founder/projects')
         return { success: true, packageId }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('createPackage', err) }
     }
 }
 
@@ -462,7 +463,7 @@ export async function getPackageDetails(packageId: string) {
             employees: employees || []
         }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('getPackageDetails', err) }
     }
 }
 
@@ -496,7 +497,7 @@ export async function getPackageDetailsForProject(projectId: string) {
         if (!packageId) return { error: 'This project is not linked to a package workspace.' }
         return getPackageDetails(packageId)
     } catch (err: unknown) {
-        return { error: err instanceof Error ? err.message : String(err) }
+        return { error: await captureActionError('getPackageDetailsForProject', err) }
     }
 }
 
@@ -614,7 +615,7 @@ export async function updatePackageItems(packageId: string, rawItems: unknown) {
         revalidatePath('/founder/projects')
         return { success: true }
     } catch (err: unknown) {
-        return { error: err instanceof Error ? err.message : String(err) }
+        return { error: await captureActionError('updatePackageItems', err) }
     }
 }
 
@@ -637,7 +638,7 @@ export async function deletePackage(packageId: string) {
         revalidatePath('/admin/packages')
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('deletePackage', err) }
     }
 }
 
@@ -701,7 +702,7 @@ export async function incrementRevisionCount(
         revalidatePath('/admin/projects')
         return { success: true, revisionCount: newCount }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('incrementRevisionCount', err) }
     }
 }
 
@@ -786,7 +787,7 @@ export async function updateLogistics(packageId: string, data: {
         revalidatePath('/admin/projects')
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('updateLogistics', err) }
     }
 }
 
@@ -861,7 +862,7 @@ export async function updatePostProduction(packageId: string, data: {
         revalidatePath('/admin/projects')
         return { success: true }
     } catch (err: unknown) {
-        return { error: err instanceof Error ? err.message : String(err) }
+        return { error: await captureActionError('updatePostProduction', err) }
     }
 }
 
@@ -895,7 +896,7 @@ export async function updateDeliverableStatus(deliverableId: string, packageId: 
         revalidatePath('/admin/projects')
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('updateDeliverableStatus', err) }
     }
 }
 
@@ -931,7 +932,7 @@ export async function addPackageDeliverable(packageId: string, title: string) {
         revalidatePath('/admin/projects')
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('addPackageDeliverable', err) }
     }
 }
 
@@ -1004,7 +1005,7 @@ export async function recordPackagePayment(formData: FormData) {
         revalidatePath('/admin/packages')
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('recordPackagePayment', err) }
     }
 }
 
@@ -1042,7 +1043,7 @@ export async function quickCreateClient(data: {
 
         return { success: true, client: newClient }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('quickCreateClient', err) }
     }
 }
 
@@ -1060,7 +1061,8 @@ export async function getClientsForSelect() {
             .order('company_name', { ascending: true })
 
         return data || []
-    } catch {
+    } catch (err: unknown) {
+        await captureActionError('getClientsForSelect', err)
         return []
     }
 }
@@ -1079,7 +1081,8 @@ export async function getEmployeesForSelect() {
             .order('full_name', { ascending: true })
 
         return data || []
-    } catch {
+    } catch (err: unknown) {
+        await captureActionError('getEmployeesForSelect', err)
         return []
     }
 }
@@ -1147,7 +1150,7 @@ export async function assignDeliverableEmployee(deliverableId: string, packageId
         revalidatePath('/admin/projects')
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('assignDeliverableEmployee', err) }
     }
 }
 
@@ -1203,7 +1206,7 @@ export async function submitDeliverableDriveLink(deliverableId: string, driveLin
 
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('submitDeliverableDriveLink', err) }
     }
 }
 
@@ -1271,7 +1274,7 @@ export async function approveDeliverable(deliverableId: string, packageId: strin
         revalidatePath(`/employee/packages/${packageId}`)
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('approveDeliverable', err) }
     }
 }
 
@@ -1334,7 +1337,7 @@ export async function requestDeliverableRevision(deliverableId: string, packageI
         revalidatePath(`/employee/packages/${packageId}`)
         return { success: true }
     } catch (err: unknown) {
-        return { error: (err instanceof Error ? err.message : String(err)) }
+        return { error: await captureActionError('requestDeliverableRevision', err) }
     }
 }
 
@@ -1360,7 +1363,8 @@ export async function getAssignedDeliverablesForEmployee() {
             .order('updated_at', { ascending: false })
 
         return data || []
-    } catch {
+    } catch (err: unknown) {
+        await captureActionError('getAssignedDeliverablesForEmployee', err)
         return []
     }
 }
@@ -1397,7 +1401,7 @@ export async function getPendingFounderReviews() {
 
         return data || []
     } catch (err: unknown) {
-        console.error('Founder review queue unavailable:', err)
+        await captureActionError('getPendingFounderReviews', err)
         throw err
     }
 }

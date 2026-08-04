@@ -22,7 +22,7 @@ import {
 import { toast } from 'sonner'
 import { Pencil, Globe, Camera, Music2, MessageCircle } from 'lucide-react'
 
-type Client = {
+export type Client = {
  id: string
  client_type: string | null
  company_name: string

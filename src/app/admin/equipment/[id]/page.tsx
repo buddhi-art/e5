@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from 'next/link'
 import { ArrowLeft, Edit, PenTool, ClipboardCheck, ArrowRightLeft, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -7,6 +6,23 @@ import { format } from 'date-fns'
 import { EquipmentPhoto } from './equipment-photo'
 import { EquipmentDetailActions } from './equipment-detail-actions'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
+import type { EquipmentMaintenance } from '@/types/equipment'
+
+type CheckoutWithJoins = {
+  id: string
+  equipment_id: string
+  checked_out_by: string
+  checked_out_at: string
+  expected_return_at: string | null
+  project_id: string | null
+  condition_at_checkout: string | null
+  checked_in_at: string | null
+  condition_at_checkin: string | null
+  notes: string | null
+  created_at: string
+  checked_out_by_profile: { full_name: string } | null
+  projects: { title: string } | null
+}
 
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { supabase } = await requireAdminOrFounder()
@@ -34,6 +50,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
     `)
     .eq('equipment_id', resolvedParams.id)
     .order('checked_out_at', { ascending: false })
+    .returns<CheckoutWithJoins[]>()
 
   // Fetch maintenance
   const { data: maintenance } = await supabase
@@ -83,7 +100,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
           <div>
             <h4 className="font-semibold">Currently Checked Out</h4>
             <p className="text-sm mt-1">
-              Checked out by <strong>{(currentCheckout.checked_out_by_profile as any)?.full_name}</strong> since {format(new Date(currentCheckout.checked_out_at), 'MMM d, yyyy')}.
+              Checked out by <strong>{currentCheckout.checked_out_by_profile?.full_name}</strong> since {format(new Date(currentCheckout.checked_out_at), 'MMM d, yyyy')}.
               {currentCheckout.expected_return_at && ` Expected return: ${format(new Date(currentCheckout.expected_return_at), 'MMM d, yyyy')}.`}
               {currentCheckout.projects?.title && ` Project: ${currentCheckout.projects.title}.`}
             </p>
@@ -177,7 +194,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
               {!checkouts || checkouts.length === 0 ? (
                 <div className="p-6 text-center text-outline text-sm">No checkout history.</div>
               ) : (
-                checkouts.map((c: any) => (
+                checkouts.map((c) => (
                   <div key={c.id} className="p-4 sm:p-6 text-sm flex flex-col sm:flex-row gap-4">
                     <div className="flex-1">
                       <p className="font-medium text-on-surface mb-1">
@@ -221,7 +238,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
               {!maintenance || maintenance.length === 0 ? (
                 <div className="p-6 text-center text-outline text-sm">No maintenance history.</div>
               ) : (
-                maintenance.map((m: any) => (
+                maintenance.map((m: EquipmentMaintenance) => (
                   <div key={m.id} className="p-4 sm:p-6 text-sm flex justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">

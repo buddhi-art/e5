@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -13,7 +12,14 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 
-export function RequestLeaveForm({ availableTypes }: { availableTypes: any[] }) {
+interface AvailableLeaveType {
+  id: string
+  name: string
+  remaining_days: number
+  is_paid: boolean
+}
+
+export function RequestLeaveForm({ availableTypes }: { availableTypes: AvailableLeaveType[] }) {
  const router = useRouter()
  const [loading, setLoading] = useState(false)
  const [startDate, setStartDate] = useState('')

@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { addMonths, subMonths, addWeeks, subWeeks, format } from 'date-fns'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
+import { addMonths, subMonths, addWeeks, subWeeks } from 'date-fns'
 import { CalendarMonthGrid } from './calendar-month-grid'
 
 interface CalendarTask {
@@ -15,7 +14,7 @@ interface CalendarTask {
  status: string
  assigned_to: string | null
  profiles: { full_name: string } | null
- projects: { title: string; id: string; status: string; clients: { company_name: string } | null }
+  projects: { title: string; id: string; status: string; clients: { company_name: string } | null } | null
 }
 
 interface CalendarLeave {

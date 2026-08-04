@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { TaskForm } from './task-form'
@@ -11,66 +10,64 @@ export const revalidate = 300
 export default async function TasksPage() {
   const supabase = await createClient()
 
-  // Fetch employees (active only - exclude archived)
-  const { data: employees, error: employeesErr } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('role', 'employee')
-    .is('deleted_at', null)
-    .order('full_name')
-
-  // Fetch active projects for the TaskForm
-  const { data: allProjects, error: projectsErr } = await supabase
-    .from('projects')
-    .select('*, clients(company_name)')
-    .neq('status', 'completed')
-    .order('created_at', { ascending: false })
-
-  const projects = (allProjects || []).filter((p: any) => !p.deleted_at)
-
-  // Fetch clients with nested projects and tasks for the Client-Category View
-  // The hierarchy is: client → projects → tasks → subtasks → sub_subtasks
-  // Tasks include logistics JSON for the phase workspace summary.
-  // Subtasks include deliverable_id and assigned_to so the accordion can
-  // show deliverable-linked items and employee assignments inline.
-  const { data: clients, error: clientsErr } = await supabase
-    .from('clients')
-    .select(`
-      id,
-      company_name,
-      projects(
+  // Fetch employees, projects, and clients in parallel
+  const [employeesResult, allProjectsResult, clientsResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'employee')
+      .is('deleted_at', null)
+      .order('full_name'),
+    supabase
+      .from('projects')
+      .select('*, clients(company_name)')
+      .neq('status', 'completed')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('clients')
+      .select(`
         id,
-        title,
-        status,
-        deleted_at,
-        package_id,
-        tasks(
+        company_name,
+        projects(
           id,
           title,
           status,
-          phase,
-          deadline,
-          start_date,
-          assigned_to,
-          logistics,
-          subtasks(
+          deleted_at,
+          package_id,
+          tasks(
             id,
             title,
-            is_completed,
-            deliverable_id,
-            assigned_to,
-            sort_order,
             status,
-            sub_subtasks(
+            phase,
+            deadline,
+            start_date,
+            assigned_to,
+            logistics,
+            subtasks(
               id,
               title,
-              is_completed
+              is_completed,
+              deliverable_id,
+              assigned_to,
+              sort_order,
+              status,
+              sub_subtasks(
+                id,
+                title,
+                is_completed
+              )
             )
           )
         )
-      )
-    `)
-    .order('company_name')
+      `)
+      .order('company_name'),
+  ])
+
+  const { data: employees, error: employeesErr } = employeesResult
+  const { data: allProjects, error: projectsErr } = allProjectsResult
+  const { data: clients, error: clientsErr } = clientsResult
+
+  const projects = (allProjects || []).filter((p: { deleted_at?: string | null }) => !p.deleted_at)
 
   if (employeesErr) console.error('Employees fetch error:', employeesErr.message)
   if (projectsErr) console.error('Projects fetch error:', projectsErr.message)
@@ -79,7 +76,7 @@ export default async function TasksPage() {
   // Filter out archived projects inside the clients
   const clientOverview = (clients || []).map(client => ({
     ...client,
-    projects: (client.projects || []).filter((p: any) => p.status !== 'completed' && !p.deleted_at)
+    projects: (client.projects || []).filter((p: { status?: string; deleted_at?: string | null }) => p.status !== 'completed' && !p.deleted_at)
   })).filter(client => client.projects.length > 0)
 
   return (
@@ -110,6 +107,7 @@ export default async function TasksPage() {
           </CardHeader>
 
           <CardContent>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <ClientProjectsAccordion clients={clientOverview as any} employees={employees || []} />
           </CardContent>
         </Card>

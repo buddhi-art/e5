@@ -15,8 +15,7 @@ export async function getEmployeeKpiBreakdown(employeeId: string) {
         })
 
         if (error) {
-            console.error('KPI breakdown error:', error)
-            return { error: error.message }
+            return { error: await captureActionError('getEmployeeKpiBreakdown:rpc', error) }
         }
 
         return { data }

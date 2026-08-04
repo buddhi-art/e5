@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -12,6 +11,7 @@ import { SubtaskCommentSection } from '@/components/subtask-comment-section'
 import { TaskLogisticsView } from '@/components/task-logistics-view'
 import { TaskPhaseActions } from '@/components/employee/task-phase-actions'
 import { isWorkspacePhase, PHASE_LABELS } from '@/lib/phase-workspace'
+import type { ChecklistItem } from '@/lib/validations'
 
 type Comment = {
   id: string
@@ -22,7 +22,30 @@ type Comment = {
   profiles: { full_name: string; role: string } | null
 }
 
-export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySubtask: Record<string, Comment[]> }) {
+type SubSubtask = { id: string; title: string; is_completed: boolean }
+type Subtask = { id: string; title: string; is_completed: boolean; sub_subtasks?: SubSubtask[] }
+type LogisticsData = {
+  shootDate?: string
+  editingDate?: string
+  startTime?: string
+  endTime?: string
+  checklist?: ChecklistItem[]
+  [key: string]: unknown
+}
+type Project = { title?: string | null; clients?: { company_name?: string | null } | null }
+type Task = {
+  id: string
+  title: string
+  status: string
+  phase: string
+  description?: string | null
+  deadline?: string | null
+  logistics?: LogisticsData | null
+  projects?: Project | null
+  subtasks?: Subtask[]
+}
+
+export function TaskCard({ task, commentsBySubtask }: { task: Task; commentsBySubtask: Record<string, Comment[]> }) {
   const [loading, setLoading] = useState<string | null>(null)
 
   const handleSubtaskToggle = async (subtaskId: string, currentStatus: boolean) => {
@@ -53,7 +76,7 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
   }
 
   const totalSubs = task.subtasks?.length || 0
-  const completedSubs = task.subtasks?.filter((s: any) => s.is_completed).length || 0
+  const completedSubs = task.subtasks?.filter(s => s.is_completed).length || 0
   const progress = totalSubs === 0 ? (task.status === 'completed' ? 100 : 0) : Math.round((completedSubs / totalSubs) * 100)
   const workspacePhase = isWorkspacePhase(task.phase) ? task.phase : null
   const phaseChipClass: Record<string, string> = {
@@ -102,8 +125,9 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
         )}
 
         {/* Logistics Information */}
-        <TaskLogisticsView
-          logistics={task.logistics}
+          <TaskLogisticsView
+            logistics={task.logistics || {}}
+
           phase={task.phase}
         />
 
@@ -111,7 +135,7 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
           <TaskPhaseActions
             taskId={task.id}
             phase={workspacePhase}
-            logistics={task.logistics}
+            logistics={task.logistics || {}}
           />
         )}
 
@@ -142,7 +166,7 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
             </div>
 
             <div className="space-y-2">
-              {task.subtasks.map((st: any) => {
+              {task.subtasks?.map(st => {
                 const subComments = commentsBySubtask[st.id] || []
                 return (
                   <div key={st.id} className="bg-surface-container-high rounded-md border border-outline-variant/40/80 overflow-hidden">
@@ -165,7 +189,7 @@ export function TaskCard({ task, commentsBySubtask }: { task: any; commentsBySub
                     {/* Sub-sub-tasks */}
                     {st.sub_subtasks && st.sub_subtasks.length > 0 && (
                       <div className="pl-9 pr-3 pb-3 space-y-1.5 border-t border-outline-variant/20 pt-2">
-                        {st.sub_subtasks.map((sst: any) => (
+                        {st.sub_subtasks?.map(sst => (
                           <div key={sst.id} className="flex items-start gap-2.5">
                             <Checkbox
                               id={`sst-${sst.id}`}

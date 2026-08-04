@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Link from 'next/link'
-import { Plus, Search, Filter } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { EquipmentList } from './equipment-list'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 

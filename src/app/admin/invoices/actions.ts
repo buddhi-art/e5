@@ -1,13 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { InvoiceSchema, InvoicePaymentSchema, UuidParamSchema, InvoiceStatusUpdateSchema } from '@/lib/validations'
+import { InvoiceSchema, InvoicePaymentSchema, UuidParamSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { executeInvoiceCreation } from '@/lib/supabase/transactions'
 import { captureActionError } from '@/lib/action-error'
 
+interface InvoiceItemInput { description: string; quantity: number; unit_price: number }
 export async function createInvoice(formData: FormData) {
     try {
         const supabase = await createClient()
@@ -51,14 +51,14 @@ export async function createInvoice(formData: FormData) {
             description: data.description || null,
             issue_date: data.issue_date || new Date().toISOString().split('T')[0],
             due_date: data.due_date,
-            status: 'draft',
+            status: 'draft' as const,
             currency: data.currency || 'NPR',
             tax_rate: data.tax_rate,
             advance_received: data.advance_received,
             discount_type: data.discount_type,
             discount_value: data.discount_value,
             notes: data.notes || null,
-        }, data.items.map((item: any) => ({
+        }, data.items.map((item: InvoiceItemInput) => ({
             description: item.description,
             quantity: item.quantity,
             unit_price: item.unit_price,
@@ -236,7 +236,7 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
         const isAuthorized = await verifyAdminOrFounder(supabase, user.id);
         if (!isAuthorized) return { error: 'Permission denied.' };
 
-        const subtotal = data.items.reduce((sum: number, item: any) => sum + item.quantity * item.unit_price, 0)
+        const subtotal = data.items.reduce((sum: number, item: InvoiceItemInput) => sum + item.quantity * item.unit_price, 0)
         const discount_amount = data.discount_type === 'percentage'
             ? (subtotal * data.discount_value) / 100
             : data.discount_value
@@ -274,7 +274,7 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
 
         if (invError) return { error: invError.message }
 
-        const itemInserts = data.items.map((item: any) => ({
+        const itemInserts = data.items.map((item: InvoiceItemInput) => ({
             invoice_id: invoiceId,
             description: item.description,
             quantity: item.quantity,
@@ -344,8 +344,7 @@ export async function updateOverdueInvoices() {
             .is('deleted_at', null)
 
         if (error) {
-            console.error('Error updating overdue invoices:', error)
-            return { error: error.message }
+            return { error: await captureActionError('updateOverdueInvoices', error) }
         }
 
         if (overdueInvoices && overdueInvoices.length > 0) {
@@ -357,7 +356,7 @@ export async function updateOverdueInvoices() {
 
             const notifications = overdueInvoices.flatMap((inv) => {
                 const companyName = typeof inv.clients === 'object' && inv.clients !== null
-                    ? (inv.clients as any)?.company_name
+                    ? (inv.clients as { company_name?: string } | null)?.company_name
                     : 'Unknown'
                 return (adminUsers || []).map((admin) => ({
                     user_id: admin.id,
@@ -369,7 +368,7 @@ export async function updateOverdueInvoices() {
             })
             if (notifications.length > 0) {
                 const { error: notificationError } = await supabase.from('notifications').insert(notifications)
-                if (notificationError) console.error('Error creating overdue notifications:', notificationError)
+                if (notificationError) await captureActionError('updateOverdueInvoices:notifications', notificationError)
             }
         }
 

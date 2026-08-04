@@ -1,16 +1,20 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use client'
 
+import type { LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
  Users, FolderKanban, DollarSign, Camera, TrendingUp, TrendingDown,
- CalendarCheck, Clock, CalendarOff, Timer, Receipt, Wallet, FileText,
- CheckSquare, AlertTriangle, Percent, BarChart3, Target, HeartPulse, Gauge,
- Activity, UserSquare2, Briefcase, Sparkles, Minus, ArrowUp,
- LayoutDashboard
+  CalendarCheck, Clock, CalendarOff, Timer, Receipt, Wallet,
+  CheckSquare, AlertTriangle, Percent, BarChart3, Target, HeartPulse, Gauge,
+  Activity, UserSquare2, Briefcase, Minus, ArrowUp,
+  LayoutDashboard
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+/* ── Local row types for Supabase results ── */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseRow = Record<string, any>
 
 /* ──────────────────────────────────────
  Types
@@ -45,8 +49,8 @@ interface FounderData {
  clientCount: number
  totalMeetings: number
  month: string
- recentTasks: any[]
- todayAttendance: any[]
+  recentTasks: SupabaseRow[]
+  todayAttendance: SupabaseRow[]
  expenseByCategory: { category: string; total: number }[]
  monthlyRevenueData: { month: string; revenue: number }[]
  topClients: { company_name: string; revenue: number }[]
@@ -125,7 +129,7 @@ function HealthScore({ score }: { score: number }) {
  Stat Card (optional href — founder reads only)
  ────────────────────────────────────── */
 interface StatCardProps {
- label: string; value: number; icon: any
+  label: string; value: number; icon: LucideIcon
  color: 'primary' | 'tertiary' | 'secondary' | 'error' | 'emerald' | 'amber'
  trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
  suffix?: string; decimals?: number; subtitle?: string; delay?: number; href?: string
@@ -204,7 +208,7 @@ function StatusBadge({ status }: { status: string }) {
 /* ──────────────────────────────────────
  Section Header
  ────────────────────────────────────── */
-function SectionHeader({ icon: Icon, title, subtitle }: { icon: any; title: string; subtitle?: string }) {
+function SectionHeader({ icon: Icon, title, subtitle }: { icon: LucideIcon; title: string; subtitle?: string }) {
  return (
  <div className="flex items-center justify-between mb-4">
  <div className="flex items-center gap-3">
@@ -240,7 +244,7 @@ function MiniProgress({ value, max, color = 'primary' }: { value: number; max: n
 /* ──────────────────────────────────────
  Domain Score Block
  ────────────────────────────────────── */
-function DomainScore({ label, score, max, icon: Icon }: { label: string; score: number; max: number; icon: any }) {
+function DomainScore({ label, score, max, icon: Icon }: { label: string; score: number; max: number; icon: LucideIcon }) {
  const pct = max > 0 ? Math.min(Math.round((score / max) * 100), 100) : 0
  const color = pct >= 80 ? 'emerald' : pct >= 60 ? 'amber' : 'red'
  return (
@@ -274,12 +278,12 @@ export function FounderDashboardClient({ data }: { data: FounderData }) {
  totalEmployees, checkedInToday, onLeaveToday, absentToday, lateToday,
  attendanceRate, activeProjects, completedProjects, projectHealthPercent,
  pendingTasks, inProgressTasks, completedTasks, overdueTasks, onTimeCompletion,
- totalReceivable, revenueThisMonth, revenueLastMonth, totalExpenses, budgetUtilization,
- draftInvoices, activeInvoices, overdueInvoices, paidInvoices,
- equipmentAvailable, equipmentCheckedOut, equipmentInMaintenance,
- clientCount, month, recentTasks, todayAttendance, expenseByCategory,
- monthlyRevenueData, topClients, completedTasksThisMonth, tasksThisMonth,
- monthlyInvoicesPaid, monthlyInvoicesTotal, bottleneckAnalytics, taskTimeliness
+  totalReceivable, revenueThisMonth, revenueLastMonth, totalExpenses, budgetUtilization,
+  overdueInvoices, paidInvoices,
+  equipmentAvailable, equipmentCheckedOut, equipmentInMaintenance,
+  clientCount, month, recentTasks, todayAttendance, expenseByCategory,
+  monthlyRevenueData, topClients, completedTasksThisMonth, tasksThisMonth,
+  monthlyInvoicesPaid, monthlyInvoicesTotal, bottleneckAnalytics, taskTimeliness
  } = data
 
  // Compute health score the same way as admin dashboard
@@ -527,7 +531,7 @@ export function FounderDashboardClient({ data }: { data: FounderData }) {
  <div className="px-5 pb-5">
  {todayAttendance && todayAttendance.length > 0 ? (
  <div className="divide-y divide-outline-variant/20">
- {todayAttendance.slice(0, 8).map((entry: any, i: number) => (
+              {todayAttendance.slice(0, 8).map((entry: SupabaseRow, i: number) => (
  <div key={entry.id} className={cn('flex items-center justify-between py-2.5', i === 0 && 'pt-0')}>
  <div className="flex items-center gap-3">
  <div className="w-7 h-7 rounded-full bg-primary-container text-primary flex items-center justify-center text-xs font-bold shadow-sm">
@@ -564,7 +568,7 @@ export function FounderDashboardClient({ data }: { data: FounderData }) {
  <div className="px-5 pb-5">
  {recentTasks && recentTasks.length > 0 ? (
  <div className="divide-y divide-outline-variant/20">
- {recentTasks.map((task: any, i: number) => {
+          {recentTasks.map((task: SupabaseRow, i: number) => {
  const projectName = task.projects?.title || 'Project'
  const match = task.title?.match(/^E5_Task_\d+\s*-\s*(.*)/)
  const displayTitle = match ? `${projectName} — ${match[1]}` : `${projectName} — ${task.title}`

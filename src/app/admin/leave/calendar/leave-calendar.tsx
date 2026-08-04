@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
  format,
@@ -14,7 +12,6 @@ import {
  addMonths,
  subMonths,
  isSameMonth,
- isSameDay,
  isToday,
  eachDayOfInterval,
 } from 'date-fns'

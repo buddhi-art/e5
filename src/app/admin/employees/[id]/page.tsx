@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -221,7 +220,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
                             {tasks && tasks.length > 0 ? (
                                 <div className="divide-y divide-outline-variant">
                                     {tasks.map(task => {
-                                        const completedSubs = task.subtasks?.filter((s: any) => s.is_completed).length || 0
+                                        const completedSubs = task.subtasks?.filter((s: { is_completed: boolean }) => s.is_completed).length || 0
                                         const totalSubs = task.subtasks?.length || 0
                                         return (
                                             <div key={task.id} className="py-3 flex items-center justify-between">

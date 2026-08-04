@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -13,7 +12,17 @@ import { Save } from "lucide-react"
 import { toast } from 'sonner'
 import { createExpense, addExpenseCategory } from './actions'
 
-export function ExpenseForm({ clients, projects }: { clients: any[], projects: any[] }) {
+interface ClientOption {
+  id: string
+  company_name: string
+}
+interface ProjectOption {
+  id: string
+  title: string
+  client_id: string
+}
+
+export function ExpenseForm({ clients, projects }: { clients: ClientOption[], projects: ProjectOption[] }) {
  const router = useRouter()
  const [loading, setLoading] = useState(false)
  const [clientId, setClientId] = useState('none')

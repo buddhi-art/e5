@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useState, useTransition } from 'react'
@@ -8,7 +7,7 @@ import { Pencil, Check, X } from 'lucide-react'
 import { adjustLeaveBalance } from '../actions'
 import { toast } from 'sonner'
 
-export function EditBalanceCell({ balanceId, userId, leaveTypeId, year, totalDays }: { balanceId: string; userId: string; leaveTypeId: string; year: number; totalDays: number }) {
+export function EditBalanceCell({ userId, leaveTypeId, year, totalDays, balanceId: _balanceId }: { balanceId: string; userId: string; leaveTypeId: string; year: number; totalDays: number }) {
     const [editing, setEditing] = useState(false)
     const [value, setValue] = useState(String(totalDays))
     const [isPending, startTransition] = useTransition()

@@ -1,14 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Printer, Pencil, AlertCircle, Send } from 'lucide-react'
+import { ArrowLeft, Pencil, AlertCircle, Send } from 'lucide-react'
 import { RecordPaymentDialog } from './record-payment-dialog'
 import { PrintButton } from './print-button'
 import { format } from 'date-fns'
 import { InvoiceTimeline } from './timeline'
+import { INVOICE_STATUS_LABELS, type InvoiceStatus } from '@/lib/constants/statuses'
+
+interface InvoiceItem { id: string; description: string; quantity: number; unit_price: number; amount: number; created_at: string }
+interface InvoicePayment { id: string; payment_date: string; amount: number; payment_method: string; reference_number: string | null; received_by_profile: { full_name: string } | null }
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
  const supabase = await createClient()
@@ -41,23 +44,23 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
  .eq('invoice_id', resolvedParams.id)
  .order('occurred_at', { ascending: true })
 
- const isOverdue = new Date(invoice.due_date) < new Date() && ['sent', 'partially_paid', 'draft'].includes(invoice.status)
+  const isOverdue = new Date(invoice.due_date) < new Date() && (['sent', 'partially_paid', 'draft'] as InvoiceStatus[]).includes(invoice.status as InvoiceStatus)
 
  // Sort items by creation date
- const items = invoice.invoice_items?.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) || []
- const payments = invoice.payments?.sort((a: any, b: any) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime()) || []
+  const items = (invoice.invoice_items as InvoiceItem[] | null)?.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) || []
+  const payments = (invoice.payments as InvoicePayment[] | null)?.sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime()) || []
 
- function getStatusBadge(status: string) {
- switch (status) {
- case 'paid': return <Badge className="bg-primary-container text-on-primary-container">Paid</Badge>
- case 'partially_paid': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">Partial</Badge>
- case 'sent': return <Badge variant="secondary" className="bg-m3-warning-subtle text-m3-warning">Sent</Badge>
- case 'draft': return <Badge variant="outline">Draft</Badge>
- case 'overdue': return <Badge variant="destructive">Overdue</Badge>
- case 'cancelled': return <Badge variant="destructive" className="bg-destructive/20 text-destructive hover:bg-destructive/30">Cancelled</Badge>
- default: return <Badge variant="outline">{status}</Badge>
- }
- }
+  function getStatusBadge(status: string) {
+  switch (status as InvoiceStatus) {
+  case 'paid': return <Badge className="bg-primary-container text-on-primary-container">{INVOICE_STATUS_LABELS.paid}</Badge>
+  case 'partially_paid': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">Partial</Badge>
+  case 'sent': return <Badge variant="secondary" className="bg-m3-warning-subtle text-m3-warning">{INVOICE_STATUS_LABELS.sent}</Badge>
+  case 'draft': return <Badge variant="outline">{INVOICE_STATUS_LABELS.draft}</Badge>
+  case 'overdue': return <Badge variant="destructive">{INVOICE_STATUS_LABELS.overdue}</Badge>
+  case 'cancelled': return <Badge variant="destructive" className="bg-destructive/20 text-destructive hover:bg-destructive/30">{INVOICE_STATUS_LABELS.cancelled}</Badge>
+  default: return <Badge variant="outline">{status}</Badge>
+  }
+  }
 
  return (
  <div className="space-y-6 max-w-4xl mx-auto pb-12">
@@ -68,7 +71,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
  Back to Invoices
  </Link>
  <div className="flex items-center gap-3 w-full sm:w-auto">
- {invoice.status === 'draft' && (
+  {(invoice.status as InvoiceStatus) === 'draft' as InvoiceStatus && (
  <>
  <form action={async () => {
  'use server'
@@ -173,7 +176,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
  </tr>
  </thead>
  <tbody className="divide-y divide-outline-variant/20">
- {items.map((item: any) => (
+          {items.map((item) => (
  <tr key={item.id}>
  <td className="py-4 text-foreground">{item.description}</td>
  <td className="py-4 text-right text-on-surface-variant px-4">{item.quantity}</td>
@@ -256,7 +259,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
  </tr>
  </thead>
  <tbody className="divide-y divide-outline-variant/20">
- {payments.map((p: any) => (
+          {payments.map((p) => (
  <tr key={p.id}>
  <td className="py-3 px-4">{format(new Date(p.payment_date), 'MMM d, yyyy')}</td>
  <td className="py-3 px-4 font-medium text-m3-success">

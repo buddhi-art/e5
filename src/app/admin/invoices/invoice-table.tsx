@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useState } from 'react'
@@ -12,14 +11,29 @@ import { MoreHorizontal, Eye, Pencil, Trash, FileDown } from "lucide-react"
 import Link from 'next/link'
 import { deleteInvoice } from './actions'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { INVOICE_STATUSES, INVOICE_STATUS_LABELS, type InvoiceStatus } from '@/lib/constants/statuses'
 
-export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: any[], clients: any[] }) {
+interface InvoiceRow {
+  id: string
+  invoice_number: string
+  client_id: string
+  grand_total: number
+  currency: string
+  due_date: string
+  issue_date: string
+  status: string
+  paid_amount: number
+  clients: { company_name: string } | null
+  projects: { title: string } | null
+}
+
+interface ClientOption { id: string; company_name: string }
+
+export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: InvoiceRow[], clients: ClientOption[] }) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [clientFilter, setClientFilter] = useState('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const router = useRouter()
 
   const filteredInvoices = initialInvoices.filter(inv => {
     if (statusFilter !== 'all' && inv.status !== statusFilter) return false
@@ -67,13 +81,13 @@ export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: an
   }
 
   function getStatusBadge(status: string) {
-    switch (status) {
-      case 'paid': return <Badge className="bg-primary-container text-on-primary-container">Paid</Badge>
+    switch (status as InvoiceStatus) {
+      case 'paid': return <Badge className="bg-primary-container text-on-primary-container">{INVOICE_STATUS_LABELS.paid}</Badge>
       case 'partially_paid': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">Partial</Badge>
-      case 'sent': return <Badge variant="secondary" className="bg-m3-warning-subtle text-m3-warning">Sent</Badge>
-      case 'draft': return <Badge variant="outline" className="text-on-surface-variant">Draft</Badge>
-      case 'overdue': return <Badge variant="destructive">Overdue</Badge>
-      case 'cancelled': return <Badge variant="destructive" className="bg-destructive/20 text-destructive hover:bg-destructive/30">Cancelled</Badge>
+      case 'sent': return <Badge variant="secondary" className="bg-m3-warning-subtle text-m3-warning">{INVOICE_STATUS_LABELS.sent}</Badge>
+      case 'draft': return <Badge variant="outline" className="text-on-surface-variant">{INVOICE_STATUS_LABELS.draft}</Badge>
+      case 'overdue': return <Badge variant="destructive">{INVOICE_STATUS_LABELS.overdue}</Badge>
+      case 'cancelled': return <Badge variant="destructive" className="bg-destructive/20 text-destructive hover:bg-destructive/30">{INVOICE_STATUS_LABELS.cancelled}</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }
@@ -90,12 +104,9 @@ export function InvoiceTable({ initialInvoices, clients }: { initialInvoices: an
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="sent">Sent</SelectItem>
-              <SelectItem value="partially_paid">Partially Paid</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
+              {INVOICE_STATUSES.map(s => (
+                <SelectItem key={s} value={s}>{INVOICE_STATUS_LABELS[s]}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

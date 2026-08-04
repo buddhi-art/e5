@@ -1,10 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { QuickUpdateTaskDateSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
+
+// Raw Supabase return shape — nested relations arrive as arrays.
+interface TaskCalendarRow {
+  id: string
+  assigned_to: string | null
+  [key: string]: unknown
+}
 
 export async function getCalendarData(startDate: string, endDate: string) {
     const supabase = await createClient()
@@ -54,7 +60,7 @@ export async function getCalendarData(startDate: string, endDate: string) {
         .lte('start_date', endDate)
 
     // Merge & deduplicate
-    const mergedMap = new Map<string, any>()
+    const mergedMap = new Map<string, TaskCalendarRow>()
     for (const t of [...(tasksByDeadline || []), ...(tasksByStartDate || [])]) {
         if (!mergedMap.has(t.id)) mergedMap.set(t.id, t)
     }

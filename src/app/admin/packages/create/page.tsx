@@ -13,6 +13,13 @@ import { listPackages, createPackage as createCustomPackage, deletePackage as de
 import { QuickClientModal } from '@/components/admin/packages/quick-client-modal'
 import { InvoicePreview } from '@/components/admin/packages/invoice-preview'
 import { calculatePackageItemTotal } from '@/lib/package-items'
+import {
+  PACKAGE_PAYMENT_STATUSES,
+  PACKAGE_PAYMENT_STATUS_LABELS,
+  PACKAGE_PAYMENT_METHODS,
+  PACKAGE_PAYMENT_METHOD_LABELS,
+  type PackagePaymentStatus,
+} from '@/lib/constants/statuses'
 
 export interface LineItem {
   id: string
@@ -78,7 +85,7 @@ export default function CreatePackagePage() {
   // Financial calculations
   const [discountAmount, setDiscountAmount] = useState(0)
   const [taxPercent, setTaxPercent] = useState(0)
-  const [paymentStatus, setPaymentStatus] = useState<'unpaid' | 'partially_paid' | 'paid'>('unpaid')
+  const [paymentStatus, setPaymentStatus] = useState<PackagePaymentStatus>('unpaid')
   const [paidAmount, setPaidAmount] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
   const [notes, setNotes] = useState('')
@@ -110,7 +117,7 @@ export default function CreatePackagePage() {
 
   const effectivePaidAmount = paymentStatus === 'paid'
     ? grandTotal
-    : paymentStatus === 'partially_paid'
+    : (paymentStatus as PackagePaymentStatus) === 'partially_paid'
       ? Math.min(grandTotal, Math.max(0, Number(paidAmount || 0)))
       : 0
 
@@ -575,7 +582,7 @@ export default function CreatePackagePage() {
                   <select
                     value={paymentStatus}
                     onChange={(e) => {
-                      const newStatus = e.target.value as 'unpaid' | 'partially_paid' | 'paid'
+                      const newStatus = e.target.value as PackagePaymentStatus
                       setPaymentStatus(newStatus)
                       if (newStatus === 'paid') {
                         setPaidAmount(grandTotal)
@@ -585,9 +592,9 @@ export default function CreatePackagePage() {
                     }}
                     className="w-full px-3 py-2 text-sm bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
                   >
-                    <option value="unpaid">Unpaid</option>
-                    <option value="partially_paid">Partially Paid</option>
-                    <option value="paid">Fully Paid</option>
+                    {PACKAGE_PAYMENT_STATUSES.map(s => (
+                      <option key={s} value={s}>{PACKAGE_PAYMENT_STATUS_LABELS[s]}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -623,13 +630,10 @@ export default function CreatePackagePage() {
                       onChange={(e) => setPaymentMethod(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 text-sm bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
                     >
-                      <option value="bank_transfer">Bank Transfer</option>
-                      <option value="cash">Cash</option>
-                      <option value="esewa">eSewa</option>
-                      <option value="khalti">Khalti</option>
+                      {PACKAGE_PAYMENT_METHODS.map(m => (
+                        <option key={m} value={m}>{PACKAGE_PAYMENT_METHOD_LABELS[m]}</option>
+                      ))}
                       <option value="fonepay">Fonepay</option>
-                      <option value="qr_code">QR Code / Fonepay QR</option>
-                      <option value="cheque">Cheque</option>
                     </select>
                   </div>
                 </div>
@@ -666,7 +670,7 @@ export default function CreatePackagePage() {
                 <div>
                   <span className="text-xs font-bold uppercase tracking-wider text-primary">Remaining Balance Due</span>
                   <p className="text-[11px] text-on-surface-variant">
-                    {paymentStatus === 'paid' ? 'Paid in Full (0 Remaining)' : paymentStatus === 'partially_paid' ? 'Advance deducted from total' : 'Full amount pending'}
+                    {paymentStatus === 'paid' ? 'Paid in Full (0 Remaining)' : (paymentStatus as PackagePaymentStatus) === 'partially_paid' ? 'Advance deducted from total' : 'Full amount pending'}
                   </p>
                 </div>
                 <div className="text-right">

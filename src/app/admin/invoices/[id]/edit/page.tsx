@@ -1,5 +1,6 @@
 import { InvoiceForm } from '../../invoice-form'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
+import type { InvoiceStatus } from '@/lib/constants/statuses'
 
 export default async function EditInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { supabase } = await requireAdminOrFounder()
@@ -17,7 +18,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
     return <div className="p-6">Invoice not found.</div>
   }
 
-  if (invoice.status !== 'draft') {
+  if ((invoice.status as InvoiceStatus) !== 'draft') {
     return <div className="p-6">Only draft invoices can be edited.</div>
   }
 

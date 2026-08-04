@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import Link from 'next/link'
@@ -7,7 +6,8 @@ import {
   Film, LayoutDashboard, Users, UserSquare2, FolderKanban,
   CalendarCheck, CheckSquare, Receipt, Wallet, CalendarOff,
   Camera, ArrowRightLeft, ClipboardCheck, PenTool,
-  CalendarRange, Users2, CalendarDays, ChevronDown, ChevronUp, Package
+  CalendarRange, Users2, CalendarDays, ChevronDown, ChevronUp, Package,
+  type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './theme-toggle'
@@ -80,7 +80,7 @@ export function AdminSidebar({ onItemClick }: { onItemClick?: () => void }) {
 
   function renderSectionCollapsible(
     label: string,
-    icon: any,
+    icon: LucideIcon,
     sectionKey: keyof SectionState,
     children: React.ReactNode
   ) {

@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import { ClientForm } from "./client-form"
 import { ClientActions } from "./client-actions"
 import { Archive } from "lucide-react"
 import { ClientTableClient } from "./client-table-client"
+type ArchivedClient = { id: string; company_name: string; deleted_at: string }
 
 // Layer 2: ISR - Cache for 5 minutes
 export const revalidate = 300
@@ -14,27 +13,22 @@ export const revalidate = 300
 export default async function ClientsPage() {
   const supabase = await createClient()
 
-  const { data: activeClients, error: activeClientsErr } = await supabase
-    .from("clients")
-    .select("*")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
+  const [
+    activeClientsResult,
+    archivedClientsResult,
+    companyNaturesResult,
+    referralSourcesResult,
+  ] = await Promise.all([
+    supabase.from("clients").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
+    supabase.from("clients").select("*").not("deleted_at", "is", null).order("deleted_at", { ascending: false }),
+    supabase.from("company_natures").select("name").order("name"),
+    supabase.from("referral_sources").select("name").order("name"),
+  ])
 
-  const { data: archivedClients, error: archivedClientsErr } = await supabase
-    .from("clients")
-    .select("*")
-    .not("deleted_at", "is", null)
-    .order("deleted_at", { ascending: false })
-
-  const { data: companyNatures } = await supabase
-    .from("company_natures")
-    .select("name")
-    .order("name")
-
-  const { data: referralSources } = await supabase
-    .from("referral_sources")
-    .select("name")
-    .order("name")
+  const { data: activeClients, error: activeClientsErr } = activeClientsResult
+  const { data: archivedClients, error: archivedClientsErr } = archivedClientsResult
+  const { data: companyNatures } = companyNaturesResult
+  const { data: referralSources } = referralSourcesResult
 
   if (activeClientsErr) console.error('Active clients error:', activeClientsErr.message)
   if (archivedClientsErr) console.error('Archived clients error:', archivedClientsErr.message)
@@ -76,7 +70,7 @@ export default async function ClientsPage() {
                 <TabsContent value="archived" className="mt-0">
                   {archivedClients && archivedClients.length > 0 ? (
                     <div className="space-y-3">
-                      {archivedClients.map((client: any) => (
+                      {archivedClients.map((client: ArchivedClient) => (
                         <div key={client.id} className="flex items-center justify-between p-3 shape-medium bg-surface-container-low border border-outline-variant/50 card-morph">
                           <div className="flex items-center gap-3">
                             <Archive className="w-4 h-4 text-outline shrink-0" />

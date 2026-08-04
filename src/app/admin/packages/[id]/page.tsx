@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 'use client'
 
-import { use, useState, useEffect } from 'react'
+import { use, useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Package, ArrowLeft, Camera, Video, DollarSign, Plus,
   MapPin, Calendar, Truck, RotateCcw, Link2, FolderKanban,
-  CheckCircle2, Clock, PlayCircle, Loader2, Save, CreditCard, ShieldAlert,
-  History, Sparkles, Download, Printer, FileText, X
+  CheckCircle2, Clock, PlayCircle, Loader2, Save, CreditCard,
+  History, Sparkles, Download, FileText, X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { InvoicePreview } from '@/components/admin/packages/invoice-preview'
@@ -16,14 +15,29 @@ import {
   getPackageDetails,
   incrementRevisionCount,
   updateLogistics,
-  updateDeliverableStatus,
   addPackageDeliverable,
   assignDeliverableEmployee,
   recordPackagePayment,
   getEmployeesForSelect,
   updatePackageItems,
 } from '../actions'
+import {
+  PACKAGE_PAYMENT_STATUS_LABELS,
+  PACKAGE_PAYMENT_METHODS,
+  PACKAGE_PAYMENT_METHOD_LABELS,
+  type PackagePaymentStatus,
+} from '@/lib/constants/statuses'
 import { calculatePackageItemTotal } from '@/lib/package-items'
+
+interface EmployeeOption { id: string; full_name: string; designation?: string; social_urls?: Record<string, string> }
+interface PackageItem { id?: string; local_id?: string; description: string; quantity: number; unit_cost: number | null; total_cost: number }
+interface DeliveryRow { id: string; title: string; revision_count?: number; status: string; drive_link?: string; project_id?: string; assigned_employee_id?: string | null }
+interface PaymentRow { id: string; payment_date: string; amount: number; payment_method: string }
+interface AuditLogRow { id: string; created_at: string; action: string; profiles?: { full_name: string } | null }
+interface SiteVisitRow { id: string; visit_date: string; reason: string; location_address?: string; start_time?: string; end_time?: string; staff_ids?: string[]; equipments_taken?: string[]; profiles?: { full_name: string } | null }
+interface EquipmentOption { id: string; name: string; model?: string; category?: string }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PkgData = any
 
 export default function PackageWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: packageId } = use(params)
@@ -32,8 +46,8 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
   const [activeTab, setActiveTab] = useState<'logistics' | 'postprod' | 'payments'>('logistics')
 
   // Data from backend
-  const [pkgData, setPkgData] = useState<any>(null)
-  const [employees, setEmployees] = useState<any[]>([])
+  const [pkgData, setPkgData] = useState<PkgData>(null)
+  const [employees, setEmployees] = useState<EmployeeOption[]>([])
 
   // Tab 1: Logistics state
   const [locationAddress, setLocationAddress] = useState('')
@@ -49,7 +63,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
   const [savingLogistics, setSavingLogistics] = useState(false)
 
   // Editable package items
-  const [packageItems, setPackageItems] = useState<any[]>([])
+  const [packageItems, setPackageItems] = useState<PackageItem[]>([])
   const [savingItems, setSavingItems] = useState(false)
 
   // Site Revision Modal
@@ -72,7 +86,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
   const [paymentNotes, setPaymentNotes] = useState('')
   const [recordingPayment, setRecordingPayment] = useState(false)
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true)
     const [res, empList] = await Promise.all([
       getPackageDetails(packageId),
@@ -87,10 +101,10 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
 
     setPkgData(res)
     setEmployees(empList || [])
-    setPackageItems((res.items || []).map((item: any) => ({
+    setPackageItems((res.items || []).map((item: PackageItem) => ({
       ...item,
       unit_cost: item.unit_cost === null ? null : Number(item.unit_cost),
-      total_cost: Number(item.total_cost ?? item.subtotal ?? 0),
+      total_cost: Number(item.total_cost ?? 0),
       quantity: Number(item.quantity),
     })))
 
@@ -108,11 +122,12 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
       setVehiclesTaken(res.logistics.vehicles_taken || [])
       setEquipmentsTaken(res.logistics.equipments_taken || [])
     }
-  }
+  }, [packageId])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData()
-  }, [packageId])
+  }, [loadData])
 
   // Handlers for Tab 1
   async function handleSaveLogistics(e: React.FormEvent) {
@@ -174,11 +189,11 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
       return
     }
     setSavingItems(true)
-    const payload = packageItems.map(({ local_id, ...item }) => ({
+    const payload = packageItems.map(({ local_id: _local_id, ...item }) => ({
       id: item.id,
       description: item.description.trim(),
       quantity: Number(item.quantity),
-      unit_cost: item.unit_cost === null || item.unit_cost === '' ? null : Number(item.unit_cost),
+      unit_cost: item.unit_cost === null ? null : Number(item.unit_cost),
       total_cost: calculatePackageItemTotal(item),
     }))
     const res = await updatePackageItems(packageId, payload)
@@ -236,16 +251,6 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
     loadData()
   }
 
-
-  async function handleStatusChange(deliverableId: string, newStatus: any) {
-    const res = await updateDeliverableStatus(deliverableId, packageId, newStatus)
-    if (res.error) {
-      toast.error(res.error)
-      return
-    }
-    toast.success(`Deliverable status updated`)
-    loadData()
-  }
 
   async function handleAddDeliverable(e: React.FormEvent) {
     e.preventDefault()
@@ -305,7 +310,6 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
   const client = pkg.clients
   const logistics = pkgData.logistics
   const siteVisits = pkgData.siteVisits || []
-  const postProd = pkgData.postProd
   const deliverables = pkgData.deliverables || []
   const payments = pkgData.payments || []
   const auditLogs = pkgData.auditLogs || []
@@ -365,8 +369,8 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                 ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                 : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
               }`}>
-              {pkg.payment_status === 'paid' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-              Payment: {(pkg.payment_status || 'unpaid').replace('_', ' ').toUpperCase()}
+              {(pkg.payment_status as PackagePaymentStatus) === 'paid' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+              Payment: {PACKAGE_PAYMENT_STATUS_LABELS[(pkg.payment_status as PackagePaymentStatus) || 'unpaid'].toUpperCase()}
             </span>
 
             <span className="text-on-surface-variant font-medium">
@@ -493,7 +497,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {siteVisits.map((visit: any, idx: number) => {
+                    {siteVisits.map((visit: SiteVisitRow, idx: number) => {
                       const staffNames = (visit.staff_ids || []).map((stId: string) => {
                         const emp = employees.find(e => e.id === stId)
                         return emp?.full_name || stId
@@ -680,7 +684,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                       className="flex-1 px-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-foreground font-medium"
                     >
                       <option value="">-- Select Studio Equipment --</option>
-                      {(pkgData.equipmentList || []).map((eq: any) => {
+                      {(pkgData.equipmentList || []).map((eq: EquipmentOption) => {
                         const label = `${eq.name}${eq.model ? ` (${eq.model})` : ''}`
                         const isAlreadyAdded = equipmentsTaken.includes(label) || equipmentsTaken.includes(eq.name)
                         return (
@@ -889,8 +893,8 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/40">
-                  {packageItems.map((item: any) => {
-                    const key = item.id || item.local_id
+                  {packageItems.map((item: PackageItem) => {
+                    const key = item.id ?? item.local_id ?? ''
                     const calculatedTotal = calculatePackageItemTotal(item)
                     return (
                       <tr key={key}>
@@ -1013,7 +1017,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                       </td>
                     </tr>
                   ) : (
-                    deliverables.map((del: any) => (
+                    deliverables.map((del: DeliveryRow) => (
                       <tr key={del.id} className="hover:bg-surface-container-high/40 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
@@ -1144,13 +1148,10 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-surface-container-lowest border border-outline-variant rounded-xl focus:outline-hidden focus:ring-2 focus:ring-primary/40 text-foreground"
                   >
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="cash">Cash</option>
-                    <option value="esewa">eSewa</option>
-                    <option value="khalti">Khalti</option>
+                    {PACKAGE_PAYMENT_METHODS.map(m => (
+                      <option key={m} value={m}>{PACKAGE_PAYMENT_METHOD_LABELS[m]}</option>
+                    ))}
                     <option value="fonepay">Fonepay</option>
-                    <option value="qr_code">QR Code / Fonepay QR</option>
-                    <option value="cheque">Cheque</option>
                   </select>
                 </div>
 
@@ -1200,7 +1201,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/40">
-                      {payments.map((p: any) => (
+                      {payments.map((p: PaymentRow) => (
                         <tr key={p.id} className="hover:bg-surface-container-high/40 transition-colors">
                           <td className="py-2.5 px-3 font-mono text-on-surface-variant">{p.payment_date}</td>
                           <td className="py-2.5 px-3 font-semibold text-foreground capitalize">{p.payment_method.replace('_', ' ')}</td>
@@ -1230,7 +1231,7 @@ export default function PackageWorkspacePage({ params }: { params: Promise<{ id:
                 </p>
               ) : (
                 <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                  {auditLogs.map((log: any) => (
+                  {auditLogs.map((log: AuditLogRow) => (
                     <div key={log.id} className="p-3 bg-surface-container-high/40 rounded-xl border border-outline-variant/40 text-xs space-y-1">
                       <div className="flex items-center justify-between text-on-surface-variant">
                         <span className="font-semibold text-primary">{log.profiles?.full_name || 'Admin'}</span>

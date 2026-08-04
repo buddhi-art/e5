@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -15,13 +14,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from 'sonner'
-import { X, Plus, CalendarIcon, Info } from 'lucide-react'
+import { X, Plus, Info } from 'lucide-react'
+
+type ProjectOption = { id: string; title: string; clients?: { company_name?: string | null } | null }
+type EmployeeOption = { id: string; full_name: string; designation?: string | null }
 import { TaskLogisticsSection } from '@/components/task-logistics-section'
 import { EditingLogisticsSection } from '@/components/editing-logistics-section'
 import { TaskPhaseWorkspaceSection } from '@/components/task-phase-workspace-section'
 import { isWorkspacePhase, PHASE_LABELS } from '@/lib/phase-workspace'
 
-export function TaskForm({ projects, employees }: { projects: any[], employees: any[] }) {
+export function TaskForm({ projects, employees }: { projects: ProjectOption[]; employees: EmployeeOption[] }) {
   const [loading, setLoading] = useState(false)
   type SubtaskInput = { title: string, subSubtasks: string[] }
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([])

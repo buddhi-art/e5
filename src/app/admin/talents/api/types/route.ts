@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import globalCache from '@/lib/cache'
@@ -18,7 +17,7 @@ export async function GET() {
 
     // If not in RAM, fetch from Supabase, then save to RAM
     const { data } = await supabase.from('talent_types').select('name').order('name')
-    const names = (data || []).map((c: any) => c.name)
+    const names = (data || []).map((c: { name: string }) => c.name)
     await globalCache.set(cacheKey, names)
     return NextResponse.json(names)
 }

@@ -1,7 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { EmployeeExpenseForm } from './employee-expense-form'
+
+/* ── Local row types ── */
+interface TaskProjectRow { project_id: string; projects: { id: string; title: string } | { id: string; title: string }[] | null }
 
 export default async function NewEmployeeExpensePage() {
  const supabase = await createClient()
@@ -20,10 +22,11 @@ export default async function NewEmployeeExpensePage() {
  // Extract unique projects
  const projectMap = new Map()
  if (userTasks) {
- userTasks.forEach((task: any) => {
- if (task.projects) {
- projectMap.set(task.projects.id, task.projects)
- }
+  userTasks.forEach((task: TaskProjectRow) => {
+  const proj = task.projects as { id: string; title: string } | null
+  if (proj) {
+  projectMap.set(proj.id, proj)
+  }
  })
  }
  const assignedProjects = Array.from(projectMap.values()).sort((a, b) => a.title.localeCompare(b.title))

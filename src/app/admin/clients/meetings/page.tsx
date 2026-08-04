@@ -1,12 +1,22 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CalendarDays, ArrowLeft, Plus } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { CalendarDays, ArrowLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import { ClientMeetingDialog } from '../[id]/client-meeting-dialog'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
+
+interface MeetingRow {
+  id: string
+  title: string
+  meeting_date: string
+  duration_minutes: number | null
+  location: string | null
+  status: string
+  notes: string | null
+  client_id: string
+  clients: { company_name: string; id: string } | null
+}
 
 export default async function ClientMeetingsPage() {
     const { supabase } = await requireAdminOrFounder()
@@ -19,8 +29,8 @@ export default async function ClientMeetingsPage() {
     ])
 
     // Group meetings by status
-    const upcoming = (meetings || []).filter((m: any) => m.status === 'scheduled' && new Date(m.meeting_date) >= new Date())
-    const past = (meetings || []).filter((m: any) => m.status !== 'scheduled' || new Date(m.meeting_date) < new Date())
+    const upcoming = (meetings || []).filter((m: MeetingRow) => m.status === 'scheduled' && new Date(m.meeting_date) >= new Date())
+    const past = (meetings || []).filter((m: MeetingRow) => m.status !== 'scheduled' || new Date(m.meeting_date) < new Date())
 
     return (
         <div className="space-y-6">
@@ -59,7 +69,7 @@ export default async function ClientMeetingsPage() {
                                 Upcoming ({upcoming.length})
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                {upcoming.map((meeting: any) => (
+                                {upcoming.map((meeting: MeetingRow) => (
                                     <Link key={meeting.id} href={`/admin/clients/${meeting.client_id}`} className="block group">
                                         <Card className="bg-surface-container-lowest border-outline-variant/50 elevation-1 card-morph hover:border-primary transition-colors h-full morph-fade-in">
                                             <CardContent className="p-5 space-y-3">
@@ -98,7 +108,7 @@ export default async function ClientMeetingsPage() {
                                 Past ({past.length})
                             </h2>
                             <div className="space-y-3">
-                                {past.map((meeting: any) => (
+                                {past.map((meeting: MeetingRow) => (
                                     <Link key={meeting.id} href={`/admin/clients/${meeting.client_id}`} className="block group">
                                         <div className="flex items-center justify-between p-4 rounded-lg border border-outline-variant/50 bg-surface-container-lowest card-morph hover:border-primary transition-colors morph-fade-in">
                                             <div className="flex items-start gap-3">

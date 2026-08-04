@@ -9,6 +9,7 @@ import { lookupByAssetId } from '../actions'
 export function EquipmentPhoto({ imageUrl, name }: { imageUrl: string; name: string }) {
     const [url, setUrl] = useState<string | null>(null)
     const [error, setError] = useState(!imageUrl)
+    const [loading, setLoading] = useState(Boolean(imageUrl))
     const [assetIdInput, setAssetIdInput] = useState('')
     const [lookupResult, setLookupResult] = useState<{ id: string; name: string; status: string } | null>(null)
     const [lookupError, setLookupError] = useState<string | null>(null)
@@ -17,12 +18,19 @@ export function EquipmentPhoto({ imageUrl, name }: { imageUrl: string; name: str
     useEffect(() => {
         if (!imageUrl) return
         let cancelled = false
-        getStorageSignedUrl('equipment-photos', imageUrl).then((signedUrl) => {
-            if (!cancelled) {
-                if (signedUrl) setUrl(signedUrl)
-                else setError(true)
-            }
-        })
+        getStorageSignedUrl('equipment-photos', imageUrl)
+            .then((signedUrl) => {
+                if (!cancelled) {
+                    if (signedUrl) setUrl(signedUrl)
+                    else setError(true)
+                }
+            })
+            .catch(() => {
+                if (!cancelled) setError(true)
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false)
+            })
         return () => { cancelled = true }
     }, [imageUrl])
 
@@ -48,7 +56,12 @@ export function EquipmentPhoto({ imageUrl, name }: { imageUrl: string; name: str
     return (
         <div className="space-y-3">
             {/* Photo display */}
-            {error || !url ? (
+            {loading ? (
+                <div className="w-full aspect-square rounded-xl bg-surface-container-high flex flex-col items-center justify-center" aria-busy="true">
+                    <span className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-2" />
+                    <span className="text-xs text-outline">Loading photo...</span>
+                </div>
+            ) : error || !url ? (
                 <div className="w-full aspect-square rounded-xl bg-surface-container-high flex flex-col items-center justify-center">
                     <ImageIcon className="w-12 h-12 text-outline mb-2" />
                     <span className="text-xs text-outline">No photo</span>

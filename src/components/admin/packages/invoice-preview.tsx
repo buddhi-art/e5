@@ -6,6 +6,10 @@ import { toast } from 'sonner'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { calculatePackageItemTotal } from '@/lib/package-items'
+import {
+  PACKAGE_PAYMENT_STATUS_LABELS,
+  type PackagePaymentStatus,
+} from '@/lib/constants/statuses'
 
 export interface InvoicePreviewProps {
   clientName: string
@@ -52,7 +56,7 @@ export function InvoicePreview({
   const taxAmount = (afterDiscount * Number(taxPercent || 0)) / 100
   const grandTotal = afterDiscount + taxAmount
 
-  const effectivePaidAmount = paymentStatus === 'paid'
+  const effectivePaidAmount = (paymentStatus as PackagePaymentStatus) === 'paid'
     ? grandTotal
     : paymentStatus === 'unpaid'
       ? 0
@@ -190,13 +194,13 @@ export function InvoicePreview({
     pdf.text((packageTitle || 'Untitled Package').substring(0, 38), 115, y + 14)
 
     // Status Pill
-    const badgeText = paymentStatus === 'paid'
+    const badgeText = (paymentStatus as PackagePaymentStatus) === 'paid'
       ? 'PAID IN FULL'
       : paymentStatus === 'partially_paid'
         ? `PARTIALLY PAID (PAID: RS. ${effectivePaidAmount.toLocaleString()})`
         : 'UNPAID'
 
-    const badgeColor = paymentStatus === 'paid' ? greenColor : paymentStatus === 'partially_paid' ? amberColor : redColor
+    const badgeColor = (paymentStatus as PackagePaymentStatus) === 'paid' ? greenColor : paymentStatus === 'partially_paid' ? amberColor : redColor
     pdf.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2])
     pdf.roundedRect(115, y + 18, 77, 8, 2, 2, 'F')
     pdf.setFontSize(8)
@@ -429,12 +433,12 @@ export function InvoicePreview({
             <p style={{ color: '#312e81' }} className="font-bold text-sm">{packageTitle || 'Untitled Package'}</p>
             <div className="mt-2 flex items-center justify-end gap-2">
               <span style={{
-                backgroundColor: paymentStatus === 'paid' ? '#d1fae5' : paymentStatus === 'partially_paid' ? '#fef3c7' : '#fee2e2',
-                color: paymentStatus === 'paid' ? '#065f46' : paymentStatus === 'partially_paid' ? '#92400e' : '#991b1b',
-                borderColor: paymentStatus === 'paid' ? '#6ee7b7' : paymentStatus === 'partially_paid' ? '#fcd34d' : '#fca5a5'
+                backgroundColor: (paymentStatus as PackagePaymentStatus) === 'paid' ? '#d1fae5' : (paymentStatus as PackagePaymentStatus) === 'partially_paid' ? '#fef3c7' : '#fee2e2',
+                color: (paymentStatus as PackagePaymentStatus) === 'paid' ? '#065f46' : (paymentStatus as PackagePaymentStatus) === 'partially_paid' ? '#92400e' : '#991b1b',
+                borderColor: (paymentStatus as PackagePaymentStatus) === 'paid' ? '#6ee7b7' : (paymentStatus as PackagePaymentStatus) === 'partially_paid' ? '#fcd34d' : '#fca5a5'
               }} className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full border">
-                {paymentStatus === 'paid' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                {paymentStatus === 'paid' ? 'PAID IN FULL' : paymentStatus === 'partially_paid' ? 'PARTIALLY PAID' : 'UNPAID'}
+                {(paymentStatus as PackagePaymentStatus) === 'paid' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                {PACKAGE_PAYMENT_STATUS_LABELS[(paymentStatus as PackagePaymentStatus) || 'unpaid'].toUpperCase()}
               </span>
 
               <span style={{ color: '#64748b' }} className="text-[11px] font-medium">

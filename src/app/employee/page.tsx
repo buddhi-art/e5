@@ -1,5 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from 'next/link'
+
+/* ── Local row types for Supabase results ── */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseRow = Record<string, any>
 import { createClient } from '@/lib/supabase/server'
 import { TaskCard } from './task-card'
 import { getAssignedDeliverablesForEmployee } from '@/app/admin/packages/actions'
@@ -40,10 +43,10 @@ export default async function EmployeeDashboard() {
   })
 
   // Fetch all subtask comments for the loaded tasks
-  const subtaskIds = visibleTasks.flatMap(t => (t.subtasks || []).map((s: any) => s.id))
+  const subtaskIds = visibleTasks.flatMap(t => (t.subtasks || []).map((s: SupabaseRow) => s.id))
 
-  let allComments: any[] = []
-  let commentsErr: any = null
+  let allComments: SupabaseRow[] = []
+  let commentsErr: SupabaseRow | null = null
 
   if (subtaskIds.length > 0) {
     const { data, error } = await supabase
@@ -60,7 +63,7 @@ export default async function EmployeeDashboard() {
   if (commentsErr) console.error('Employee comments fetch error:', commentsErr.message)
 
   // Group comments by subtask_id
-  const commentsBySubtask = new Map<string, any[]>()
+  const commentsBySubtask = new Map<string, SupabaseRow[]>()
   for (const comment of allComments || []) {
     const existing = commentsBySubtask.get(comment.subtask_id) || []
     existing.push(comment)
@@ -104,7 +107,8 @@ export default async function EmployeeDashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {visibleTasks.map((task, i) => (
             <div key={task.id} className="morph-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
-              <TaskCard task={task} commentsBySubtask={Object.fromEntries(commentsBySubtask)} />
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <TaskCard task={task as any} commentsBySubtask={Object.fromEntries(commentsBySubtask) as any} />
             </div>
           ))}
         </div>

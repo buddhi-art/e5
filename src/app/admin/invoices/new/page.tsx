@@ -5,17 +5,21 @@ export default async function NewInvoicePage() {
   const { supabase } = await requireAdminOrFounder()
 
 
-  const { data: clients } = await supabase
-    .from('clients')
-    .select('id, company_name, billing_address, tax_id')
-    .is('deleted_at', null)
-    .order('company_name', { ascending: true })
+  const [clientsResult, projectsResult] = await Promise.all([
+    supabase
+      .from('clients')
+      .select('id, company_name, billing_address, tax_id')
+      .is('deleted_at', null)
+      .order('company_name', { ascending: true }),
+    supabase
+      .from('projects')
+      .select('id, title, client_id')
+      .is('deleted_at', null)
+      .order('title', { ascending: true }),
+  ])
 
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('id, title, client_id')
-    .is('deleted_at', null)
-    .order('title', { ascending: true })
+  const { data: clients } = clientsResult
+  const { data: projects } = projectsResult
 
   return (
     <div className="space-y-6 max-w-5xl">

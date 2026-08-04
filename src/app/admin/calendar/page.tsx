@@ -1,7 +1,50 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, format, subMonths, addMonths } from 'date-fns'
 import { ProductionCalendar } from './production-calendar'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
+
+/** Supabase nested relations can arrive as single objects or arrays. */
+type MaybeArr<T> = T | T[]
+
+interface RawTaskRow {
+  id: string; title: string; phase: string | null; start_date: string | null
+  deadline: string | null; status: string; assigned_to: string | null
+  profiles: MaybeArr<{ full_name: string } | null> | null
+  projects: MaybeArr<{ title: string; id: string; status: string; clients: MaybeArr<{ company_name: string }> }> | null
+}
+
+interface RawLeaveRow {
+  id: string; user_id: string; start_date: string; end_date: string
+  leave_types: MaybeArr<{ name: string } | null> | null
+  profiles: MaybeArr<{ full_name: string } | null> | null
+}
+
+interface RawMeetingRow {
+  id: string; title: string; meeting_date: string; duration_minutes: number | null
+  location: string | null; status: string
+  clients: MaybeArr<{ company_name: string }> | null
+}
+
+interface RawShootRow {
+  id: string; shoot_date: string; location_address: string | null; package_id: string
+  packages: MaybeArr<{ id: string; title: string; package_number: string; clients: MaybeArr<{ id: string; company_name: string }> }>
+}
+
+interface RawProjectRow {
+  id: string; title: string; start_date: string | null; end_date: string | null
+  clients: MaybeArr<{ company_name: string }>
+}
+
+interface RawOverdueTaskRow {
+  id: string; title: string; deadline: string | null; assigned_to: string | null
+  status: string; phase: string | null
+  profiles: MaybeArr<{ full_name: string } | null> | null
+  projects: MaybeArr<{ title: string; clients: MaybeArr<{ company_name: string }> }>
+}
+
+interface RawBudgetRow {
+  project_id: string; budget_amount: number; contingency_percent: number
+  projects: MaybeArr<{ title: string; status: string; clients: MaybeArr<{ company_name: string }> }>
+}
 
 export default async function CalendarPage() {
     const { supabase } = await requireAdminOrFounder()
@@ -12,11 +55,6 @@ export default async function CalendarPage() {
     const rangeEnd = format(endOfWeek(endOfMonth(addMonths(now, 2))), 'yyyy-MM-dd')
 
     // Fetch tasks: use two queries merged to avoid PostgREST or() reliability issues
-    // Tasks where deadline OR start_date falls in the visible date range
-    const rangeStartDate = new Date(rangeStart)
-    const rangeEndDate = new Date(rangeEnd)
-
-    // Query 1: Tasks with deadline in range
     const { data: tasksByDeadline } = await supabase
         .from('tasks')
         .select(`
@@ -77,14 +115,16 @@ export default async function CalendarPage() {
         .gt('deadline', `${rangeEnd}T23:59:59Z`)
 
     // Merge & deduplicate by id
-    const mergedMap = new Map<string, any>()
+    const mergedMap = new Map<string, RawTaskRow>()
     for (const t of [...(tasksByDeadline || []), ...(tasksByStartDate || []), ...(tasksSpanning || [])]) {
         if (!mergedMap.has(t.id)) mergedMap.set(t.id, t)
     }
     const rawTasks = Array.from(mergedMap.values())
         .sort((a, b) => {
-            if (a.assigned_to < b.assigned_to) return -1
-            if (a.assigned_to > b.assigned_to) return 1
+            const aKey = a.assigned_to ?? ''
+            const bKey = b.assigned_to ?? ''
+            if (aKey < bKey) return -1
+            if (aKey > bKey) return 1
             return 0
         })
 
@@ -217,29 +257,34 @@ export default async function CalendarPage() {
     }
 
     // Normalize Supabase join responses (arrays → single objects)
-    const tasks = (rawTasks || []).map((t: any) => ({
-        ...t,
-        profiles: Array.isArray(t.profiles) ? t.profiles[0] : t.profiles,
-        projects: t.projects ? {
-            ...t.projects,
-            clients: Array.isArray(t.projects.clients) ? t.projects.clients[0] : t.projects.clients,
-        } : t.projects,
-    }))
+    const tasks = (rawTasks || []).map((t: RawTaskRow) => {
+        const project = t.projects
+            ? (Array.isArray(t.projects) ? t.projects[0] : t.projects)
+            : null
+        return {
+            ...t,
+            profiles: Array.isArray(t.profiles) ? t.profiles[0] : t.profiles,
+            projects: project ? {
+                ...project,
+                clients: Array.isArray(project.clients) ? project.clients[0] : project.clients,
+            } : null,
+        }
+    })
 
-    const leaves = (rawLeaves || []).map((l: any) => ({
+    const leaves = (rawLeaves || []).map((l: RawLeaveRow) => ({
         ...l,
         profiles: Array.isArray(l.profiles) ? l.profiles[0] : l.profiles,
         leave_types: Array.isArray(l.leave_types) ? l.leave_types[0] : l.leave_types,
     }))
 
-    const meetings = (rawMeetings || []).map((m: any) => ({
+    const meetings = (rawMeetings || []).map((m: RawMeetingRow) => ({
         ...m,
         clients: Array.isArray(m.clients) ? m.clients[0] : m.clients,
     }))
 
-    const shoots = (rawShoots || []).map((s: any) => {
+    const shoots = (rawShoots || []).map((s: RawShootRow) => {
         const pkg = Array.isArray(s.packages) ? s.packages[0] : s.packages
-        const client = pkg && Array.isArray(pkg.clients) ? pkg.clients[0] : pkg?.clients
+        const rawClient = pkg ? (Array.isArray(pkg.clients) ? pkg.clients[0] : pkg.clients) : null
         return {
             id: s.id,
             shoot_date: s.shoot_date,
@@ -247,13 +292,13 @@ export default async function CalendarPage() {
             package_id: s.package_id,
             package_title: pkg?.title || 'Untitled Package',
             package_number: pkg?.package_number || '',
-            client_id: client?.id || null,
-            client_name: client?.company_name || null,
+            client_id: rawClient?.id || null,
+            client_name: rawClient?.company_name || null,
         }
     })
 
     // Map projects to include client name and dates
-    const projectsWithClient = (allProjects || []).map((p: any) => ({
+    const projectsWithClient = (allProjects || []).map((p: RawProjectRow) => ({
         id: p.id,
         title: p.title,
         start_date: p.start_date || null,
@@ -279,15 +324,27 @@ export default async function CalendarPage() {
                 allEmployees={allEmployees || []}
                 allProjects={projectsWithClient}
                 allClients={allClients || []}
-                overdueTasks={(overdueTasks || []).map((t: any) => ({
-                    ...t,
-                    profiles: Array.isArray(t.profiles) ? t.profiles[0] : t.profiles,
-                    projects: Array.isArray(t.projects) ? t.projects[0] : t.projects,
-                }))}
-                projectBudgets={(projectBudgets || []).map((b: any) => ({
-                    ...b,
-                    projects: Array.isArray(b.projects) ? b.projects[0] : b.projects,
-                }))}
+                overdueTasks={(overdueTasks || []).map((t: RawOverdueTaskRow) => {
+                    const otProject = Array.isArray(t.projects) ? t.projects[0] : t.projects
+                    return {
+                        ...t,
+                        profiles: Array.isArray(t.profiles) ? t.profiles[0] : t.profiles,
+                        projects: otProject ? {
+                            ...otProject,
+                            clients: Array.isArray(otProject.clients) ? otProject.clients[0] : otProject.clients,
+                        } : otProject,
+                    }
+                })}
+                projectBudgets={(projectBudgets || []).map((b: RawBudgetRow) => {
+                    const pbProject = Array.isArray(b.projects) ? b.projects[0] : b.projects
+                    return {
+                        ...b,
+                        projects: pbProject ? {
+                            ...pbProject,
+                            clients: Array.isArray(pbProject.clients) ? pbProject.clients[0] : pbProject.clients,
+                        } : pbProject,
+                    }
+                })}
                 expenseByProject={Object.fromEntries(expenseByProject)}
                 workloadByEmployee={Object.fromEntries(
                     [...workloadByEmployee.entries()].map(([id, w]) => [

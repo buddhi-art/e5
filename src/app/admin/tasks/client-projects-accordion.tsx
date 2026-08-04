@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useCallback } from 'react'
@@ -8,7 +7,7 @@ import { CardContent } from '@/components/ui/card'
 import {
   ChevronDown, ChevronRight, FolderKanban,
   Calendar as CalendarIcon, CheckSquare, Clock,
-  Plus, X, Trash2, User, Package, PlayCircle, FileText,
+  Plus, X, Trash2, User, Package, PlayCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -48,7 +47,12 @@ interface Task {
   deadline: string | null
   start_date: string | null
   assigned_to: string | null
-  logistics: any
+  logistics: {
+    shootDate?: string
+    editingDate?: string
+    startTime?: string
+    endTime?: string
+  } | null
   subtasks: Subtask[]
 }
 
@@ -59,6 +63,11 @@ interface Project {
   deleted_at?: string | null
   package_id?: string | null
   tasks: Task[]
+}
+
+interface Employee {
+  id: string
+  full_name: string
 }
 
 interface Client {
@@ -105,7 +114,7 @@ function SubtaskCard({
   onRefresh,
 }: {
   subtask: Subtask
-  employees: any[]
+  employees: Employee[]
   onRefresh: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
@@ -300,7 +309,7 @@ function TaskCard({
   onRefresh,
 }: {
   task: Task
-  employees: any[]
+  employees: Employee[]
   onRefresh: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
@@ -360,8 +369,8 @@ function TaskCard({
             {hasTimeInfo && (
               <span className="text-[10px] text-on-surface-variant flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {logistics.shootDate || logistics.editingDate || ''}
-                {(logistics.startTime || logistics.endTime) && ` ${logistics.startTime || '?'}–${logistics.endTime || '?'}`}
+                 {String(logistics.shootDate || logistics.editingDate || '')}
+                 {(logistics.startTime || logistics.endTime) && ` ${String(logistics.startTime || '?')}–${String(logistics.endTime || '?')}`}
               </span>
             )}
 
@@ -423,7 +432,7 @@ function ProjectCard({
   onRefresh,
 }: {
   project: Project
-  employees: any[]
+  employees: Employee[]
   onRefresh: () => void
 }) {
   const [syncing, setSyncing] = useState(false)
@@ -435,7 +444,7 @@ function ProjectCard({
     if (res.error) {
       toast.error(res.error)
     } else {
-      const count = (res as any).synced ?? 0
+      const count = ('synced' in res && typeof res.synced === 'number') ? res.synced : 0
       toast.success(count > 0 ? `${count} deliverable${count === 1 ? '' : 's'} synced` : 'All deliverables already synced')
       onRefresh()
     }
@@ -541,7 +550,7 @@ export function ClientProjectsAccordion({
   onRefresh,
 }: {
   clients: Client[]
-  employees: any[]
+  employees: Employee[]
   onRefresh?: () => void
 }) {
   const [expandedClient, setExpandedClient] = useState<string | null>(null)

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { EquipmentForm } from '../../equipment-form'
@@ -35,7 +34,7 @@ export default async function EditEquipmentPage({ params }: { params: Promise<{ 
       </div>
 
       <div className="p-6 rounded-xl border border-outline-variant/50 bg-surface-container-lowest elevation-1 morph-fade-in morph-delay-1">
-        <EquipmentForm initialData={equipment as any} />
+        <EquipmentForm initialData={equipment} />
       </div>
     </div>
   )

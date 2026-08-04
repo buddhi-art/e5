@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Film, LayoutDashboard, FolderKanban, DollarSign, Camera, Shield, Users, CheckSquare } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, DollarSign, Camera, Shield, Users, CheckSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './theme-toggle'
 

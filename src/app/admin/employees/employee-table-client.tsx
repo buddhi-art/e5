@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -10,7 +9,23 @@ import { EmployeeActions } from './employee-actions'
 import { EditEmployeeDialog } from './edit-employee-dialog'
 import { Search, Phone, MapPin } from 'lucide-react'
 
-export function EmployeeTableClient({ employees, designations, isArchived }: { employees: any[]; designations: string[]; isArchived: boolean }) {
+interface EmployeeRow {
+    id: string
+    full_name: string
+    designation: string | null
+    phone_number: string | null
+    location: string | null
+    joining_date: string | null
+    created_at: string
+    deleted_at?: string | null
+    email: string | null
+    contact_email: string | null
+    dob: string | null
+    cv_url: string | null
+    social_urls: Record<string, string> | null
+}
+
+export function EmployeeTableClient({ employees, designations, isArchived }: { employees: EmployeeRow[]; designations: string[]; isArchived: boolean }) {
     const [search, setSearch] = useState('')
 
     const filtered = employees.filter(emp => {

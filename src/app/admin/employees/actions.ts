@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use server'
 
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
 import { CreateEmployeeSchema, UpdateEmployeeSchema, UuidParamSchema } from '@/lib/validations'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { captureActionError } from '@/lib/action-error'
@@ -76,7 +74,7 @@ export async function createEmployee(formData: FormData) {
 
     if (authData.user) {
       // Retry up to 3 times with backoff to handle trigger timing
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, unknown> = {
         email: loginId,
         contact_email: data.contactEmail || null,
         designation,
@@ -88,7 +86,7 @@ export async function createEmployee(formData: FormData) {
         social_urls: socialUrls,
       }
 
-      let profileError: any = null
+      let profileError: { message: string } | null = null
       for (let attempt = 0; attempt < 3; attempt++) {
         const result = await supabaseAdmin
           .from('profiles')
@@ -251,7 +249,7 @@ export async function updateEmployee(employeeId: string, data: {
     }
 
     // Update auth user - email, password, metadata
-    const authUpdate: Record<string, any> = {
+    const authUpdate: Record<string, unknown> = {
       email: formattedLoginId,
       user_metadata: { full_name: validData.full_name },
     }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SeedBalancesButton } from './seed-balances-button'
@@ -43,7 +42,17 @@ export default async function AdminLeaveBalancesPage() {
           </TableHeader>
           <TableBody>
             {balances && balances.length > 0 ? (
-              balances.map((bal: any) => (
+              balances.map((bal: {
+                  id: string
+                  user_id: string
+                  leave_type_id: string
+                  total_days: number
+                  used_days: number
+                  remaining_days: number
+                  year: number
+                  profiles: { full_name: string; email: string } | null
+                  leave_types: { name: string } | null
+              }) => (
                 <TableRow key={bal.id} className="hover:bg-surface-container-high">
                   <TableCell>
                     <div className="font-medium text-on-surface">{bal.profiles?.full_name}</div>

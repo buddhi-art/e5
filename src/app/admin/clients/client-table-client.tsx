@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -7,11 +6,11 @@ import Image from 'next/image'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { EditClientDialog } from './edit-client-dialog'
+import { EditClientDialog, type Client } from './edit-client-dialog'
 import { ClientActions } from './client-actions'
 import { Search, Phone, Building2, ExternalLink } from 'lucide-react'
 
-export function ClientTableClient({ clients, companyNatures, referralSources }: { clients: any[]; companyNatures: string[]; referralSources: string[] }) {
+export function ClientTableClient({ clients, companyNatures, referralSources }: { clients: Client[]; companyNatures: string[]; referralSources: string[] }) {
     const [search, setSearch] = useState('')
 
     const filtered = clients.filter(client => {

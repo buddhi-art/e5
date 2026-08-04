@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -19,7 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -35,7 +33,11 @@ import { EditingLogisticsSection } from '@/components/editing-logistics-section'
 import { TaskPhaseWorkspaceSection } from '@/components/task-phase-workspace-section'
 import { isWorkspacePhase, PHASE_LABELS } from '@/lib/phase-workspace'
 
-export function TaskActionsMenu({ task, projects, employees }: { task: any, projects: any[], employees: any[] }) {
+type Task = { id: string; project_id: string; phase: string; assigned_to: string; status: string; deadline?: string | null; title: string; description?: string | null; logistics?: Record<string, unknown> | null }
+type ProjectOption = { id: string; title: string }
+type EmployeeOption = { id: string; full_name: string }
+
+export function TaskActionsMenu({ task, projects, employees }: { task: Task; projects: ProjectOption[]; employees: EmployeeOption[] }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -204,7 +206,7 @@ export function TaskActionsMenu({ task, projects, employees }: { task: any, proj
 
             <div className="space-y-2">
               <Label htmlFor="description" className="text-on-surface">Description</Label>
-              <Textarea defaultValue={task.description} id="description" name="description" className="bg-surface-container-high border-outline-variant text-on-surface min-h-[100px]" />
+              <Textarea defaultValue={task.description || ''} id="description" name="description" className="bg-surface-container-high border-outline-variant text-on-surface min-h-[100px]" />
             </div>
 
             {/* Package operations are phase-gated and persist in canonical package tables. */}

@@ -5,11 +5,12 @@ import { CheckCircle, XCircle, DollarSign } from 'lucide-react'
 import { updateExpenseStatus } from '../actions'
 import { toast } from 'sonner'
 import { useState } from 'react'
+import { type ExpenseStatus } from '@/lib/constants/statuses'
 
 export function ExpenseActions({ expenseId, currentStatus }: { expenseId: string, currentStatus: string }) {
  const [loading, setLoading] = useState(false)
 
- async function handleStatusChange(status: string) {
+ async function handleStatusChange(status: ExpenseStatus) {
  setLoading(true)
  const res = await updateExpenseStatus(expenseId, status)
  if (res?.error) {

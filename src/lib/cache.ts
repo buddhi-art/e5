@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import NodeCache from 'node-cache'
 import { Redis } from '@upstash/redis'
 
@@ -41,7 +40,7 @@ const globalCache = {
     if (value === undefined) return null
     try { return JSON.parse(value) } catch { return value }
   },
-  set: async (key: string, value: any, ttlSeconds: number = DEFAULT_TTL) => {
+  set: async (key: string, value: unknown, ttlSeconds: number = DEFAULT_TTL) => {
     // FIX: Serialize objects before storing in Redis
     const serialized = typeof value === 'string' ? value : JSON.stringify(value)
     if (redis) {

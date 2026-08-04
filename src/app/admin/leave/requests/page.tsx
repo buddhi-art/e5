@@ -4,20 +4,24 @@ import { LeaveRequestsTable } from './leave-requests-table'
 export default async function AdminLeaveRequestsPage() {
   const supabase = await createClient()
 
-  const { data: requests } = await supabase
-    .from('leave_requests')
-    .select(`
-      *,
-      leave_types(name),
-      profiles!leave_requests_user_id_fkey(full_name, email)
-    `)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
+  const [requestsResult, leaveTypesResult] = await Promise.all([
+    supabase
+      .from('leave_requests')
+      .select(`
+        *,
+        leave_types(name),
+        profiles!leave_requests_user_id_fkey(full_name, email)
+      `)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('leave_types')
+      .select('id, name')
+      .order('name'),
+  ])
 
-  const { data: leaveTypes } = await supabase
-    .from('leave_types')
-    .select('id, name')
-    .order('name')
+  const { data: requests } = requestsResult
+  const { data: leaveTypes } = leaveTypesResult
 
   return (
     <div className="space-y-6">

@@ -11,12 +11,16 @@ export function ReceiptLink({ filePath }: { filePath: string | null }) {
  useEffect(() => {
  let cancelled = false
  if (!filePath) return
- getStorageSignedUrl('receipts', filePath).then((signedUrl) => {
- if (!cancelled) {
- setUrl(signedUrl)
- setLoading(false)
- }
- })
+ getStorageSignedUrl('receipts', filePath)
+   .then((signedUrl) => {
+     if (!cancelled) setUrl(signedUrl)
+   })
+   .catch(() => {
+     // url stays null — the error branch renders naturally
+   })
+   .finally(() => {
+     if (!cancelled) setLoading(false)
+   })
  return () => { cancelled = true }
  }, [filePath])
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { LeaveCalendar } from './leave-calendar'
 import { format, startOfMonth } from 'date-fns'
@@ -10,29 +9,32 @@ export default async function AdminLeaveCalendarPage() {
   const monthEndStr = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
   const monthStartStr = format(monthStart, 'yyyy-MM-dd')
 
-  // Fetch holidays
-  const { data: holidays } = await supabase
-    .from('holidays')
-    .select('*')
-    .order('date', { ascending: true })
+  // Fetch holidays and approved leave requests for the current month in parallel
+  const [holidaysResult, leaveRequestsResult] = await Promise.all([
+    supabase
+      .from('holidays')
+      .select('*')
+      .order('date', { ascending: true }),
+    supabase
+      .from('leave_requests')
+      .select(`
+        id,
+        start_date,
+        end_date,
+        total_days,
+        status,
+        leave_types(name),
+        profiles!leave_requests_user_id_fkey(full_name)
+      `)
+      .eq('status', 'approved')
+      .gte('start_date', monthStartStr)
+      .lte('start_date', monthEndStr)
+      .is('deleted_at', null)
+      .order('start_date'),
+  ])
 
-  // Fetch approved leave requests for the current month
-  const { data: leaveRequests } = await supabase
-    .from('leave_requests')
-    .select(`
-      id,
-      start_date,
-      end_date,
-      total_days,
-      status,
-      leave_types(name),
-      profiles!leave_requests_user_id_fkey(full_name)
-    `)
-    .eq('status', 'approved')
-    .gte('start_date', monthStartStr)
-    .lte('start_date', monthEndStr)
-    .is('deleted_at', null)
-    .order('start_date')
+  const { data: holidays } = holidaysResult
+  const { data: leaveRequests } = leaveRequestsResult
 
   // Build leave days map from the approved requests
   const leaveDaysMap = new Map<string, { id: string; name: string; leaveType: string; status: string }[]>()
@@ -45,8 +47,8 @@ export default async function AdminLeaveCalendarPage() {
         const existing = leaveDaysMap.get(dateStr) || []
         existing.push({
           id: req.id,
-          name: (req.profiles as any)?.full_name || 'Unknown',
-          leaveType: (req.leave_types as any)?.name || 'Leave',
+          name: (req.profiles as unknown as { full_name: string })?.full_name || 'Unknown',
+          leaveType: (req.leave_types as unknown as { name: string })?.name || 'Leave',
           status: req.status,
         })
         leaveDaysMap.set(dateStr, existing)

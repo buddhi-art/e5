@@ -1,8 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent } from '@/components/ui/card'
 import { DollarSign, Receipt, Wallet, TrendingUp, AlertTriangle, CheckSquare, FileText, Percent } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+/* ── Local row types for Supabase results ── */
+interface InvRow { grand_total?: number; paid_amount?: number; status?: string; issue_date?: string; client_id?: string; clients?: { company_name?: string } | null }
+interface ExpRow { amount?: number; status?: string; expense_date?: string; category?: string; description?: string; id?: string }
+interface BudRow { budget_amount?: number }
 
 export const revalidate = 300
 
@@ -62,17 +65,17 @@ export default async function FounderFinancesPage() {
 
     const totalReceivable = invoiceList
         .filter(i => i.status === 'sent' || i.status === 'overdue' || i.status === 'partially_paid')
-        .reduce((s: number, inv: any) => s + (Number(inv.grand_total) - Number(inv.paid_amount || 0)), 0)
+        .reduce((s: number, inv: InvRow) => s + (Number(inv.grand_total) - Number(inv.paid_amount || 0)), 0)
 
-    const revenueThisMonth = (thisMonthInvoices || []).reduce((s: number, i: any) => s + Number(i.grand_total || 0), 0)
-    const revenueLastMonth = (lastMonthInvoices || []).reduce((s: number, i: any) => s + Number(i.grand_total || 0), 0)
+    const revenueThisMonth = (thisMonthInvoices || []).reduce((s: number, i: InvRow) => s + Number(i.grand_total || 0), 0)
+    const revenueLastMonth = (lastMonthInvoices || []).reduce((s: number, i: InvRow) => s + Number(i.grand_total || 0), 0)
     const revenueChange = revenueLastMonth > 0 ? ((revenueThisMonth - revenueLastMonth) / revenueLastMonth * 100).toFixed(1) : '0'
 
-    const totalExpenses = (expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0)
-    const totalBudget = (projectBudgets || []).reduce((s: number, b: any) => s + Number(b.budget_amount || 0), 0)
+    const totalExpenses = (expenses || []).reduce((s: number, e: ExpRow) => s + Number(e.amount || 0), 0)
+    const totalBudget = (projectBudgets || []).reduce((s: number, b: BudRow) => s + Number(b.budget_amount || 0), 0)
     const budgetUtilization = totalBudget > 0 ? Math.round((totalExpenses / totalBudget) * 100) : 0
 
-    const pendingExpenses = (expenses || []).filter((e: any) => e.status === 'pending').length
+    const pendingExpenses = (expenses || []).filter((e: ExpRow) => e.status === 'pending').length
     const totalInvoiceCount = invoiceList.length
     const collectionRate = totalInvoiceCount > 0 ? Math.round((paidInvoices / totalInvoiceCount) * 100) : 0
 
@@ -98,7 +101,7 @@ export default async function FounderFinancesPage() {
     // Top clients
     const clientRevMap = new Map<string, number>()
     for (const inv of invoicesByClient || []) {
-        const name = (inv as any).clients?.company_name || 'Unknown'
+        const name = (inv as InvRow).clients?.company_name || 'Unknown'
         clientRevMap.set(name, (clientRevMap.get(name) || 0) + Number(inv.grand_total || 0))
     }
     const topClients = Array.from(clientRevMap.entries())
@@ -317,12 +320,12 @@ export default async function FounderFinancesPage() {
                             Recent Expenses
                         </h2>
                         <div className="divide-y divide-outline-variant/20">
-                            {recentExpenses.map((exp: any) => (
+                            {recentExpenses.map((exp: ExpRow) => (
                                 <div key={exp.id} className="flex items-center justify-between py-2.5">
                                     <div className="min-w-0 flex-1">
                                         <div className="text-sm font-medium text-foreground truncate">{exp.description || 'Untitled'}</div>
                                         <div className="text-xs text-on-surface-variant">
-                                            {exp.category || 'Uncategorized'} · {new Date(exp.expense_date).toLocaleDateString()}
+                                            {exp.category || 'Uncategorized'} · {new Date(exp.expense_date as string).toLocaleDateString()}
                                         </div>
                                     </div>
                                     <div className="text-right shrink-0 ml-4">

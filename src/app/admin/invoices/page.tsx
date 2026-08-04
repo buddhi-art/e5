@@ -13,19 +13,23 @@ export default async function InvoicesPage() {
   const supabase = await createClient()
 
 
-  const { data: invoices, error: invoicesErr } = await supabase
-    .from('invoices')
-    .select('*, clients(company_name), projects(title)')
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
+  const [invoicesResult, clientsResult] = await Promise.all([
+    supabase
+      .from('invoices')
+      .select('*, clients(company_name), projects(title)')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('clients')
+      .select('id, company_name')
+      .is('deleted_at', null)
+      .order('company_name', { ascending: true }),
+  ])
+
+  const { data: invoices, error: invoicesErr } = invoicesResult
+  const { data: clients } = clientsResult
 
   if (invoicesErr) console.error('Invoices fetch error:', invoicesErr.message)
-
-  const { data: clients } = await supabase
-    .from('clients')
-    .select('id, company_name')
-    .is('deleted_at', null)
-    .order('company_name', { ascending: true })
 
   return (
     <div className="space-y-6">

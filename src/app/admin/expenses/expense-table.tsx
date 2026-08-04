@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -12,8 +11,23 @@ import Link from 'next/link'
 import { deleteExpense, updateExpenseStatus } from './actions'
 import { toast } from 'sonner'
 import { ReceiptLink } from '@/components/receipt-link'
+import { EXPENSE_STATUSES, EXPENSE_STATUS_LABELS, type ExpenseStatus } from '@/lib/constants/statuses'
 
-export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: any[], projects: any[] }) {
+interface ExpenseRow {
+  id: string
+  expense_date: string
+  amount: number
+  category: string
+  status: string
+  receipt_url: string | null
+  project_id: string
+  submitted_by_profile: { full_name: string } | null
+  projects: { title: string } | null
+}
+
+interface ProjectOption { id: string; title: string }
+
+export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: ExpenseRow[], projects: ProjectOption[] }) {
  const [statusFilter, setStatusFilter] = useState('all')
  const [projectFilter, setProjectFilter] = useState('all')
  const [categoryFilter, setCategoryFilter] = useState('all')
@@ -44,15 +58,15 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
  }
  }
 
- function getStatusBadge(status: string) {
- switch (status) {
- case 'approved': return <Badge className="bg-primary-container text-on-primary-container">Approved</Badge>
- case 'reimbursed': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">Reimbursed</Badge>
- case 'rejected': return <Badge variant="destructive">Rejected</Badge>
- case 'pending': return <Badge variant="outline" className="text-m3-warning border-m3-warning">Pending</Badge>
- default: return <Badge variant="outline">{status}</Badge>
- }
- }
+  function getStatusBadge(status: string) {
+  switch (status as ExpenseStatus) {
+  case 'approved': return <Badge className="bg-primary-container text-on-primary-container">{EXPENSE_STATUS_LABELS.approved}</Badge>
+  case 'reimbursed': return <Badge variant="secondary" className="bg-tertiary-container text-[var(--md-sys-color-on-tertiary-container)]">{EXPENSE_STATUS_LABELS.reimbursed}</Badge>
+  case 'rejected': return <Badge variant="destructive">{EXPENSE_STATUS_LABELS.rejected}</Badge>
+  case 'pending': return <Badge variant="outline" className="text-m3-warning border-m3-warning">{EXPENSE_STATUS_LABELS.pending}</Badge>
+  default: return <Badge variant="outline">{status}</Badge>
+  }
+  }
 
  return (
  <div className="space-y-4 morph-fade-in">
@@ -64,13 +78,12 @@ export function ExpenseTable({ initialExpenses, projects }: { initialExpenses: a
  <SelectTrigger className="bg-surface-container-high">
  <SelectValue placeholder="All Statuses" />
  </SelectTrigger>
- <SelectContent>
- <SelectItem value="all">All Statuses</SelectItem>
- <SelectItem value="pending">Pending</SelectItem>
- <SelectItem value="approved">Approved</SelectItem>
- <SelectItem value="reimbursed">Reimbursed</SelectItem>
- <SelectItem value="rejected">Rejected</SelectItem>
- </SelectContent>
+  <SelectContent>
+  <SelectItem value="all">All Statuses</SelectItem>
+  {EXPENSE_STATUSES.map(s => (
+  <SelectItem key={s} value={s}>{EXPENSE_STATUS_LABELS[s]}</SelectItem>
+  ))}
+  </SelectContent>
  </Select>
  </div>
 

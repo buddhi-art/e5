@@ -1,11 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ProjectForm } from "./project-form"
 import { ProjectActionsMenu } from "./project-actions-menu"
 import { Archive } from "lucide-react"
-import { ClientProjectGroups } from "@/components/projects/client-project-groups"
+import { ClientProjectGroups, type GroupedProject } from "@/components/projects/client-project-groups"
+
+type ProjectRow = GroupedProject & {
+  deleted_at: string | null
+}
 
 // Layer 2: ISR - Cache for 5 minutes
 export const revalidate = 300
@@ -13,19 +16,24 @@ export const revalidate = 300
 export default async function ProjectsPage() {
   const supabase = await createClient()
 
-  const { data: allProjects, error: activeProjErr } = await supabase
-    .from("projects")
-    .select("*, clients ( company_name )")
-    .order("created_at", { ascending: false })
+  const [allProjectsResult, clientsResult] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("*, clients ( company_name )")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("clients")
+      .select("id, company_name")
+      .order("company_name", { ascending: true }),
+  ])
+
+  const { data: allProjects, error: activeProjErr } = allProjectsResult
+  const { data: clients, error: clientsErr } = clientsResult
 
   // Split active vs archived in code (safe if deleted_at column doesn't exist)
-  const activeProjects = (allProjects || []).filter((p: any) => !p.deleted_at)
-  const archivedProjects = (allProjects || []).filter((p: any) => !!p.deleted_at)
-
-  const { data: clients, error: clientsErr } = await supabase
-    .from("clients")
-    .select("id, company_name")
-    .order("company_name", { ascending: true })
+  const projectRows = (allProjects || []) as unknown as ProjectRow[]
+  const activeProjects = projectRows.filter(p => !p.deleted_at)
+  const archivedProjects = projectRows.filter(p => !!p.deleted_at)
 
   if (activeProjErr) console.error('Projects fetch error:', activeProjErr.message)
   if (clientsErr) console.error('Clients fetch error:', clientsErr.message)
@@ -59,18 +67,18 @@ export default async function ProjectsPage() {
               </CardHeader>
               <CardContent className="pt-4">
                 <TabsContent value="active" className="mt-0">
-                  <ClientProjectGroups projects={activeProjects as any[]} clients={typedClients} />
+                  <ClientProjectGroups projects={activeProjects} clients={typedClients} />
                 </TabsContent>
                 <TabsContent value="archived" className="mt-0">
                   {archivedProjects && archivedProjects.length > 0 ? (
                     <div className="space-y-3">
-                      {archivedProjects.map((project: any) => (
+                      {archivedProjects.map((project: ProjectRow) => (
                         <div key={project.id} className="flex items-center justify-between p-3 shape-medium bg-surface-container-low border border-outline-variant/50 card-morph">
                           <div className="flex items-center gap-3">
                             <Archive className="w-4 h-4 text-outline shrink-0" />
                             <div>
                               <div className="font-medium text-on-surface">{project.title}</div>
-                              <div className="text-xs text-outline">{project.clients?.company_name || "Unknown"} &middot; Archived {new Date(project.deleted_at).toLocaleDateString()}</div>
+                              <div className="text-xs text-outline">{project.clients?.company_name || "Unknown"} &middot; Archived {new Date(project.deleted_at || '').toLocaleDateString()}</div>
                             </div>
                           </div>
                           <ProjectActionsMenu project={project} clients={typedClients} />

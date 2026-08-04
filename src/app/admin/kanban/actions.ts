@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -7,6 +6,19 @@ import { z } from 'zod'
 import { verifyAdminOrFounder } from '@/lib/auth-utils'
 import { createNotification } from '@/lib/notifications'
 import { captureActionError } from '@/lib/action-error'
+
+/** Raw row shape returned by the kanban task query (joined profiles + projects). */
+interface KanbanTaskRow {
+  id: string
+  title: string
+  status: string
+  phase: string | null
+  deadline: string | null
+  assigned_to: string | null
+  updated_at: string
+  profiles: { full_name: string } | { full_name: string }[] | null
+  projects: { id: string; title: string } | { id: string; title: string }[] | null
+}
 
 const MoveKanbanCardSchema = z.object({
     taskId: z.string().uuid(),
@@ -55,7 +67,7 @@ export async function moveKanbanCard(
             }
 
             // If task is being completed, set completed_at
-            const extraUpdate: Record<string, any> = { status: newStatus }
+            const extraUpdate: Record<string, unknown> = { status: newStatus }
             if (newStatus === 'completed') {
                 extraUpdate.completed_at = new Date().toISOString()
             }
@@ -86,7 +98,7 @@ export async function moveKanbanCard(
             }
         } else {
             // No optimistic locking — simple update
-            const extraUpdate: Record<string, any> = { status: newStatus }
+            const extraUpdate: Record<string, unknown> = { status: newStatus }
             if (newStatus === 'completed') {
                 extraUpdate.completed_at = new Date().toISOString()
             }
@@ -146,13 +158,13 @@ export async function getKanbanTasks(): Promise<KanbanTaskResponse[]> {
 
     if (!tasks) return []
 
-    return tasks.map((t: any) => ({
+    return tasks.map((t: KanbanTaskRow) => ({
         id: t.id,
         title: t.title,
-        project_name: t.projects?.title || 'No Project',
-        project_id: t.projects?.id || '',
+        project_name: typeof t.projects === 'object' && t.projects && 'title' in t.projects ? (t.projects as { title: string }).title : 'No Project',
+        project_id: typeof t.projects === 'object' && t.projects && 'id' in t.projects ? (t.projects as { id: string }).id : '',
         assigned_to: t.assigned_to,
-        assigned_name: t.profiles?.full_name || null,
+        assigned_name: typeof t.profiles === 'object' && t.profiles && 'full_name' in t.profiles ? (t.profiles as { full_name: string }).full_name : null,
         phase: t.phase || '',
         deadline: t.deadline,
         status: (['pending', 'in_progress', 'completed', 'blocked'].includes(t.status) ? t.status : 'pending') as 'pending' | 'in_progress' | 'completed' | 'blocked',

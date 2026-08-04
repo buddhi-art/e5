@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -7,6 +6,13 @@ import { FounderEmployeeTable } from './founder-employee-table'
 
 // Layer 2: ISR - Cache for 5 minutes
 export const revalidate = 300
+
+interface ArchivedEmployee {
+    id: string
+    full_name: string
+    designation: string | null
+    deleted_at: string
+}
 
 export default async function FounderEmployeesPage() {
     const supabase = await createClient()
@@ -63,7 +69,7 @@ export default async function FounderEmployeesPage() {
                         <TabsContent value="archived" className="mt-0">
                             {archivedEmployees && archivedEmployees.length > 0 ? (
                                 <div className="space-y-3">
-                                    {archivedEmployees.map((employee: any) => (
+                                    {archivedEmployees.map((employee: ArchivedEmployee) => (
                                         <div key={employee.id} className="flex items-center justify-between p-3 shape-medium bg-surface-container-low border border-outline-variant/50 card-morph">
                                             <div className="flex items-center gap-3">
                                                 <Archive className="w-4 h-4 text-outline shrink-0" />

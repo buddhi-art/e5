@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -104,7 +103,7 @@ export async function assignTask(formData: FormData) {
       }
     } catch (syncErr) {
       // Non-fatal: the task was created, deliverable sync is best-effort
-      console.error('Deliverable sync (non-fatal):', syncErr)
+      await captureActionError('assignTask:deliverableSync', syncErr)
     }
 
     // Notify the assignee that a task was assigned to them.
@@ -160,7 +159,7 @@ export async function assignTask(formData: FormData) {
           }
         }
       } catch (e) {
-        console.error('Failed to parse subtasks:', e)
+        await captureActionError('assignTask:subtaskParse', e)
       }
     }
 
@@ -196,7 +195,7 @@ export async function updateTask(id: string, formData: FormData) {
     const data = parsed.data
 
     // If status is being set to completed, also set completed_at
-    const extraUpdate: Record<string, any> = {}
+    const extraUpdate: Record<string, string> = {}
     if (data.status === 'completed') {
       extraUpdate.completed_at = new Date().toISOString()
     }
@@ -211,6 +210,7 @@ export async function updateTask(id: string, formData: FormData) {
     // Only touch the logistics column when the form actually submitted a
     // logistics payload. This prevents an edit made from a form without the
     // phase workspace (or a legacy client) from silently wiping stored data.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const logisticsUpdate: Record<string, any> = {}
     if (formData.get('logistics') !== null) {
       logisticsUpdate.logistics = data.logistics || null
@@ -397,7 +397,7 @@ export async function syncDeliverableSubtasks(projectId: string) {
         })
 
       if (subError) {
-        console.error('Failed to sync deliverable subtask:', subError.message)
+        await captureActionError('syncDeliverableSubtasks:perItem', subError)
         continue
       }
       syncedCount++

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useMemo, useState } from 'react'
@@ -17,18 +16,6 @@ import {
 } from 'date-fns'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-function hashColor(str: string): string {
- let hash = 0
- for (let i = 0; i < str.length; i++) {
- hash = str.charCodeAt(i) + ((hash << 5) - hash)
- }
- const colors = [
- '#0ea5e9', '#f97316', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6',
- '#f59e0b', '#6366f1', '#84cc16', '#d946ef', '#06b6d4', '#e11d48',
- ]
- return colors[Math.abs(hash) % colors.length]
-}
 
 function statusColor(status: string, isOverdue: boolean): string {
  if (isOverdue) return '#dc2626' // red for overdue
@@ -56,7 +43,7 @@ interface CalendarTask {
  status: string
  assigned_to: string | null
  profiles: { full_name: string } | null
- projects: { title: string; id: string; status: string; clients: { company_name: string } | null }
+  projects: { title: string; id: string; status: string; clients: { company_name: string } | null } | null
 }
 
 interface CalendarLeave {
@@ -123,12 +110,12 @@ export function CalendarMonthGrid({
   meetings,
   shoots = [],
   projects,
-  allEmployees,
-  allProjects,
-  allClients,
-  projectFilter,
-  employeeFilter,
-  clientFilter,
+  allEmployees: _allEmployees,
+  allProjects: _allProjects,
+  allClients: _allClients,
+  projectFilter: _projectFilter,
+  employeeFilter: _employeeFilter,
+  clientFilter: _clientFilter,
   viewMode,
   onNavigatePrev,
   onNavigateNext,

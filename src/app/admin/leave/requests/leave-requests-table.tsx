@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from 'react'
@@ -112,7 +111,7 @@ export function LeaveRequestsTable({ requests, leaveTypes }: { requests: LeaveRe
                     </TableHeader>
                     <TableBody>
                         {filteredRequests.length > 0 ? (
-                            filteredRequests.map((req: any) => (
+                            filteredRequests.map((req) => (
                                 <TableRow key={req.id} className="hover:bg-surface-container-high">
                                     <TableCell>
                                         <div className="font-medium text-on-surface">{req.profiles?.full_name}</div>

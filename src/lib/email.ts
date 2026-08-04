@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'server-only'
 
 export interface EmailPayload {
@@ -67,9 +66,9 @@ async function sendViaResend(payload: EmailPayload): Promise<EmailResult> {
 
         const data = await res.json()
         return { success: true, messageId: data.id }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Resend exception:', err)
-        return { success: false, error: err.message }
+        return { success: false, error: err instanceof Error ? err.message : String(err) }
     }
 }
 
@@ -102,8 +101,8 @@ async function sendViaSendGrid(payload: EmailPayload): Promise<EmailResult> {
         }
 
         return { success: true, messageId: res.headers.get('x-message-id') || undefined }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('SendGrid exception:', err)
-        return { success: false, error: err.message }
+        return { success: false, error: err instanceof Error ? err.message : String(err) }
     }
 }

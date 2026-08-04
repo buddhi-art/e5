@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -52,7 +51,7 @@ export function PackageSelect({
     name,
     disabled,
     className,
-    required,
+    required: _required,
 }: PackageSelectProps) {
     const [packages, setPackages] = useState<ProjectPackage[]>([])
     const [loading, setLoading] = useState(true)

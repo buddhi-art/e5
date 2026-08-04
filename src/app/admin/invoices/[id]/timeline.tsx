@@ -1,11 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { Clock, Send, Eye, CreditCard, AlertTriangle, XCircle } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { InvoiceTimelineEntry } from '@/types/invoice-timeline'
+import type { InvoiceStatus } from '@/lib/constants/statuses'
 
-const eventConfig: Record<string, { icon: any; label: string; color: string }> = {
+const eventConfig: Record<InvoiceStatus, { icon: LucideIcon; label: string; color: string }> = {
     draft: { icon: Clock, label: 'Draft Created', color: 'text-outline bg-surface-container-high' },
     sent: { icon: Send, label: 'Sent to Client', color: 'text-primary bg-primary-container' },
     viewed: { icon: Eye, label: 'Viewed by Client', color: 'text-tertiary bg-tertiary-container' },
@@ -61,9 +62,9 @@ export function InvoiceTimeline({ entries }: { entries: InvoiceTimelineEntry[] }
                                             hour: '2-digit', minute: '2-digit'
                                         })}
                                     </p>
-                                    {entry.metadata?.previous_status && (
+                                    {entry.metadata?.previous_status != null && (
                                         <p className="text-[11px] text-outline mt-0.5">
-                                            from {entry.metadata.previous_status.replace('_', ' ')}
+                                            from {String(entry.metadata.previous_status).replace('_', ' ')}
                                         </p>
                                     )}
                                 </div>

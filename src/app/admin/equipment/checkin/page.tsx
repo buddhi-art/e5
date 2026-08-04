@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { CheckinForm } from './checkin-form'
+import { CheckinForm, type ActiveCheckout } from './checkin-form'
 import { requireAdminOrFounder } from '@/lib/auth/page-guard'
 
 export default async function CheckinEquipmentPage({ searchParams }: { searchParams: Promise<{ equipment_id?: string }> }) {
@@ -42,8 +42,8 @@ export default async function CheckinEquipmentPage({ searchParams }: { searchPar
       </div>
 
       <div className="p-6 rounded-xl border border-outline-variant/50 bg-surface-container-lowest elevation-1 shape-large">
-        <CheckinForm 
-          activeCheckouts={checkouts || []} 
+        <CheckinForm
+          activeCheckouts={(checkouts as unknown as ActiveCheckout[]) || []}
           initialCheckoutId={initialCheckoutId}
         />
       </div>
