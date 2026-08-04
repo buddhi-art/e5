@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { assignTask } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,6 +33,10 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
   // Logistics data passed up from Phase 2 / Phase 3 sub-sections so we can
   // include it in the task record when the admin clicks "Assign Task".
   const logisticsRef = useRef<Record<string, unknown> | null>(null)
+
+  const handleLogisticsChange = useCallback((l: Record<string, unknown> | null) => {
+    logisticsRef.current = l
+  }, [])
 
   // State for Selects
   const [projectId, setProjectId] = useState('')
@@ -214,8 +218,8 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
           Phase 2: videography logistics (shoot location, date, times, staff, equipment)
           Phase 3: editing logistics (editing date, times, editors, deliverables)
           Phase 1/4/5: JSONB workspace with checklists and phase-specific fields */}
-      {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} onLogisticsChange={(l) => { logisticsRef.current = l }} />}
-      {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} onLogisticsChange={(l) => { logisticsRef.current = l }} />}
+      {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} onLogisticsChange={handleLogisticsChange} />}
+      {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} onLogisticsChange={handleLogisticsChange} />}
       {isWorkspacePhase(phase) && <TaskPhaseWorkspaceSection key={phase} phase={phase} />}
 
       {/* Sub-tasks & Sub-sub-tasks
