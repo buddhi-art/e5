@@ -217,6 +217,77 @@ export async function updateTaskPhaseWorkspace(taskId: string, patch: unknown) {
   return { success: true, logistics: validated.data }
 }
 
+export async function submitTaskForFounderReview(taskId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const { data: task } = await supabase
+    .from('tasks')
+    .select('assigned_to, phase, title, logistics, projects(title)')
+    .eq('id', taskId)
+    .maybeSingle()
+
+  if (!task || task.assigned_to !== user.id) return { error: 'Unauthorized' }
+  if (task.phase !== 'Phase 5') return { error: 'Only Phase 5 tasks can be submitted for review.' }
+
+  const existing = TaskLogisticsSchema.safeParse(task.logistics ?? {})
+  if (!existing.success) return { error: 'Invalid task logistics state.' }
+
+  const logistics = existing.data
+  if (!logistics.finalDeliveryLink || !logistics.finalDeliveryLink.trim()) {
+    return { error: 'Please enter a Final Delivery link before submitting.' }
+  }
+
+  if (logistics.founderReviewStatus === 'under_review') {
+    return { error: 'Task is already under review.' }
+  }
+  if (logistics.founderReviewStatus === 'approved') {
+    return { error: 'Task has already been approved.' }
+  }
+
+  // Record submission history
+  const history = logistics.founderReviewHistory || []
+  history.unshift({
+    revisionNumber: history.length + 1,
+    submittedLink: logistics.finalDeliveryLink,
+    createdAt: new Date().toISOString()
+  })
+
+  logistics.founderReviewStatus = 'under_review'
+  logistics.founderReviewHistory = history
+
+  const { error } = await supabase
+    .from('tasks')
+    .update({ logistics })
+    .eq('id', taskId)
+
+  if (error) return { error: error.message }
+
+  // Notify founders
+  const { data: admins } = await supabase
+    .from('profiles')
+    .select('id')
+    .or('role.eq.admin,designation.eq.Founder')
+
+  const projectTitle = (task as SupabaseRow).projects?.title || 'Project'
+  await Promise.all(
+    (admins || []).map((admin: SupabaseRow) =>
+      createNotification(
+        admin.id,
+        'system',
+        'Review Requested',
+        `Employee requested founder review for task "${task.title}" on ${projectTitle}.`,
+        '/founder/review-queue',
+      ),
+    ),
+  )
+
+  revalidatePath('/employee')
+  revalidatePath('/founder/review-queue')
+  return { success: true }
+}
+
 export async function updateMainTaskStatus(taskId: string, status: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -252,6 +323,16 @@ export async function updateMainTaskStatus(taskId: string, status: string) {
   }
 
   if (data.status === 'completed') {
+    // 1. Mark all subtasks as completed
+    const { data: subtasks } = await supabase.from('subtasks').select('id').eq('task_id', data.taskId)
+    await supabase.from('subtasks').update({ is_completed: true }).eq('task_id', data.taskId)
+    
+    // 2. Mark all sub-subtasks as completed
+    if (subtasks && subtasks.length > 0) {
+      const subtaskIds = subtasks.map((s: { id: string }) => s.id)
+      await supabase.from('sub_subtasks').update({ is_completed: true }).in('subtask_id', subtaskIds)
+    }
+
     await triggerTaskCompletionNotifications(supabase, data.taskId)
   }
 

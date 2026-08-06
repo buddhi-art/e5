@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { CheckOutSchema } from '@/lib/validations'
+import { MINIMUM_WORK_MINUTES } from '@/lib/constants'
 
 function getNepalDate() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kathmandu' })
@@ -93,10 +94,9 @@ export async function checkOut(daySummary: string) {
     const nowDate = new Date()
     const diffMs = nowDate.getTime() - checkInDate.getTime()
     const diffMinutes = diffMs / (1000 * 60)
-    const MIN_WORK_MINUTES = 120 // 2 hours
 
-    if (diffMinutes < MIN_WORK_MINUTES) {
-      const remainingMins = Math.ceil(MIN_WORK_MINUTES - diffMinutes)
+    if (diffMinutes < MINIMUM_WORK_MINUTES) {
+      const remainingMins = Math.ceil(MINIMUM_WORK_MINUTES - diffMinutes)
       const hrs = Math.floor(remainingMins / 60)
       const mins = remainingMins % 60
       return {

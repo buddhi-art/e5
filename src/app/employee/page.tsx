@@ -26,22 +26,7 @@ export default async function EmployeeDashboard() {
     .eq('assigned_to', user.id)
     .order('deadline', { ascending: true })
 
-  // Package projects used to receive five generated phase tasks. Filter only
-  // those legacy rows, preserving manually-created tasks with the same title
-  // on ordinary projects.
-  const legacyGeneratedTitles = [
-    /^Concept & Scripting \(.+\)$/,
-    /^Videography & On-Site Shoot \(.+\)$/,
-    /^Editing & Graphic Design \(.+\)$/,
-    /^QA Review & Founder Feedback \(.+\)$/,
-    /^Final Export & Client Delivery \(.+\)$/,
-  ]
-  const visibleTasks = (tasks || []).filter(task => {
-    const project = task.projects
-    const isPackageProject = Boolean(project?.package_id || project?.package_item_id)
-    const isLegacyGeneratedTask = legacyGeneratedTitles.some(pattern => pattern.test(task.title || ''))
-    return !(isPackageProject && isLegacyGeneratedTask)
-  })
+  const visibleTasks = tasks || []
 
   // Fetch all subtask comments for the loaded tasks
   const subtaskIds = visibleTasks.flatMap(t => (t.subtasks || []).map((s: SupabaseRow) => s.id))

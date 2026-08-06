@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { env } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     try {
         // Require CRON_SECRET to prevent unauthorized access to this endpoint
         const authHeader = request.headers.get('authorization')
-        const expectedSecret = process.env.CRON_SECRET
+        const expectedSecret = env.CRON_SECRET
         if (!expectedSecret) {
             console.error('CRON_SECRET environment variable is not set')
             return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })

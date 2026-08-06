@@ -1,11 +1,12 @@
 import NodeCache from 'node-cache'
 import { Redis } from '@upstash/redis'
+import { env } from '@/lib/env'
 
 // Cache driver selection:
 //   CACHE_DRIVER=redis   → always use Upstash Redis (fail fast if missing)
 //   CACHE_DRIVER=memory  → always use node-cache
 //   unset / auto         → auto-detect: Redis if env vars present, else node-cache
-const CACHE_DRIVER = (process.env.CACHE_DRIVER || 'auto').toLowerCase()
+const CACHE_DRIVER = env.CACHE_DRIVER
 const DEFAULT_TTL = 600 // 10 minutes
 
 // Local in-memory fallback
@@ -13,14 +14,14 @@ const nodeCache = new NodeCache({ stdTTL: DEFAULT_TTL, checkperiod: 120 })
 
 // Upstash Redis for Serverless (Vercel)
 let redis: Redis | null = null;
-const hasRedisEnv = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+const hasRedisEnv = !!(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN)
 
 if (CACHE_DRIVER === 'redis' && !hasRedisEnv) {
   console.error('CACHE_DRIVER=redis but UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are not set. Caching will be disabled.')
 } else if (CACHE_DRIVER === 'redis' || (CACHE_DRIVER === 'auto' && hasRedisEnv)) {
   redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: env.UPSTASH_REDIS_REST_URL!,
+    token: env.UPSTASH_REDIS_REST_TOKEN!,
   })
 }
 

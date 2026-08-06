@@ -1,20 +1,17 @@
 import type { ChecklistItem, TaskLogistics } from './validations'
 
 /**
- * Phase 1 / 4 / 5 workspace metadata and helpers.
- *
- * Phases 2 and 3 keep their canonical package-table workspaces
- * (task-logistics-section / editing-logistics-section). Phases 1, 4 and 5
- * store per-deliverable data in `tasks.logistics` (JSONB) instead — see
- * Accio.md §3 for the architecture decision.
+ * Phase 1 through 5 workspace metadata and helpers.
+ * All phases now store their per-deliverable/logistics data in
+ * `tasks.logistics` (JSONB) — see Accio.md §3 for the architecture decision.
  */
 
 export const WORKSPACE_VERSION = 1
 
-export type WorkspacePhase = 'Phase 1' | 'Phase 4' | 'Phase 5'
+export type WorkspacePhase = 'Phase 1' | 'Phase 2' | 'Phase 3' | 'Phase 4' | 'Phase 5'
 
 export function isWorkspacePhase(phase: string | null | undefined): phase is WorkspacePhase {
-  return phase === 'Phase 1' || phase === 'Phase 4' || phase === 'Phase 5'
+  return phase === 'Phase 1' || phase === 'Phase 2' || phase === 'Phase 3' || phase === 'Phase 4' || phase === 'Phase 5'
 }
 
 /** Default checklist templates, seeded when a workspace is first opened. */
@@ -26,6 +23,20 @@ export const PHASE_CHECKLIST_TEMPLATES: Record<WorkspacePhase, ChecklistItem[]> 
     { key: 'storyboard_ready', label: 'Storyboard ready', done: false },
     { key: 'shot_list_ready', label: 'Shot list ready', done: false },
     { key: 'crew_gear_booked', label: 'Crew & gear booked', done: false },
+  ],
+  'Phase 2': [
+    { key: 'gear_prepped', label: 'Gear & equipment prepped', done: false },
+    { key: 'location_scouted', label: 'Location confirmed & scouted', done: false },
+    { key: 'lighting_audio_checked', label: 'Lighting & audio checked on site', done: false },
+    { key: 'footage_backed_up', label: 'Footage backed up', done: false },
+    { key: 'gear_returned', label: 'Gear returned & checked in', done: false },
+  ],
+  'Phase 3': [
+    { key: 'footage_ingested', label: 'Footage ingested & synced', done: false },
+    { key: 'assembly_cut', label: 'Assembly cut completed', done: false },
+    { key: 'rough_cut', label: 'Rough cut for internal review', done: false },
+    { key: 'color_audio', label: 'Color grading & audio mix', done: false },
+    { key: 'fine_cut', label: 'Fine cut ready for QA', done: false },
   ],
   'Phase 4': [
     { key: 'video_quality', label: 'Video quality checked', done: false },
@@ -78,7 +89,7 @@ export const PHASE_HANDOFFS: Record<string, { nextPhase: string; title: string; 
 }
 
 /** The phase-specific primary artifact link field. */
-export const PHASE_PRIMARY_LINK_FIELD: Record<WorkspacePhase, 'scriptLink' | 'reviewLink' | 'finalDeliveryLink'> = {
+export const PHASE_PRIMARY_LINK_FIELD: Partial<Record<WorkspacePhase, 'scriptLink' | 'reviewLink' | 'finalDeliveryLink'>> = {
   'Phase 1': 'scriptLink',
   'Phase 4': 'reviewLink',
   'Phase 5': 'finalDeliveryLink',

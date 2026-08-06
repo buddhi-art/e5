@@ -76,11 +76,13 @@ const nextConfig: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
-          // HSTS: force HTTPS app-wide (browsers ignore it on plain HTTP/localhost)
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          ...(isDevelopment ? [] : [
+            // HSTS: force HTTPS app-wide only in production
+            {
+              key: "Strict-Transport-Security",
+              value: "max-age=63072000; includeSubDomains; preload",
+            }
+          ]),
         ],
       },
     ];

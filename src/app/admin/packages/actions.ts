@@ -1492,7 +1492,7 @@ export async function getPendingFounderReviews() {
         const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
         if (!isAuthorized) return []
 
-        const { data, error } = await supabase
+        const { data: deliverables, error: deliverableError } = await supabase
             .from('package_deliverables')
             .select(`
                 *,
@@ -1508,14 +1508,154 @@ export async function getPendingFounderReviews() {
             .eq('status', 'UNDER_REVIEW')
             .order('updated_at', { ascending: false })
 
-        if (error) {
-            console.error('Error fetching founder review queue:', error)
-            throw new Error(`Failed to load founder review queue: ${error.message}`)
+        if (deliverableError) {
+            console.error('Error fetching founder review queue (deliverables):', deliverableError)
+            throw new Error(`Failed to load founder review queue: ${deliverableError.message}`)
         }
 
-        return data || []
+        const { data: tasks, error: tasksError } = await supabase
+            .from('tasks')
+            .select(`
+                id,
+                title,
+                phase,
+                logistics,
+                profiles!tasks_assigned_to_fkey ( full_name ),
+                projects!inner (
+                    id,
+                    title,
+                    raw_footage_link,
+                    brand_assets_link,
+                    client_brief_notes,
+                    clients ( id, company_name )
+                )
+            `)
+            .eq('phase', 'Phase 5')
+            .filter('logistics->>founderReviewStatus', 'eq', 'under_review')
+
+        if (tasksError) {
+            console.error('Error fetching founder review queue (tasks):', tasksError)
+            throw new Error(`Failed to load founder review queue: ${tasksError.message}`)
+        }
+
+        const mappedTasks = (tasks || []).map((t: any) => ({
+            id: t.id,
+            package_id: t.projects?.id || t.id, // store project_id here for now
+            title: `[Task] ${t.title}`,
+            drive_link: t.logistics?.finalDeliveryLink,
+            status: 'UNDER_REVIEW',
+            revision_count: (t.logistics?.founderReviewHistory || []).length,
+            profiles: t.profiles,
+            isTask: true,
+            packages: {
+                package_number: 'TSK',
+                title: t.projects?.title || 'Unknown',
+                projects: t.projects,
+                clients: t.projects?.clients
+            }
+        }))
+
+        return [...(deliverables || []), ...mappedTasks]
     } catch (err: unknown) {
         await captureActionError('getPendingFounderReviews', err)
         throw err
+    }
+}
+
+export async function approveTaskDelivery(taskId: string) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+        if (!isAuthorized) return { error: 'Unauthorized' }
+
+        const { data: task, error: fetchError } = await supabase
+            .from('tasks')
+            .select('logistics, title, assigned_to')
+            .eq('id', taskId)
+            .maybeSingle()
+
+        if (fetchError || !task) return { error: 'Task not found' }
+
+        const logistics = task.logistics || {}
+        logistics.founderReviewStatus = 'approved'
+
+        const { error: updateError } = await supabase
+            .from('tasks')
+            .update({ logistics, status: 'completed', completed_at: new Date().toISOString() })
+            .eq('id', taskId)
+
+        if (updateError) throw updateError
+
+        // Notify employee
+        if (task.assigned_to) {
+            await createNotification(
+                task.assigned_to,
+                'system',
+                'Delivery Approved',
+                `Your final delivery for "${task.title}" has been approved by the founder!`,
+                '/employee',
+            )
+        }
+
+        revalidatePath('/founder/review-queue')
+        revalidatePath('/employee')
+        return { success: true }
+    } catch (err: unknown) {
+        await captureActionError('approveTaskDelivery', err)
+        return { error: 'Failed to approve task delivery' }
+    }
+}
+
+export async function requestTaskDeliveryRevision(taskId: string, comment: string) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { error: 'Unauthorized' }
+
+        const isAuthorized = await verifyAdminOrFounder(supabase, user.id)
+        if (!isAuthorized) return { error: 'Unauthorized' }
+
+        const { data: task, error: fetchError } = await supabase
+            .from('tasks')
+            .select('logistics, title, assigned_to')
+            .eq('id', taskId)
+            .maybeSingle()
+
+        if (fetchError || !task) return { error: 'Task not found' }
+
+        const logistics = task.logistics || {}
+        logistics.founderReviewStatus = 'revision_requested'
+        
+        if (logistics.founderReviewHistory && logistics.founderReviewHistory.length > 0) {
+            logistics.founderReviewHistory[0].founderComment = comment
+        }
+
+        const { error: updateError } = await supabase
+            .from('tasks')
+            .update({ logistics })
+            .eq('id', taskId)
+
+        if (updateError) throw updateError
+
+        // Notify employee
+        if (task.assigned_to) {
+            await createNotification(
+                task.assigned_to,
+                'system',
+                'Revision Requested',
+                `Founder requested a revision on your delivery for "${task.title}".`,
+                '/employee',
+            )
+        }
+
+        revalidatePath('/founder/review-queue')
+        revalidatePath('/employee')
+        return { success: true }
+    } catch (err: unknown) {
+        await captureActionError('requestTaskDeliveryRevision', err)
+        return { error: 'Failed to request revision for task delivery' }
     }
 }

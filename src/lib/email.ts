@@ -1,4 +1,5 @@
 import 'server-only'
+import { env } from '@/lib/env'
 
 export interface EmailPayload {
     to: string[]
@@ -22,7 +23,7 @@ export interface EmailResult {
  *   unset / dev             → logs to console, does not send
  */
 export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
-    const provider = (process.env.EMAIL_PROVIDER || 'dev').toLowerCase()
+    const provider = env.EMAIL_PROVIDER.toLowerCase()
 
     switch (provider) {
         case 'resend':
@@ -37,7 +38,7 @@ export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
 
 async function sendViaResend(payload: EmailPayload): Promise<EmailResult> {
     try {
-        const apiKey = process.env.RESEND_API_KEY
+        const apiKey = env.RESEND_API_KEY
         if (!apiKey) {
             console.error('RESEND_API_KEY not set')
             return { success: false, error: 'RESEND_API_KEY not set' }
@@ -50,7 +51,7 @@ async function sendViaResend(payload: EmailPayload): Promise<EmailResult> {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                from: process.env.EMAIL_FROM || 'E5 Chronicles <notifications@e5chronicles.com>',
+                from: env.EMAIL_FROM,
                 to: payload.to,
                 cc: payload.cc,
                 subject: payload.subject,
@@ -74,7 +75,7 @@ async function sendViaResend(payload: EmailPayload): Promise<EmailResult> {
 
 async function sendViaSendGrid(payload: EmailPayload): Promise<EmailResult> {
     try {
-        const apiKey = process.env.SENDGRID_API_KEY
+        const apiKey = env.SENDGRID_API_KEY
         if (!apiKey) {
             console.error('SENDGRID_API_KEY not set')
             return { success: false, error: 'SENDGRID_API_KEY not set' }
@@ -88,7 +89,7 @@ async function sendViaSendGrid(payload: EmailPayload): Promise<EmailResult> {
             },
             body: JSON.stringify({
                 personalizations: [{ to: payload.to.map(email => ({ email })), cc: payload.cc?.map(email => ({ email })) }],
-                from: { email: process.env.EMAIL_FROM || 'notifications@e5chronicles.com', name: 'E5 Chronicles' },
+                from: { email: env.EMAIL_FROM, name: 'E5 Chronicles' },
                 subject: payload.subject,
                 content: [{ type: 'text/html', value: payload.html }],
             }),

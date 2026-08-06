@@ -1,5 +1,6 @@
 import 'server-only'
 import { Redis } from '@upstash/redis'
+import { env } from '@/lib/env'
 
 /**
  * Distributed fixed-window rate limiter.
@@ -12,13 +13,13 @@ import { Redis } from '@upstash/redis'
  */
 
 const hasRedisEnv = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
 )
 
 const redis: Redis | null = hasRedisEnv
   ? new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: env.UPSTASH_REDIS_REST_URL!,
+    token: env.UPSTASH_REDIS_REST_TOKEN!,
   })
   : null
 

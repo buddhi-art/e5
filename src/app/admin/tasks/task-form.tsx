@@ -18,8 +18,6 @@ import { X, Plus, Info } from 'lucide-react'
 
 type ProjectOption = { id: string; title: string; clients?: { company_name?: string | null } | null }
 type EmployeeOption = { id: string; full_name: string; designation?: string | null }
-import { TaskLogisticsSection } from '@/components/task-logistics-section'
-import { EditingLogisticsSection } from '@/components/editing-logistics-section'
 import { TaskPhaseWorkspaceSection } from '@/components/task-phase-workspace-section'
 import { isWorkspacePhase, PHASE_LABELS } from '@/lib/phase-workspace'
 
@@ -30,13 +28,7 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
   const [newSubtask, setNewSubtask] = useState('')
   const [newSubSubtask, setNewSubSubtask] = useState<{ [key: number]: string }>({})
 
-  // Logistics data passed up from Phase 2 / Phase 3 sub-sections so we can
-  // include it in the task record when the admin clicks "Assign Task".
-  const logisticsRef = useRef<Record<string, unknown> | null>(null)
 
-  const handleLogisticsChange = useCallback((l: Record<string, unknown> | null) => {
-    logisticsRef.current = l
-  }, [])
 
   // State for Selects
   const [projectId, setProjectId] = useState('')
@@ -95,11 +87,7 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
     formData.set('assigned_to', assignedTo)
     formData.set('subtasks', JSON.stringify(subtasks))
 
-    // Inject logistics collected from the Phase 2/3 sub-section into formData
-    // so the server action persists it on the task record.
-    if (logisticsRef.current && Object.keys(logisticsRef.current).length > 0) {
-      formData.set('logistics', JSON.stringify(logisticsRef.current))
-    }
+
 
     setLoading(true)
     const result = await assignTask(formData)
@@ -114,7 +102,6 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
       setProjectId('')
       setPhase('')
       setAssignedTo('')
-      logisticsRef.current = null
     }
     setLoading(false)
   }
@@ -214,12 +201,10 @@ export function TaskForm({ projects, employees }: { projects: ProjectOption[]; e
         <Textarea id="description" name="description" placeholder="Additional details, references, or instructions..." className="bg-surface-container-high border-outline-variant text-on-surface min-h-[100px]" />
       </div>
 
-      {/* Phase-specific package operations are rendered only for their matching task phase.
+      {/* Phase-specific workspace (JSONB).
           Phase 2: videography logistics (shoot location, date, times, staff, equipment)
           Phase 3: editing logistics (editing date, times, editors, deliverables)
-          Phase 1/4/5: JSONB workspace with checklists and phase-specific fields */}
-      {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} onLogisticsChange={handleLogisticsChange} />}
-      {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} onLogisticsChange={handleLogisticsChange} />}
+          Phase 1/4/5: checklists and phase-specific fields */}
       {isWorkspacePhase(phase) && <TaskPhaseWorkspaceSection key={phase} phase={phase} />}
 
       {/* Sub-tasks & Sub-sub-tasks

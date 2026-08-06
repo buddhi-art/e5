@@ -7,7 +7,7 @@ import { CardContent } from '@/components/ui/card'
 import {
   ChevronDown, ChevronRight, FolderKanban,
   Calendar as CalendarIcon, CheckSquare, Clock,
-  Plus, X, Trash2, User, Package, PlayCircle,
+  Plus, X, Trash2, User, Package, PlayCircle, ExternalLink,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -385,6 +385,27 @@ function TaskCard({
             </span>
           </div>
 
+          {/* Links Section */}
+          {(logistics.scriptLink || logistics.reviewLink || logistics.finalDeliveryLink) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {logistics.scriptLink && (
+                <a href={String(logistics.scriptLink)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface-container-high hover:bg-surface-container-highest transition-colors text-[10px] font-semibold text-primary border border-outline-variant/50">
+                  <ExternalLink className="w-3 h-3" /> Script Link
+                </a>
+              )}
+              {logistics.reviewLink && (
+                <a href={String(logistics.reviewLink)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface-container-high hover:bg-surface-container-highest transition-colors text-[10px] font-semibold text-primary border border-outline-variant/50">
+                  <ExternalLink className="w-3 h-3" /> Review Link
+                </a>
+              )}
+              {logistics.finalDeliveryLink && (
+                <a href={String(logistics.finalDeliveryLink)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <ExternalLink className="w-3 h-3" /> Final Delivery Link
+                </a>
+              )}
+            </div>
+          )}
+
           {/* Progress bar */}
           {totalSubs > 0 && (
             <div className="w-full bg-surface-container-highest h-1 mt-2 rounded-full overflow-hidden">
@@ -614,18 +635,22 @@ export function ClientProjectsAccordion({
             </div>
 
             {/* Projects List */}
-            {isExpanded && (
-              <div className="border-t border-outline-variant bg-surface-container-low p-2 space-y-2">
-                {activeProjects.map(project => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    employees={employees}
-                    onRefresh={handleRefresh}
-                  />
-                ))}
+            <div 
+              className={`grid transition-all duration-200 ease-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+            >
+              <div className="overflow-hidden">
+                <div className="border-t border-outline-variant bg-surface-container-low p-2 space-y-2">
+                  {activeProjects.map(project => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      employees={employees}
+                      onRefresh={handleRefresh}
+                    />
+                  ))}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         )
       })}

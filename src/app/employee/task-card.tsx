@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -92,16 +93,30 @@ export function TaskCard({ task, commentsBySubtask }: { task: Task; commentsBySu
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-foreground text-lg">
-              {(() => {
-                const match = task.title.match(/^E5_Task_(\d+)\s*-\s*(.*)/);
-                const clientName = task.projects?.clients?.company_name || 'Client';
-                const projectName = task.projects?.title || 'Project';
-                if (match) {
-                  return `E5 - ${clientName} - ${projectName} - ${match[2]} - ${match[1]}`;
-                }
-                return `E5 - ${clientName} - ${projectName} - ${task.title}`;
-              })()}
+            <CardTitle className="flex items-start gap-3 text-foreground text-lg">
+              <motion.div
+                animate={task.status === 'completed' ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+                className="mt-1"
+              >
+                <Checkbox
+                  checked={task.status === 'completed'}
+                  disabled={loading === 'main'}
+                  onCheckedChange={() => handleMainStatusUpdate(task.status === 'completed' ? 'in_progress' : 'completed')}
+                  className="w-5 h-5 border-outline data-[state=checked]:bg-tertiary data-[state=checked]:border-tertiary"
+                />
+              </motion.div>
+              <span className={task.status === 'completed' ? 'line-through text-on-surface-variant' : ''}>
+                {(() => {
+                  const match = task.title.match(/^E5_Task_(\d+)\s*-\s*(.*)/);
+                  const clientName = task.projects?.clients?.company_name || 'Client';
+                  const projectName = task.projects?.title || 'Project';
+                  if (match) {
+                    return `E5 - ${clientName} - ${projectName} - ${match[2]} - ${match[1]}`;
+                  }
+                  return `E5 - ${clientName} - ${projectName} - ${task.title}`;
+                })()}
+              </span>
             </CardTitle>
             <div className="mt-2 flex items-center gap-2">
               <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-xs font-medium ${phaseChipClass[task.phase] ?? 'bg-surface-container-high text-on-surface-variant border-outline-variant/40'}`}>
@@ -219,21 +234,7 @@ export function TaskCard({ task, commentsBySubtask }: { task: Task; commentsBySu
           </div>
         )}
 
-        {totalSubs === 0 && (
-          <div className="pt-4 border-t border-outline-variant/40/50 flex items-center justify-end">
-            <button
-              onClick={() => handleMainStatusUpdate(task.status === 'completed' ? 'in_progress' : 'completed')}
-              disabled={loading === 'main'}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${task.status === 'completed'
-                ? 'text-on-surface-variant hover:text-foreground bg-surface-container-high'
-                : 'text-tertiary bg-tertiary-container/40 hover:bg-tertiary-container/60 border border-tertiary/30'
-                }`}
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              {task.status === 'completed' ? 'Mark as Incomplete' : 'Mark Task as Completed'}
-            </button>
-          </div>
-        )}
+        {/* Bottom complete button removed because checkbox is now in the header */}
       </CardContent>
     </Card>
   )

@@ -284,6 +284,15 @@ export const TaskLogisticsSchema = z.object({
   deliveryNotes: z.string().optional(),
   clientReceiptConfirmed: z.boolean().optional(),
   clientAcceptanceStatus: z.enum(['pending', 'accepted', 'changes_requested']).optional(),
+
+  // Phase 5 Founder Review Flow
+  founderReviewStatus: z.enum(['under_review', 'approved', 'revision_requested']).optional(),
+  founderReviewHistory: z.array(z.object({
+    revisionNumber: z.number(),
+    submittedLink: z.string(),
+    founderComment: z.string().optional(),
+    createdAt: z.string()
+  })).optional(),
 }).passthrough(); // preserve unknown/legacy keys instead of silently stripping them
 
 export type TaskLogistics = z.infer<typeof TaskLogisticsSchema>;

@@ -97,7 +97,7 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
         { data: invoicesByClient } = { data: [] },
         { count: completedTasksThisMonth } = { count: 0 },
         { count: tasksThisMonth } = { count: 0 },
-        tasksForAnalytics
+        { data: tasksForAnalytics }
     ] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true })
             .eq('role', 'employee').is('deleted_at', null),
@@ -178,11 +178,7 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
         supabase.from('tasks').select('*', { count: 'exact', head: true })
             .gte('created_at', startOfMonth)
             .lte('created_at', endOfMonth),
-        supabase.from('tasks')
-            .select('phase, created_at, completed_at, deadline, status')
-            .is('deleted_at', null)
-            .limit(300)
-            .order('created_at', { ascending: false }),
+        supabase.rpc('get_founder_task_analytics'),
     ])
 
     // ── Compute metrics ──
@@ -268,38 +264,13 @@ async function fetchFounderDashboard(): Promise<FounderDashboardData> {
     const monthlyInvoicesPaidVal = (thisMonthInvoices || []).filter((i: SupabaseRow) => i.status === 'paid').length
     const monthlyInvoicesTotalVal = (thisMonthInvoices || []).length
 
-    // Performance & Bottleneck Analytics
-    const tasksData = tasksForAnalytics?.data || []
-    let earlyCount = 0
-    let onTimeCount = 0
-    let lateCount = 0
-    const phaseTimes: Record<string, { totalDays: number, count: number }> = {}
-
-    tasksData.forEach((t: SupabaseRow) => {
-        if (t.status === 'completed' && t.completed_at && t.deadline) {
-            const compDate = new Date(t.completed_at as string)
-            const deadDate = new Date(t.deadline as string)
-            if (compDate < deadDate) earlyCount++
-            else if (compDate.toDateString() === deadDate.toDateString()) onTimeCount++
-            else lateCount++
-        }
-        if (t.status === 'completed' && t.completed_at && t.created_at && t.phase) {
-            const days = (new Date(t.completed_at as string).getTime() - new Date(t.created_at as string).getTime()) / (1000 * 3600 * 24)
-            if (!phaseTimes[t.phase as string]) phaseTimes[t.phase as string] = { totalDays: 0, count: 0 }
-            phaseTimes[t.phase as string].totalDays += days
-            phaseTimes[t.phase as string].count += 1
-            if (!phaseTimes[t.phase]) phaseTimes[t.phase] = { totalDays: 0, count: 0 }
-            phaseTimes[t.phase].totalDays += days
-            phaseTimes[t.phase].count += 1
-        }
-    })
-
-    const bottleneckAnalytics = Object.entries(phaseTimes).map(([phase, data]) => ({
-        phase,
-        avgDays: Math.round((data.totalDays / data.count) * 10) / 10
-    })).sort((a, b) => b.avgDays - a.avgDays)
-
-    const taskTimeliness = { early: earlyCount, onTime: onTimeCount, late: lateCount }
+    // Performance & Bottleneck Analytics from RPC
+    const taskTimeliness = { 
+        early: tasksForAnalytics?.earlyCount || 0, 
+        onTime: tasksForAnalytics?.onTimeCount || 0, 
+        late: tasksForAnalytics?.lateCount || 0 
+    }
+    const bottleneckAnalytics = (tasksForAnalytics?.phaseTimes || []).sort((a: any, b: any) => b.avgDays - a.avgDays)
 
     const data: FounderDashboardData = {
         totalEmployees: totalEmployees || 0,

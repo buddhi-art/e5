@@ -6,7 +6,7 @@ import {
   RotateCcw, RefreshCw, Clock, ShieldCheck, X
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { approveDeliverable, requestDeliverableRevision } from '@/app/admin/packages/actions'
+import { approveDeliverable, requestDeliverableRevision, approveTaskDelivery, requestTaskDeliveryRevision } from '@/app/admin/packages/actions'
 import { ProjectAssetsCard } from '@/components/project-assets-card'
 
 interface ReviewItem {
@@ -16,6 +16,7 @@ interface ReviewItem {
   drive_link?: string
   status: string
   revision_count: number
+  isTask?: boolean
   revision_history?: { id: string; revisionNumber: number; submittedDriveLink: string; founderComment?: string; createdAt: string }[]
   profiles?: { full_name: string }
   packages?: {
@@ -46,18 +47,21 @@ export function ReviewQueueClient({
   const [feedbackComment, setFeedbackComment] = useState('')
   const [revisionSubmitting, setRevisionSubmitting] = useState(false)
 
-  const handleApprove = async (delId: string, pkgId: string) => {
-    setLoadingId(delId)
+  const handleApprove = async (rev: ReviewItem) => {
+    setLoadingId(rev.id)
     try {
-      const res = await approveDeliverable(delId, pkgId)
+      const res = rev.isTask 
+        ? await approveTaskDelivery(rev.id)
+        : await approveDeliverable(rev.id, rev.package_id)
+
       if (res.error) {
         toast.error(res.error)
       } else {
-        toast.success('Deliverable approved! Status updated to DONE.')
-        setReviews(prev => prev.filter(r => r.id !== delId))
+        toast.success(rev.isTask ? 'Task delivery approved!' : 'Deliverable approved! Status updated to DONE.')
+        setReviews(prev => prev.filter(r => r.id !== rev.id))
       }
     } catch {
-      toast.error('Failed to approve deliverable.')
+      toast.error('Failed to approve item.')
     } finally {
       setLoadingId(null)
     }
@@ -72,11 +76,14 @@ export function ReviewQueueClient({
 
     setRevisionSubmitting(true)
     try {
-      const res = await requestDeliverableRevision(
-        selectedReview.id,
-        selectedReview.package_id,
-        feedbackComment
-      )
+      const res = selectedReview.isTask
+        ? await requestTaskDeliveryRevision(selectedReview.id, feedbackComment)
+        : await requestDeliverableRevision(
+            selectedReview.id,
+            selectedReview.package_id,
+            feedbackComment
+          )
+
       if (res.error) {
         toast.error(res.error)
       } else {
@@ -188,7 +195,7 @@ export function ReviewQueueClient({
                 <button
                   type="button"
                   disabled={loadingId === rev.id}
-                  onClick={() => handleApprove(rev.id, rev.package_id)}
+                  onClick={() => handleApprove(rev)}
                   className="flex-1 px-3 py-2 text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   {loadingId === rev.id ? (

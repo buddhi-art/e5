@@ -591,3 +591,12 @@ export async function removeSubtask(subtaskId: string) {
     return { error: err instanceof Error ? err.message : String(err) }
   }
 }
+
+export async function getPhaseTwoOptions() {
+  const supabase = await createClient()
+  const [employeesRes, equipmentRes] = await Promise.all([
+    supabase.from('profiles').select('id, full_name, designation, social_urls').eq('role', 'employee').is('deleted_at', null),
+    supabase.from('equipment').select('id, name, model, category, status').is('deleted_at', null)
+  ])
+  return { employees: employeesRes.data || [], equipment: equipmentRes.data || [] }
+}

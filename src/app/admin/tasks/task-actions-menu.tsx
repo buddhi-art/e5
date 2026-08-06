@@ -28,14 +28,53 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { toast } from 'sonner'
 import { MoreVertical, Edit, Trash2, Info } from 'lucide-react'
-import { TaskLogisticsSection } from '@/components/task-logistics-section'
-import { EditingLogisticsSection } from '@/components/editing-logistics-section'
 import { TaskPhaseWorkspaceSection } from '@/components/task-phase-workspace-section'
 import { isWorkspacePhase, PHASE_LABELS } from '@/lib/phase-workspace'
 
 type Task = { id: string; project_id: string; phase: string; assigned_to: string; status: string; deadline?: string | null; title: string; description?: string | null; logistics?: Record<string, unknown> | null }
 type ProjectOption = { id: string; title: string }
 type EmployeeOption = { id: string; full_name: string }
+
+function HoldToConfirmItem({ onConfirm, children, disabled }: { onConfirm: () => void, children: React.ReactNode, disabled?: boolean }) {
+  const [holding, setHolding] = useState(false)
+
+  return (
+    <DropdownMenuItem
+      disabled={disabled}
+      className="relative cursor-pointer text-m3-error hover:bg-m3-error-subtle hover:text-m3-error overflow-hidden group select-none transition-colors !p-0"
+      onPointerDown={(e) => {
+        if (disabled) return
+        setHolding(true)
+        const timeoutId = setTimeout(() => {
+          onConfirm()
+          setHolding(false)
+        }, 2000)
+        e.currentTarget.dataset.timeoutId = timeoutId.toString()
+      }}
+      onPointerUp={(e) => {
+        setHolding(false)
+        const timeoutId = e.currentTarget.dataset.timeoutId
+        if (timeoutId) clearTimeout(parseInt(timeoutId))
+      }}
+      onPointerLeave={(e) => {
+        setHolding(false)
+        const timeoutId = e.currentTarget.dataset.timeoutId
+        if (timeoutId) clearTimeout(parseInt(timeoutId))
+      }}
+      onClick={(e) => {
+        e.preventDefault()
+      }}
+    >
+      <div 
+        className={`absolute inset-0 bg-m3-error/20 ${holding ? 'transition-all duration-2000 ease-linear' : 'transition-all duration-200 ease-out'}`}
+        style={{ clipPath: holding ? 'inset(0 0% 0 0)' : 'inset(0 100% 0 0)' }}
+      />
+      <span className="relative z-10 flex items-center pointer-events-none w-full px-2 py-1.5">
+        {children}
+      </span>
+    </DropdownMenuItem>
+  )
+}
 
 export function TaskActionsMenu({ task, projects, employees }: { task: Task; projects: ProjectOption[]; employees: EmployeeOption[] }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -50,8 +89,6 @@ export function TaskActionsMenu({ task, projects, employees }: { task: Task; pro
   const hasPhaseTimeWorkspace = phase === 'Phase 2' || phase === 'Phase 3'
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this task? All sub-tasks will be permanently deleted.')) return
-
     setLoading(true)
     const result = await deleteTask(task.id)
     if (result?.error) {
@@ -98,10 +135,10 @@ export function TaskActionsMenu({ task, projects, employees }: { task: Task; pro
             Edit Task
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-outline-variant" />
-          <DropdownMenuItem onClick={handleDelete} disabled={loading} className="cursor-pointer text-m3-error hover:bg-m3-error-subtle hover:text-m3-error">
+          <HoldToConfirmItem onConfirm={handleDelete} disabled={loading}>
             <Trash2 className="w-4 h-4 mr-2" />
-            Delete Task
-          </DropdownMenuItem>
+            Delete Task (Hold)
+          </HoldToConfirmItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -209,9 +246,7 @@ export function TaskActionsMenu({ task, projects, employees }: { task: Task; pro
               <Textarea defaultValue={task.description || ''} id="description" name="description" className="bg-surface-container-high border-outline-variant text-on-surface min-h-[100px]" />
             </div>
 
-            {/* Package operations are phase-gated and persist in canonical package tables. */}
-            {projectId && phase === 'Phase 2' && <TaskLogisticsSection projectId={projectId} />}
-            {projectId && phase === 'Phase 3' && <EditingLogisticsSection projectId={projectId} />}
+
             {isWorkspacePhase(phase) && (
               <TaskPhaseWorkspaceSection
                 key={`${task.id}-${phase}`}

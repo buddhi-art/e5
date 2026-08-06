@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { checklistProgress, defaultChecklist, PHASE_LABELS, type WorkspacePhase } from '@/lib/phase-workspace'
 import type { ChecklistItem, TaskLogistics } from '@/lib/validations'
-import { updateTaskPhaseWorkspace } from '@/app/employee/actions'
+import { updateTaskPhaseWorkspace, submitTaskForFounderReview } from '@/app/employee/actions'
 
 interface TaskPhaseActionsProps {
   taskId: string
@@ -51,10 +51,14 @@ export function TaskPhaseActions({ taskId, phase, logistics }: TaskPhaseActionsP
   const [qaNotes, setQaNotes] = useState(logistics?.qaNotes ?? '')
   const [blockingIssues, setBlockingIssues] = useState((logistics?.blockingIssues ?? []).join('\n'))
   const [saving, setSaving] = useState(false)
+  const [submittingReview, setSubmittingReview] = useState(false)
 
   const progress = checklistProgress(checklist)
   const Icon = phase === 'Phase 1' ? FileText : phase === 'Phase 4' ? ClipboardCheck : PackageCheck
   const linkLabel = phase === 'Phase 1' ? 'Script link' : phase === 'Phase 4' ? 'Review cut link' : 'Final delivery link'
+  
+  const isDeliveryLocked = phase === 'Phase 5' && (logistics?.founderReviewStatus === 'under_review' || logistics?.founderReviewStatus === 'approved')
+
   const patch = useMemo<EmployeePatch>(() => {
     const next: EmployeePatch = { checklist }
     if (phase === 'Phase 1') next.scriptLink = primaryLink
@@ -78,6 +82,22 @@ export function TaskPhaseActions({ taskId, phase, logistics }: TaskPhaseActionsP
     if (result.error) toast.error(result.error)
     else toast.success(`${PHASE_LABELS[phase]} workspace saved`)
     setSaving(false)
+  }
+
+  async function submitForReview() {
+    setSubmittingReview(true)
+    // First save the workspace to ensure the link is persisted
+    const saveResult = await updateTaskPhaseWorkspace(taskId, patch)
+    if (saveResult.error) {
+      toast.error(saveResult.error)
+      setSubmittingReview(false)
+      return
+    }
+
+    const result = await submitTaskForFounderReview(taskId)
+    if (result.error) toast.error(result.error)
+    else toast.success('Link submitted for Founder Review!')
+    setSubmittingReview(false)
   }
 
   return (
@@ -107,7 +127,7 @@ export function TaskPhaseActions({ taskId, phase, logistics }: TaskPhaseActionsP
 
       <div className="space-y-2">
         <Label className={labelClass}>{linkLabel}</Label>
-        <Input type="url" value={primaryLink} onChange={(event) => setPrimaryLink(event.target.value)} placeholder="https://..." className={fieldClass} />
+        <Input type="url" value={primaryLink} onChange={(event) => setPrimaryLink(event.target.value)} placeholder="https://..." className={fieldClass} disabled={isDeliveryLocked} />
       </div>
 
       {phase === 'Phase 4' && (
@@ -134,9 +154,62 @@ export function TaskPhaseActions({ taskId, phase, logistics }: TaskPhaseActionsP
         </div>
       )}
 
-      <Button type="button" onClick={saveWorkspace} disabled={saving} className="min-h-10 gap-2">
+      {phase === 'Phase 5' && (
+        <div className="space-y-4 border-t border-outline-variant pt-4">
+          <div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant shadow-sm">
+            <h4 className="text-sm font-bold mb-2 text-foreground flex items-center gap-2">
+              <PackageCheck className="w-4 h-4 text-primary" />
+              Founder Review
+            </h4>
+            
+            {logistics?.founderReviewStatus === 'under_review' && (
+              <p className="text-xs text-amber-600 dark:text-amber-500 font-semibold mb-4 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                Currently pending founder approval. Link is locked.
+              </p>
+            )}
+            {logistics?.founderReviewStatus === 'approved' && (
+              <p className="text-xs text-emerald-600 dark:text-emerald-500 font-semibold mb-4 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+                Approved by Founder.
+              </p>
+            )}
+            {logistics?.founderReviewStatus === 'revision_requested' && (
+              <div className="mb-4 bg-rose-500/10 p-3 rounded-lg border border-rose-500/20">
+                <p className="text-xs text-rose-600 dark:text-rose-500 font-bold mb-1">Revision Requested</p>
+                {logistics.founderReviewHistory?.[0]?.founderComment && (
+                  <p className="text-xs text-on-surface-variant italic">"{logistics.founderReviewHistory[0].founderComment}"</p>
+                )}
+              </div>
+            )}
+            
+            <Button 
+              type="button" 
+              onClick={submitForReview} 
+              disabled={submittingReview || isDeliveryLocked || !primaryLink.trim()} 
+              className="w-full text-xs font-bold transition-all"
+              variant={logistics?.founderReviewStatus === 'revision_requested' ? 'destructive' : 'default'}
+            >
+              {submittingReview ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {logistics?.founderReviewStatus === 'revision_requested' ? 'Submit Revised Link' : 'Submit for Founder Review'}
+            </Button>
+            
+            {logistics?.founderReviewHistory && logistics.founderReviewHistory.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-outline-variant/40 space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Revision History</p>
+                {logistics.founderReviewHistory.map((rev) => (
+                  <div key={rev.revisionNumber} className="text-xs flex items-center justify-between text-on-surface-variant">
+                    <span>Rev #{rev.revisionNumber}</span>
+                    <span>{new Date(rev.createdAt).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Button type="button" onClick={saveWorkspace} disabled={saving} className="min-h-10 w-full gap-2 mt-4" variant="outline">
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-        {saving ? 'Saving…' : 'Save workspace'}
+        {saving ? 'Saving…' : 'Save workspace progress'}
       </Button>
     </section>
   )
